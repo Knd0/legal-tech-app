@@ -18,7 +18,7 @@ export class FacturasService {
     // We would need actual certificates here. 
     // For now we mock the initialization or protect it with try/catch to avoid crash if files missing.
     try {
-        const Afip = require('afip.js');
+        const Afip = require('@afipsdk/afip.js');
         this.afip = new Afip({
             CUIT: this.configService.get('AFIP_CUIT'),
             cert: './cert.crt',

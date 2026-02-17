@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.tu-dominio.com', // Placeholder for production URL
-  vapidPublicKey: 'BGPqWkOJnTCyfEjBbLM3ZzQ2M0lOy1JWxRwCU1DzONfffH3JnfQM9x2FurRkU3DxYkpN4zBbfNqyov31Yqpha5Ck'
+  apiUrl: 'https://legal-tech-app-gdme.onrender.com', 
+  vapidPublicKey: 'BAnC-u5ZZe-87bS2iKjF2qH6iKj9_qw_D5f8lM3n0oP-1rS2t3u4v5w6x7y8z9' // TODO: Replace with real key if changed
 };

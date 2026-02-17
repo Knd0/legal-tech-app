@@ -1,0 +1,221 @@
+<div class="p-6">
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Mi Perfil</h1>
+            <p class="text-slate-500">Administra tus datos personales, fiscalidad y seguridad.</p>
+        </div>
+        <button pButton label="Cambiar Contraseña" icon="pi pi-lock" (click)="openSecurityModal()"
+            class="p-button-outlined p-button-danger"></button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Profile Form -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">Información Personal
+                </h2>
+                <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="space-y-6">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Nombre Completo (Editable) -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Nombre Completo</label>
+                            <input type="text" formControlName="fullName" pInputText
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500" />
+                        </div>
+
+                        <!-- Email (Read-only) -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                            <input type="email" formControlName="email" pInputText
+                                class="w-full p-2 border rounded-md bg-slate-50" readonly />
+                        </div>
+
+                        <!-- Teléfono -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Teléfono (WhatsApp)</label>
+                            <input type="text" formControlName="phoneNumber" pInputText
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500"
+                                placeholder="54911..." />
+                            <small class="text-slate-400">Requerido para recuperar contraseña.</small>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-100 pt-6">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="pi pi-briefcase text-indigo-600"></i> Datos de Facturación (AFIP)
+                        </h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- CUIT -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">CUIT *</label>
+                                <input type="text" formControlName="cuit" pInputText
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="20-12345678-9" />
+                                <small *ngIf="profileForm.get('cuit')?.invalid && profileForm.get('cuit')?.touched"
+                                    class="text-red-500">CUIT es requerido (11 dígitos).</small>
+                            </div>
+
+                            <!-- Condición IVA -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Condición IVA</label>
+                                <select formControlName="condicionIva"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 bg-white">
+                                    <option value="Resp. Monotributo">Responsable Monotributo</option>
+                                    <option value="Resp. Inscripto">Responsable Inscripto</option>
+                                    <option value="Exento">Exento</option>
+                                </select>
+                            </div>
+
+                            <!-- IIBB -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Ingresos Brutos
+                                    (IIBB)</label>
+                                <input type="text" formControlName="iibb" pInputText
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500" />
+                            </div>
+
+                            <!-- Inicio Actividades -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Inicio de
+                                    Actividades</label>
+                                <input type="date" formControlName="initActivityUser" pInputText
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500" />
+                            </div>
+
+                            <!-- Punto de Venta -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Punto de Venta (AFIP)
+                                    *</label>
+                                <input type="number" formControlName="puntoVenta" pInputText
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="Ej: 1" />
+                            </div>
+                        </div>
+
+                        <!-- Domicilio -->
+                        <div class="mt-6">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Domicilio Fiscal *</label>
+                            <input type="text" formControlName="address" pInputText
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500"
+                                placeholder="Calle 123, Ciudad, Provincia" />
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-4">
+                        <button type="submit" pButton label="Guardar Cambios" icon="pi pi-check" [loading]="saving()"
+                            class="bg-indigo-600 hover:bg-indigo-700 border-indigo-600"></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sidebar: Integrations -->
+        <div class="space-y-6">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">Integraciones</h2>
+
+                <!-- Notifications Settings -->
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Configuración de Alertas</label>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div>
+                            <span class="text-xs text-slate-500 block mb-1">Días antes</span>
+                            <input type="number" pInputText [(ngModel)]="configDays" class="w-full p-1 text-sm">
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-500 block mb-1">Frecuencia (Horas)</span>
+                            <input type="number" pInputText [(ngModel)]="configHours" class="w-full p-1 text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Google Calendar -->
+                <div class="mb-6 border-t border-slate-100 pt-4">
+                    <h3 class="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                        <i class="pi pi-google"></i> Google Calendar
+                    </h3>
+                    <button pButton label="Conectar Cuenta" icon="pi pi-link"
+                        class="p-button-outlined p-button-secondary w-full text-sm"
+                        (click)="connectGoogleCalendar()"></button>
+                </div>
+
+                <!-- WhatsApp -->
+                <div class="border-t border-slate-100 pt-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                            <i class="pi pi-whatsapp text-green-600"></i> WhatsApp Bot
+                        </h3>
+                        <p-checkbox [(ngModel)]="configWhatsapp" [binary]="true"></p-checkbox>
+                    </div>
+
+                    <div *ngIf="configWhatsapp" class="animate-fade-in space-y-3">
+                        <div>
+                            <label class="text-xs text-slate-500">Número Bot (Tu número)</label>
+                            <input type="text" pInputText [(ngModel)]="configWhatsappNumber" class="w-full p-1 text-sm"
+                                placeholder="54911...">
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex gap-2">
+                            <button pButton icon="pi pi-save" (click)="saveIntegrations()" label="Guardar"
+                                class="p-button-sm flex-1"></button>
+                            <button pButton icon="pi pi-send" (click)="sendTestMessage()"
+                                class="p-button-sm p-button-success flex-1" pTooltip="Probar"></button>
+                        </div>
+
+                        <!-- QR Area -->
+                        <div *ngIf="qrCodeUrl" class="text-center p-2 bg-slate-50 rounded border border-slate-200">
+                            <p class="text-[10px] text-slate-500 mb-2">Escanea para vincular:</p>
+                            <img [src]="qrCodeUrl" class="mx-auto w-32 h-32 object-contain">
+                        </div>
+
+                        <div *ngIf="!qrCodeUrl && configWhatsapp"
+                            class="text-center p-2 bg-green-50 rounded border border-green-100">
+                            <span class="text-xs text-green-700 font-semibold block mb-2">Bot Conectado</span>
+                            <button pButton label="Desconectar" icon="pi pi-power-off" (click)="logoutWhatsapp()"
+                                class="p-button-danger p-button-outlined p-button-sm w-full text-xs"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Modal -->
+    <p-dialog [(visible)]="showSecurityModal" header="Cambiar Contraseña" [modal]="true" [style]="{width: '400px'}">
+        <form [formGroup]="securityForm" (ngSubmit)="changePassword()" class="space-y-4 pt-2">
+
+            <div *ngIf="!otpSent">
+                <p class="text-sm text-slate-600 mb-4">
+                    Para cambiar tu contraseña, enviaremos un código de seguridad a tu WhatsApp vinculado:
+                    <span class="font-bold">{{ profileForm.get('phoneNumber')?.value }}</span>
+                </p>
+                <button type="button" pButton label="Enviar Código" (click)="requestOtp()" class="w-full"></button>
+            </div>
+
+            <div *ngIf="otpSent" class="space-y-4 animate-fade-in">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Código de Verificación (OTP)</label>
+                    <input type="text" formControlName="otp" pInputText class="w-full" placeholder="123456" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Nueva Contraseña</label>
+                    <input type="password" formControlName="newPassword" pInputText class="w-full" />
+                    <small class="text-slate-400 text-xs">Mínimo 8 caracteres, mayúscula, número.</small>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Confirmar Contraseña</label>
+                    <input type="password" formControlName="confirmPassword" pInputText class="w-full" />
+                </div>
+
+                <button type="submit" pButton label="Confirmar Cambio" [disabled]="securityForm.invalid"
+                    class="w-full bg-indigo-600"></button>
+            </div>
+
+        </form>
+    </p-dialog>
+</div>

@@ -1,0 +1,295 @@
+<div class="space-y-6">
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4" *ngIf="balance()">
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div class="flex justify-between items-start">
+                <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Unidades de Medida</p>
+                <button (click)="openSettings()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="pi pi-cog"></i>
+                </button>
+            </div>
+            <div class="mt-2 space-y-1">
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-600">JUS (Entre Ríos):</span>
+                    <span class="font-bold text-slate-800">{{ configService.valorJus() | currency }}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-600">UMA (Nación):</span>
+                    <span class="font-bold text-slate-800">{{ configService.valorUma() | currency }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Honorarios + Gastos</p>
+            <p class="text-2xl font-bold text-slate-800 mt-1">{{ (balance()!.totalHonorarios + balance()!.totalGastos) |
+                currency }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Pagado</p>
+            <p class="text-2xl font-bold text-green-600 mt-1">{{ balance()!.totalPagos | currency }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+            <div class="absolute right-0 top-0 h-full w-1 bg-gradient-to-b from-transparent"
+                [ngClass]="balance()!.balance < 0 ? 'via-red-500 to-transparent' : 'via-green-500 to-transparent'">
+            </div>
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Saldo Final</p>
+            <p class="text-3xl font-bold mt-1"
+                [ngClass]="{'text-red-600': balance()!.balance < 0, 'text-green-600': balance()!.balance >= 0}">
+                {{ balance()!.balance | currency }}
+            </p>
+            <p class="text-[10px] text-slate-400 mt-1" *ngIf="balance()!.balance < 0">DEUDA PENDIENTE</p>
+            <p class="text-[10px] text-slate-400 mt-1" *ngIf="balance()!.balance >= 0">SALDO A FAVOR</p>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end">
+        <button (click)="openModal()"
+            class="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors shadow-sm font-semibold text-sm">
+            <i class="pi pi-plus"></i>
+            Registrar Movimiento
+        </button>
+    </div>
+
+    <!-- Movements List -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 tracking-wider">
+                        <th class="px-6 py-3 font-bold">Fecha</th>
+                        <th class="px-6 py-3 font-bold">Concepto</th>
+                        <th class="px-6 py-3 font-bold">Descripción</th>
+                        <th class="px-6 py-3 font-bold">Estado</th>
+                        <th class="px-6 py-3 font-bold text-right">Monto</th>
+                        <th class="px-6 py-3 font-bold text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <tr *ngFor="let m of movimientos()" class="hover:bg-slate-50 transition-colors group">
+                        <td class="px-6 py-3 text-slate-600 whitespace-nowrap">{{ m.fecha | date:'dd/MM/yyyy' }}</td>
+                        <td class="px-6 py-3">
+                            <span
+                                class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-transparent"
+                                [ngClass]="getTipoClass(m.tipo)">
+                                {{ getTipoLabel(m.tipo) }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-3">
+                            <p class="text-slate-800 font-medium">{{ m.descripcion }}</p>
+                            <p *ngIf="m.cantidad" class="text-xs text-slate-400 mt-0.5">
+                                {{ m.cantidad }} {{ m.unidad }} ( Valor hist.: {{ m.montoPesoOriginal | currency }} )
+                            </p>
+                        </td>
+                        <td class="px-6 py-3">
+                            <span *ngIf="m.tipo !== 'PAGO'"
+                                class="px-2 py-0.5 rounded-full text-[10px] font-bold border"
+                                [ngClass]="getEstadoClass(m.estado)">
+                                {{ m.estado }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-3 text-right font-bold tabular-nums text-base">
+                            <span
+                                [ngClass]="{'text-green-600': m.tipo === 'PAGO', 'text-slate-800': m.tipo !== 'PAGO'}">
+                                <span *ngIf="m.tipo === 'PAGO'">+</span>
+                                <span *ngIf="m.tipo !== 'PAGO'">-</span>
+                                {{ m.monto | currency }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-3 text-right">
+                            <button *ngIf="m.tipo === 'HONORARIO' || m.tipo === 'REGULADO' || m.tipo === 'CONVENIO'"
+                                (click)="generateInvoice(m)"
+                                class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition-colors"
+                                title="Generar Factura AFIP">
+                                <i class="pi pi-receipt"></i> Facturar
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="movimientos().length === 0">
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-400 italic">
+                            No hay movimientos registrados.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- FACTURAS SECTION -->
+    <div class="mt-8 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-6"
+        *ngIf="facturas().length > 0">
+        <h3 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Comprobantes Emitidos (AFIP)</h3>
+
+        <p-table [value]="facturas()" [tableStyle]="{ 'min-width': '50rem' }" styleClass="p-datatable-sm">
+            <ng-template pTemplate="header">
+                <tr class="bg-slate-50 text-slate-700 text-sm uppercase tracking-wider">
+                    <th class="p-3 font-semibold">Fecha</th>
+                    <th class="p-3 font-semibold">Tipo</th>
+                    <th class="p-3 font-semibold">Número</th>
+                    <th class="p-3 font-semibold text-right">Importe</th>
+                    <th class="p-3 font-semibold text-center">CAE</th>
+                    <th class="p-3 font-semibold text-center">Vto. CAE</th>
+                    <th class="p-3 font-semibold text-center">Acciones</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-factura>
+                <tr class="border-b hover:bg-slate-50 transition-colors text-slate-700">
+                    <td class="p-3">{{ factura.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td class="p-3"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-bold">Factura
+                            C</span></td>
+                    <td class="p-3 font-mono text-slate-600">{{ factura.puntoVenta | number:'4.0-0' }}-{{
+                        factura.nroCbte | number:'8.0-0' }}</td>
+                    <td class="p-3 text-right font-medium text-slate-900">{{ factura.impTotal |
+                        currency:'ARS':'symbol-narrow' }}</td>
+                    <td class="p-3 text-center font-mono text-xs text-slate-500">{{ factura.cae }}</td>
+                    <td class="p-3 text-center text-xs text-slate-500">{{ factura.vtoCae | date:'dd/MM/yyyy' }}</td>
+                    <td class="p-3 text-center">
+                        <button (click)="printFactura(factura)"
+                            class="text-slate-500 hover:text-slate-800 transition-colors" title="Imprimir">
+                            <i class="pi pi-print text-lg"></i>
+                        </button>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div *ngIf="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <h3 class="text-lg font-bold text-slate-800">Registrar Movimiento</h3>
+            <button (click)="closeModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                <i class="pi pi-times"></i>
+            </button>
+        </div>
+
+        <form [formGroup]="movimientoForm" (ngSubmit)="onSubmit()" class="p-6 space-y-5">
+
+            <!-- Tipo Selector -->
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tipo de
+                    Movimiento</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" (click)="movimientoForm.patchValue({ tipo: 'HONORARIO' })"
+                        class="px-3 py-2 border rounded-lg text-sm font-medium transition-all"
+                        [ngClass]="movimientoForm.get('tipo')?.value === 'HONORARIO' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'">
+                        Honorario
+                    </button>
+                    <button type="button" (click)="movimientoForm.patchValue({ tipo: 'GASTO' })"
+                        class="px-3 py-2 border rounded-lg text-sm font-medium transition-all"
+                        [ngClass]="movimientoForm.get('tipo')?.value === 'GASTO' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'">
+                        Gasto
+                    </button>
+                    <button type="button" (click)="movimientoForm.patchValue({ tipo: 'PAGO' })"
+                        class="px-3 py-2 border rounded-lg text-sm font-medium transition-all"
+                        [ngClass]="movimientoForm.get('tipo')?.value === 'PAGO' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'">
+                        Pago
+                    </button>
+                </div>
+                <div class="mt-2 flex gap-2" *ngIf="movimientoForm.get('tipo')?.value === 'HONORARIO'">
+                    <button type="button" (click)="movimientoForm.patchValue({ tipo: 'REGULADO' })"
+                        class="text-xs px-2 py-1 rounded bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200">Regulados</button>
+                    <button type="button" (click)="movimientoForm.patchValue({ tipo: 'CONVENIO' })"
+                        class="text-xs px-2 py-1 rounded bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200">Convenio</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Unidad</label>
+                    <select formControlName="unidad"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all">
+                        <option value="PESOS">Pesos ($)</option>
+                        <option value="JUS">JUS (Entre Ríos)</option>
+                        <option value="UMA">UMA (Nación)</option>
+                    </select>
+                </div>
+                <div class="space-y-1" *ngIf="movimientoForm.get('unidad')?.value !== 'PESOS'">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Cantidad</label>
+                    <input type="number" formControlName="cantidad" step="0.01"
+                        class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-bold">
+                </div>
+            </div>
+
+            <!-- Auto Calculated Amount -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col items-center justify-center">
+                <p class="text-xs text-slate-400 uppercase tracking-widest font-bold">Monto Final en Pesos</p>
+                <div class="flex items-baseline gap-1 mt-1">
+                    <span class="text-lg text-slate-500">$</span>
+                    <input formControlName="monto" type="number"
+                        class="bg-transparent text-3xl font-black text-slate-800 text-center w-40 focus:outline-none border-b border-dashed border-slate-300 focus:border-slate-800 transition-all placeholder:text-slate-300"
+                        placeholder="0.00">
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Descripción</label>
+                <textarea formControlName="descripcion" rows="2"
+                    class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all"
+                    placeholder="Ej: Honorarios por demanda inicial..."></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Fecha</label>
+                    <input type="date" formControlName="fecha"
+                        class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all">
+                </div>
+                <div class="space-y-1" *ngIf="movimientoForm.get('tipo')?.value !== 'PAGO'">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Estado</label>
+                    <select formControlName="estado"
+                        class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all">
+                        <option value="PENDIENTE">Pendiente</option>
+                        <option value="PARCIAL">Pago Parcial</option>
+                        <option value="PAGADO">Pagado Totalmente</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" [disabled]="movimientoForm.invalid"
+                    class="w-full py-3 bg-slate-900 text-white rounded-lg font-bold hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-slate-900/20">
+                    <span *ngIf="movimientoForm.get('tipo')?.value === 'PAGO'">Registrar Pago</span>
+                    <span *ngIf="movimientoForm.get('tipo')?.value !== 'PAGO'">Cargar Honorario/Gasto</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div *ngIf="showSettingsModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-slate-800">Configuración de Valores</h3>
+            <button (click)="closeModal()" class="text-slate-400 hover:text-slate-600">
+                <i class="pi pi-times"></i>
+            </button>
+        </div>
+        <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()" class="p-6 space-y-4">
+            <div class="space-y-2">
+                <label class="block text-sm font-bold text-slate-700">Valor JUS (Provincia)</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-2.5 text-slate-400">$</span>
+                    <input type="number" formControlName="valorJus"
+                        class="w-full pl-8 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900">
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="block text-sm font-bold text-slate-700">Valor UMA (Nación)</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-2.5 text-slate-400">$</span>
+                    <input type="number" formControlName="valorUma"
+                        class="w-full pl-8 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900">
+                </div>
+            </div>
+            <button type="submit"
+                class="w-full py-2.5 bg-slate-900 text-white rounded-lg font-bold hover:bg-slate-800 mt-2">
+                Guardar Valores
+            </button>
+        </form>
+    </div>
+</div>

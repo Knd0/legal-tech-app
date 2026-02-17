@@ -1,0 +1,93 @@
+<div class="p-6 fade-in-up" *ngIf="expediente() as e">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800">Expediente {{ e.nroExpediente }}</h1>
+            <p class="text-slate-500">Detalle del Caso</p>
+        </div>
+        <div class="flex gap-2">
+            <p-button label="Volver" icon="pi pi-arrow-left" styleClass="p-button-outlined"
+                (onClick)="goBack()"></p-button>
+            <p-button label="Editar" icon="pi pi-pencil" styleClass="p-button-outlined"
+                [routerLink]="['/expedientes', e.id, 'edit']"></p-button>
+            <p-button label="Exportar Excel" icon="pi pi-file-excel" severity="success"
+                (onClick)="exportToExcel()"></p-button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Main Info -->
+        <p-card header="Información del Expediente" styleClass="h-full shadow-sm md:col-span-2">
+            <div class="flex flex-col gap-4">
+                <div>
+                    <span class="block font-bold text-slate-700 mb-1">Carátula:</span>
+                    <p class="text-lg text-slate-800 bg-slate-50 p-2 rounded border border-slate-200">{{ e.caratula }}
+                    </p>
+                </div>
+                <div *ngIf="e.cliente || clientName()" class="mb-2">
+                    <span class="font-bold text-slate-700">Cliente:</span>
+                    <a [routerLink]="['/clientes', e.clienteId]" class="text-blue-600 hover:underline ml-2 font-medium">
+                        {{ clientName() || 'Ver Cliente' }}
+                    </a>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <span class="font-bold text-slate-700">Estado:</span>
+                        <div class="mt-1">
+                            <p-tag [value]="e.estado" [severity]="getSeverity(e.estado)"></p-tag>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="font-bold text-slate-700">Fecha Inicio:</span>
+                        <div class="mt-1 text-slate-600">{{ e.fechaInicio | date:'dd/MM/yyyy' }}</div>
+                    </div>
+                </div>
+            </div>
+        </p-card>
+
+        <!-- Judicial Location -->
+        <p-card header="Radicación" styleClass="h-full shadow-sm">
+            <div class="flex flex-col gap-4">
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold text-slate-700">Fuero:</span>
+                    <span class="text-slate-600">{{ e.fuero }}</span>
+                </div>
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold text-slate-700">Juzgado:</span>
+                    <span class="text-slate-600">{{ e.juzgado }}</span>
+                </div>
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold text-slate-700">Secretaría:</span>
+                    <span class="text-slate-600">{{ e.secretaria || '-' }}</span>
+                </div>
+            </div>
+        </p-card>
+
+        <!-- Contraparte -->
+        <p-card header="Contraparte" styleClass="h-full shadow-sm">
+            <div class="flex flex-col gap-4">
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold text-slate-700">Nombre:</span>
+                    <span class="text-slate-600">{{ e.contraparte || '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold text-slate-700">Abogado:</span>
+                    <span class="text-slate-600">{{ e.abogadoContraparte || '-' }}</span>
+                </div>
+            </div>
+        </p-card>
+
+        <!-- Description -->
+        <p-card header="Descripción / Estado Procesal" styleClass="h-full shadow-sm md:col-span-2">
+            <div class="flex flex-col gap-2">
+                <p class="p-4 bg-slate-50 rounded border text-slate-600 whitespace-pre-line leading-relaxed">{{
+                    e.descripcion || 'Sin descripción' }}</p>
+            </div>
+        </p-card>
+
+        <!-- Document Management Section -->
+        <div class="col-span-1 md:col-span-2">
+            <app-documents-list [expedienteId]="e.id"></app-documents-list>
+        </div>
+    </div>
+
+</div>

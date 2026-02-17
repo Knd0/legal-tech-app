@@ -1,0 +1,142 @@
+@import "primeicons/primeicons.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================
+   VISUAL REBOOT: HIGH-FIDELITY CORPORATE
+   ========================================= */
+
+:root {
+    /* --- 1. Refined Palette (Deep & Corporate) --- */
+    --bg-app: #f1f5f9;
+    /* slate-100: Darker than 50 for card contrast */
+    --bg-surface: #ffffff;
+    /* pure white */
+
+    --text-main: #0f172a;
+    /* slate-900: Sharper text */
+    --text-body: #334155;
+    /* slate-700: Softer body text */
+    --text-muted: #64748b;
+    /* slate-500 */
+
+    --brand-navy: #0f172a;
+    /* Navy Blue (Primary) */
+    --brand-gold: #b45309;
+    /* Amber-700 (Subtle Accent, barely used) */
+    --brand-alert: #be123c;
+    /* Rose-700 (Urgent) */
+
+    --border-color: #e2e8f0;
+    /* slate-200 */
+
+    /* --- 2. PrimeNG Token Mapping --- */
+    --primary-color: var(--brand-navy);
+    --primary-color-text: #ffffff;
+    --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    --border-radius: 0.5rem;
+    /* rounded-lg */
+}
+
+/* Base Reset */
+body {
+    background-color: var(--bg-app);
+    color: var(--text-body);
+    font-family: var(--font-family);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Prevent Zoom on Mobile Inputs */
+input,
+textarea,
+select,
+.p-inputtext,
+.p-dropdown-label {
+    font-size: 16px !important;
+}
+
+/* =========================================
+   COMPONENT UTILITIES (The "Pro" Look)
+   ========================================= */
+
+/* 1. Pro Cards */
+.card-pro {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    /* rounded-xl */
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    /* shadow-md */
+    overflow: hidden;
+}
+
+/* 2. Pro Inputs (PrimeNG Override) */
+.p-inputtext {
+    padding: 0.65rem 0.75rem;
+    border-color: #cbd5e1;
+    /* slate-300 */
+    color: var(--text-main);
+    border-radius: 0.375rem;
+}
+
+.p-inputtext:enabled:focus {
+    border-color: var(--brand-navy);
+    box-shadow: 0 0 0 1px var(--brand-navy);
+}
+
+/* 3. Pro Buttons */
+.p-button {
+    background: var(--brand-navy);
+    border: 1px solid var(--brand-navy);
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    border-radius: 0.5rem;
+}
+
+.p-button:enabled:hover {
+    background: #1e293b;
+    /* slate-800 */
+    border-color: #1e293b;
+}
+
+.p-button.p-button-outlined {
+    background: transparent;
+    color: var(--brand-navy);
+    border-color: #e2e8f0;
+}
+
+.p-button.p-button-outlined:enabled:hover {
+    background: #f8fafc;
+    color: var(--brand-navy);
+    border-color: #cbd5e1;
+}
+
+/* 4. Menubar Clean */
+.p-menubar {
+    border: none;
+    background: var(--brand-navy);
+    color: white;
+    border-radius: 0;
+    padding: 1rem 2rem;
+}
+
+/* 5. Mobile Bottom Nav Utility */
+.bottom-nav-fixed {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 1000;
+}
+
+/* 6. SweetAlert2 Z-Index Fix */
+.swal2-container {
+    z-index: 11000 !important;
+    /* Higher than PrimeNG masks (approx 10000) */
+}

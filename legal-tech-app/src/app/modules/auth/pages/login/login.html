@@ -1,0 +1,78 @@
+<div class="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="flex justify-center">
+            <div class="bg-blue-900 text-white p-3 rounded-lg shadow-lg">
+                <i class="pi pi-briefcase text-3xl"></i>
+            </div>
+        </div>
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-slate-900">
+            Estudio Jurídico
+        </h2>
+        <p class="mt-2 text-center text-sm text-slate-600">
+            Sistema de Gestión Integral
+        </p>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow-xl shadow-slate-200 sm:rounded-lg sm:px-10 border border-slate-100">
+            <h3 class="text-xl font-medium text-slate-700 mb-6 text-center">Iniciar Sesión</h3>
+
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+
+                <!-- Email Mode -->
+                <div class="space-y-6">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-slate-700"> Correo Electrónico </label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="pi pi-envelope text-slate-400"></i>
+                            </div>
+                            <input id="email" type="email" formControlName="email" pInputText
+                                class="block w-full pl-10 sm:text-sm border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                [ngClass]="{'border-red-300': loginForm.get('email')?.invalid && loginForm.get('email')?.touched}"
+                                placeholder="abogada@estudio.com">
+                        </div>
+                        <small *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+                            class="text-red-500 text-xs mt-1">
+                            Ingrese un correo válido.
+                        </small>
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-slate-700"> Contraseña </label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="pi pi-lock text-slate-400"></i>
+                            </div>
+                            <input id="password" type="password" formControlName="password" pInputText
+                                class="block w-full pl-10 sm:text-sm border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="••••••••">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div>
+                    <button type="submit" [disabled]="loading"
+                        class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-900 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all">
+                        <i *ngIf="loading" class="pi pi-spin pi-spinner mr-2"></i>
+                        <span>Iniciar Sesión</span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-slate-200"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-slate-500">
+                            ¿Olvidaste tu contraseña?
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

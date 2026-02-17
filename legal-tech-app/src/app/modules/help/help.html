@@ -1,0 +1,365 @@
+<div class="flex h-full bg-slate-50">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col h-full sticky top-0 overflow-y-auto">
+        <div class="p-6 border-b border-slate-100">
+            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <i class="pi pi-question-circle text-blue-600"></i>
+                Centro de Ayuda
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">Guía de usuario y soporte</p>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-1">
+            <button *ngFor="let section of sections" (click)="scrollTo(section.id)"
+                class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors"
+                [ngClass]="activeSection === section.id ? 'bg-blue-50 text-blue-700 font-bold shadow-sm ring-1 ring-blue-100' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'">
+                <i [class]="section.icon"></i>
+                <span class="text-sm">{{ section.label }}</span>
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-slate-100">
+            <div class="bg-indigo-50 rounded-lg p-4">
+                <p class="text-xs font-bold text-indigo-800 mb-1">¿Necesitas soporte técnico?</p>
+                <p class="text-xs text-indigo-600 mb-3">Contacta al administrador del sistema si encuentras un error.
+                </p>
+                <button
+                    class="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded hover:bg-indigo-700 w-full font-medium transition-colors">
+                    Contactar Soporte
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 h-full overflow-y-auto p-6 md:p-10 scroll-smooth">
+        <div class="max-w-4xl mx-auto space-y-16">
+
+            <!-- INTRODUCCION -->
+            <section id="intro" class="scroll-mt-6">
+                <div class="bg-indigo-600 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
+                    <div class="absolute right-0 top-0 opacity-10 transform translate-x-10 -translate-y-10">
+                        <i class="pi pi-compass text-[15rem]"></i>
+                    </div>
+                    <h1 class="text-3xl font-black mb-4 relative z-10">Bienvenida a LegalTech</h1>
+                    <p class="text-indigo-100 text-lg leading-relaxed max-w-2xl relative z-10">
+                        Esta plataforma ha sido diseñada para optimizar la gestión de tu estudio jurídico.
+                        Aquí encontrarás todas las herramientas necesarias para administrar clientes, expedientes,
+                        vencimientos y contabilidad de manera eficiente.
+                    </p>
+                </div>
+            </section>
+
+            <!-- FAQ & TIPS (Intro) -->
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-amber-50 p-6 rounded-xl border border-amber-100">
+                    <h3 class="font-bold text-amber-800 flex items-center gap-2 mb-3">
+                        <i class="pi pi-lightbulb"></i> Tips Rápidos
+                    </h3>
+                    <ul class="space-y-2 text-sm text-amber-900">
+                        <li>• Usa <kbd
+                                class="px-2 py-0.5 bg-white rounded border border-amber-200 font-mono text-xs">Ctrl +
+                                F</kbd> para buscar en esta página.</li>
+                        <li>• Mantén los datos de tus clientes actualizados para el bot de WhatsApp.</li>
+                        <li>• Revisa el Dashboard cada mañana para ver tus prioridades.</li>
+                    </ul>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                    <h3 class="font-bold text-blue-800 flex items-center gap-2 mb-3">
+                        <i class="pi pi-question"></i> Preguntas Frecuentes
+                    </h3>
+                    <ul class="space-y-2 text-sm text-blue-900">
+                        <li><strong>¿Cómo cambio mi contraseña?</strong> Desde Perfil > Seguridad.</li>
+                        <li><strong>¿El sistema hace backup?</strong> Sí, automático cada noche.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- DASHBOARD -->
+            <section id="dashboard" class="scroll-mt-6 pt-6 border-t border-slate-200 scroll-spy-target">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                        <i class="pi pi-home text-xl"></i>
+                    </div>
+                    Panel de Control
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-700 mb-2">Métricas Clave (KPIs)</h3>
+                        <p class="text-slate-600 text-sm mb-4">
+                            En la parte superior verás contadores en tiempo real. Son indicadores vitales de la salud de
+                            tu estudio:
+                        </p>
+                        <ul class="space-y-3">
+                            <li class="flex gap-3 items-start">
+                                <div class="bg-blue-50 p-2 rounded text-blue-600"><i class="pi pi-users"></i></div>
+                                <div>
+                                    <span class="font-bold text-slate-700 block text-sm">Clientes</span>
+                                    <span class="text-xs text-slate-500">Total de clientes activos en tu base de
+                                        datos.</span>
+                                </div>
+                            </li>
+                            <li class="flex gap-3 items-start">
+                                <div class="bg-purple-50 p-2 rounded text-purple-600"><i class="pi pi-briefcase"></i>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-slate-700 block text-sm">Expedientes</span>
+                                    <span class="text-xs text-slate-500">Causas en trámite (excluye archivados).</span>
+                                </div>
+                            </li>
+                            <li class="flex gap-3 items-start">
+                                <div class="bg-green-50 p-2 rounded text-green-600"><i class="pi pi-dollar"></i></div>
+                                <div>
+                                    <span class="font-bold text-slate-700 block text-sm">Balance Mes</span>
+                                    <span class="text-xs text-slate-500">Ingresos Totales - Gastos Totales del mes
+                                        corriente.</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-700 mb-2">Semáforo de Vencimientos</h3>
+                        <p class="text-slate-600 text-sm mb-4">
+                            El widget de alertas utiliza un sistema de semáforo para priorizar:
+                        </p>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3 p-2 bg-red-50 border border-red-100 rounded-lg">
+                                <div class="h-3 w-3 rounded-full bg-red-500 animate-pulse"></div>
+                                <span class="text-sm font-bold text-red-700">Urgente (<= 2 días)</span>
+                            </div>
+                            <div class="flex items-center gap-3 p-2 bg-orange-50 border border-orange-100 rounded-lg">
+                                <div class="h-3 w-3 rounded-full bg-orange-500"></div>
+                                <span class="text-sm font-bold text-orange-700">Atención (<= 1 semana)</span>
+                            </div>
+                            <div class="flex items-center gap-3 p-2 bg-emerald-50 border border-emerald-100 rounded-lg">
+                                <div class="h-3 w-3 rounded-full bg-emerald-500"></div>
+                                <span class="text-sm font-bold text-emerald-700">Normal (> 1 semana)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CLIENTES -->
+            <section id="clientes" class="scroll-mt-6 pt-6 border-t border-slate-200 scroll-spy-target">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+                        <i class="pi pi-users text-xl"></i>
+                    </div>
+                    Gestión de Clientes
+                </h2>
+
+                <div class="space-y-8">
+                    <!-- Workflow 1 -->
+                    <div class="flex gap-6">
+                        <div class="hidden md:flex flex-col items-center">
+                            <div
+                                class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">
+                                1</div>
+                            <div class="h-full w-0.5 bg-slate-200 my-2"></div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Alta de Cliente</h3>
+                            <p class="text-slate-600 text-sm mb-3">
+                                Al crear un cliente, intenta completar todos los campos posibles. El
+                                <strong>celular</strong> es crucial para las notificaciones de WhatsApp.
+                            </p>
+                            <div class="bg-slate-100 p-4 rounded-lg text-xs font-mono text-slate-600">
+                                Clientes > Botón "Nuevo Cliente" > Completar formulario
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Workflow 2 -->
+                    <div class="flex gap-6">
+                        <div class="hidden md:flex flex-col items-center">
+                            <div
+                                class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">
+                                2</div>
+                            <div class="h-full w-0.5 bg-slate-200 my-2"></div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Seguimiento y Contacto</h3>
+                            <p class="text-slate-600 text-sm mb-3">
+                                Desde la lista de clientes puedes realizar acciones rápidas sin entrar al detalle.
+                            </p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="p-3 border rounded bg-white">
+                                    <i class="pi pi-whatsapp text-green-500 mb-1"></i>
+                                    <p class="font-bold text-xs">WhatsApp Directo</p>
+                                    <p class="text-[10px] text-slate-500">Abre chat sin agendar.</p>
+                                </div>
+                                <div class="p-3 border rounded bg-white">
+                                    <i class="pi pi-pencil text-blue-500 mb-1"></i>
+                                    <p class="font-bold text-xs">Edición Rápida</p>
+                                    <p class="text-[10px] text-slate-500">Actualiza teléfono/email.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- EXPEDIENTES -->
+            <section id="expedientes" class="scroll-mt-6 pt-6 border-t border-slate-200 scroll-spy-target">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                        <i class="pi pi-briefcase text-xl"></i>
+                    </div>
+                    Expedientes y Causas
+                </h2>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                    <p class="text-sm text-blue-800">
+                        <strong>Nota Importante:</strong> Un expediente siempre debe pertenecer a un Cliente. Si el
+                        cliente no existe, créalo primero.
+                    </p>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="font-bold text-slate-800 mb-2">Estructura de un Expediente</h3>
+                        <p class="text-sm text-slate-600 mb-4">El expediente es el contenedor digital de toda la causa.
+                            Contiene:</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Card 1 -->
+                            <div
+                                class="bg-white p-4 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
+                                <div
+                                    class="h-8 w-8 rounded bg-slate-100 text-slate-600 flex items-center justify-center mb-3">
+                                    <i class="pi pi-id-card"></i>
+                                </div>
+                                <h4 class="font-bold text-sm text-slate-800">Carátula</h4>
+                                <p class="text-xs text-slate-500 mt-1">Datos judiciales: Nro, Fuero, Juzgado, Carátula
+                                    completa.</p>
+                            </div>
+                            <!-- Card 2 -->
+                            <div
+                                class="bg-white p-4 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
+                                <div
+                                    class="h-8 w-8 rounded bg-slate-100 text-slate-600 flex items-center justify-center mb-3">
+                                    <i class="pi pi-wallet"></i>
+                                </div>
+                                <h4 class="font-bold text-sm text-slate-800">Contabilidad</h4>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Registra <strong>Gastos</strong> (Bonos, Tasas) y <strong>Pagos</strong>
+                                    (Honorarios).
+                                    El sistema calcula el saldo automáticamente.
+                                </p>
+                            </div>
+                            <!-- Card 3 -->
+                            <div
+                                class="bg-white p-4 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
+                                <div
+                                    class="h-8 w-8 rounded bg-slate-100 text-slate-600 flex items-center justify-center mb-3">
+                                    <i class="pi pi-file-pdf"></i>
+                                </div>
+                                <h4 class="font-bold text-sm text-slate-800">Archivos</h4>
+                                <p class="text-xs text-slate-500 mt-1">Sube PDFs de cédulas, escritos o sentencias para
+                                    tener copia digital.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CALENDARIO -->
+            <section id="calendario" class="scroll-mt-6 pt-6 border-t border-slate-200 scroll-spy-target">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">
+                        <i class="pi pi-calendar text-xl"></i>
+                    </div>
+                    Agenda y Vencimientos
+                </h2>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="font-bold text-slate-800 mb-3">Tipos de Vencimiento</h3>
+                        <ul class="space-y-3">
+                            <li class="flex gap-3 p-3 bg-white border border-slate-200 rounded-lg">
+                                <span
+                                    class="text-red-500 font-bold text-xs uppercase bg-red-50 px-2 py-1 rounded h-fit">Perentorio</span>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-800">Plazos Fatales</p>
+                                    <p class="text-xs text-slate-500">Contestación de demandas, apelaciones. Generan
+                                        alertas más agresivas.</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3 p-3 bg-white border border-slate-200 rounded-lg">
+                                <span
+                                    class="text-blue-500 font-bold text-xs uppercase bg-blue-50 px-2 py-1 rounded h-fit">Audiencia</span>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-800">Presencial / Virtual</p>
+                                    <p class="text-xs text-slate-500">Requiere preparación previa y asistencia puntual.
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-slate-800 text-white p-6 rounded-xl">
+                        <h3 class="font-bold text-lg mb-2 flex items-center gap-2">
+                            <i class="pi pi-google"></i> Google Calendar
+                        </h3>
+                        <p class="text-sm text-slate-300 mb-4">
+                            Si vinculas tu cuenta, todo lo que cargues aquí aparecerá en tu celular.
+                        </p>
+                        <div class="space-y-2 text-xs opacity-80">
+                            <p>✓ Sincronización automática al crear.</p>
+                            <p>✓ Título y Descripción incluidos.</p>
+                            <p>✓ Recordatorios nativos de Google.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CONFIGURACION -->
+            <section id="configuracion" class="scroll-mt-6 pt-6 border-t border-slate-200 pb-20 scroll-spy-target">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+                        <i class="pi pi-cog text-xl"></i>
+                    </div>
+                    Configuración Avanzada
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h4 class="font-bold text-slate-800">WhatsApp Bot</h4>
+                                <p class="text-xs text-slate-500">Asistente 24/7</p>
+                            </div>
+                            <i class="pi pi-whatsapp text-2xl text-green-500"></i>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-4 leading-relaxed">
+                            Al escanear el QR, permites que el sistema envíe mensajes <strong>como si fueras
+                                tú</strong>.
+                            Esto se usa para enviar recordatorios de vencimientos a tus clientes automáticamente.
+                        </p>
+                        <div class="text-xs bg-slate-50 p-3 rounded text-slate-500 italic">
+                            "Hola [Nombre], te recordamos que mañana vence el plazo para presentar..."
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl border border-slate-200">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h4 class="font-bold text-slate-800">Valores de Referencia</h4>
+                                <p class="text-xs text-slate-500">JUS y Honorarios</p>
+                            </div>
+                            <i class="pi pi-calculator text-2xl text-slate-400"></i>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-4 leading-relaxed">
+                            Mantén actualizado el valor del JUS Arancelario. El sistema lo usará para convertir
+                            automáticamente los montos regulados en JUS a Pesos en el momento del pago.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>

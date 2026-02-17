@@ -1,0 +1,68 @@
+2026/02/17-06:20:49.122 d6e8 Reusing MANIFEST F:\PROYECTOS\Abogada\backend\whatsapp-auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/02/17-06:20:49.127 d6e8 Recovering log #5195
+2026/02/17-06:20:49.949 d6e8 Reusing old log F:\PROYECTOS\Abogada\backend\whatsapp-auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/005195.log 
+2026/02/17-06:20:49.950 d6e8 Delete type=2 #5176
+2026/02/17-06:20:49.950 d6e8 Delete type=2 #5177
+2026/02/17-06:20:49.951 d6e8 Delete type=2 #5178
+2026/02/17-06:20:49.951 d6e8 Delete type=2 #5194
+2026/02/17-06:20:49.951 d6e8 Delete type=2 #5198
+2026/02/17-06:20:49.951 d6e8 Delete type=2 #5200
+2026/02/17-06:20:56.701 f420 Level-0 table #5214: started
+2026/02/17-06:20:56.758 f420 Level-0 table #5214: 1117474 bytes OK
+2026/02/17-06:20:56.804 f420 Delete type=0 #5195
+2026/02/17-06:20:56.885 f420 Compacting 1@0 + 1@1 files
+2026/02/17-06:20:56.981 f420 Generated table #5215@0: 27149 keys, 518368 bytes
+2026/02/17-06:20:57.042 f420 Generated table #5216@0: 40 keys, 3963 bytes
+2026/02/17-06:20:57.072 f420 Generated table #5217@0: 116 keys, 17027 bytes
+2026/02/17-06:20:57.280 f420 Generated table #5218@0: 2581 keys, 57810 bytes
+2026/02/17-06:20:57.300 f420 Generated table #5219@0: 107 keys, 15332 bytes
+2026/02/17-06:20:57.300 f420 Compacted 1@0 + 1@1 files => 612500 bytes
+2026/02/17-06:20:57.340 f420 compacted to: files[ 0 5 53 16 0 0 0 ]
+2026/02/17-06:20:57.508 f420 Moved #5215 to level-2 518368 bytes OK: files[ 0 4 54 16 0 0 0 ]
+2026/02/17-06:20:57.675 fc34 Compacting 1@1 + 10@2 files
+2026/02/17-06:20:57.754 fc34 Generated table #5220@1: 4288 keys, 2152947 bytes
+2026/02/17-06:20:57.855 fc34 Generated table #5221@1: 4181 keys, 2151225 bytes
+2026/02/17-06:20:57.946 fc34 Generated table #5222@1: 3780 keys, 2149859 bytes
+2026/02/17-06:20:58.397 fc34 Generated table #5223@1: 27739 keys, 2198950 bytes
+2026/02/17-06:20:58.774 fc34 Generated table #5224@1: 51476 keys, 2221953 bytes
+2026/02/17-06:20:59.218 fc34 Generated table #5225@1: 25160 keys, 2275940 bytes
+2026/02/17-06:20:59.706 fc34 Generated table #5226@1: 29566 keys, 2265637 bytes
+2026/02/17-06:21:00.430 fc34 Generated table #5227@1: 30824 keys, 2262847 bytes
+2026/02/17-06:21:01.248 fc34 Generated table #5228@1: 24548 keys, 2273345 bytes
+2026/02/17-06:21:01.957 fc34 Generated table #5229@1: 30295 keys, 2181808 bytes
+2026/02/17-06:21:01.958 fc34 Compacted 1@1 + 10@2 files => 22134511 bytes
+2026/02/17-06:21:02.002 fc34 compacted to: files[ 0 3 54 16 0 0 0 ]
+2026/02/17-06:21:02.002 fc34 Delete type=2 #5143
+2026/02/17-06:21:02.002 fc34 Delete type=2 #5144
+2026/02/17-06:21:02.003 fc34 Delete type=2 #5145
+2026/02/17-06:21:02.003 fc34 Delete type=2 #5146
+2026/02/17-06:21:02.003 fc34 Delete type=2 #5147
+2026/02/17-06:21:02.003 fc34 Delete type=2 #5148
+2026/02/17-06:21:02.003 fc34 Delete type=2 #5149
+2026/02/17-06:21:02.003 fc34 Delete type=2 #5155
+2026/02/17-06:21:02.003 fc34 Delete type=2 #5156
+2026/02/17-06:21:02.003 fc34 Delete type=2 #5157
+2026/02/17-06:21:02.003 fc34 Delete type=2 #5199
+2026/02/17-06:21:02.003 fc34 Delete type=2 #5214
+2026/02/17-06:21:02.003 fc34 Delete type=2 #5216
+2026/02/17-06:21:02.194 fc34 Compacting 1@2 + 9@3 files
+2026/02/17-06:21:03.141 fc34 Generated table #5230@2: 88789 keys, 2240676 bytes
+2026/02/17-06:21:03.838 fc34 Generated table #5231@2: 96738 keys, 2248987 bytes
+2026/02/17-06:21:04.135 fc34 Generated table #5232@2: 101479 keys, 2254917 bytes
+2026/02/17-06:21:04.405 fc34 Generated table #5233@2: 38951 keys, 2305507 bytes
+2026/02/17-06:21:04.553 fc34 Generated table #5234@2: 41865 keys, 2208313 bytes
+2026/02/17-06:21:04.621 fc34 Generated table #5235@2: 2796 keys, 2162590 bytes
+2026/02/17-06:21:04.687 fc34 Generated table #5236@2: 2376 keys, 2157004 bytes
+2026/02/17-06:21:04.729 fc34 Generated table #5237@2: 519 keys, 383565 bytes
+2026/02/17-06:21:04.729 fc34 Compacted 1@2 + 9@3 files => 15961559 bytes
+2026/02/17-06:21:04.731 fc34 compacted to: files[ 0 3 53 15 0 0 0 ]
+2026/02/17-06:21:04.732 fc34 Delete type=2 #5093
+2026/02/17-06:21:04.732 fc34 Delete type=2 #5094
+2026/02/17-06:21:04.732 fc34 Delete type=2 #5192
+2026/02/17-06:21:04.732 fc34 Delete type=2 #5201
+2026/02/17-06:21:04.733 fc34 Delete type=2 #5202
+2026/02/17-06:21:04.733 fc34 Delete type=2 #5203
+2026/02/17-06:21:04.733 fc34 Delete type=2 #5204
+2026/02/17-06:21:04.733 fc34 Delete type=2 #5205
+2026/02/17-06:21:04.733 fc34 Delete type=2 #5206
+2026/02/17-06:21:04.733 fc34 Delete type=2 #5215

@@ -1,0 +1,60 @@
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+            <i class="pi pi-folder-open text-slate-500"></i>
+            Documentos y Archivos
+        </h3>
+        <div class="relative">
+            <input type="file" #fileInput (change)="onFileSelected($event)" class="hidden">
+            <button (click)="fileInput.click()" [disabled]="isUploading()"
+                class="px-3 py-1.5 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-2">
+                <i class="pi" [ngClass]="isUploading() ? 'pi-spin pi-spinner' : 'pi-upload'"></i>
+                <span *ngIf="!isUploading()">Subir Archivo</span>
+                <span *ngIf="isUploading()">Subiendo...</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Drag & Drop Zone (Visual only for now, input triggers action) -->
+    <div *ngIf="documents().length === 0"
+        class="p-8 text-center border-2 border-dashed border-slate-200 m-4 rounded-xl">
+        <div class="text-slate-300 mb-2">
+            <i class="pi pi-cloud-upload text-4xl"></i>
+        </div>
+        <p class="text-slate-500 font-medium">No hay documentos cargados</p>
+        <p class="text-xs text-slate-400 mt-1">Sube archivos PDF, Word, Excel o imágenes relevantes para este legajo.
+        </p>
+    </div>
+
+    <div *ngIf="documents().length > 0" class="divide-y divide-slate-100">
+        <div *ngFor="let doc of documents()"
+            class="p-3 flex items-center justify-between hover:bg-slate-50 group transition-colors">
+            <div class="flex items-center gap-3 overflow-hidden">
+                <div
+                    class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-200 shrink-0">
+                    <i class="pi text-xl" [ngClass]="getIconClass(doc.mimeType)"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-slate-800 truncate">{{ doc.originalName }}</p>
+                    <p class="text-[10px] text-slate-400">
+                        {{ formatSize(doc.size) }} • {{ doc.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <!-- Download -->
+                <a [href]="getDownloadUrl(doc.id)" target="_blank"
+                    class="p-2 text-slate-400 hover:text-slate-700 transition-colors">
+                    <i class="pi pi-download"></i>
+                </a>
+                <!-- Preview (if applicable, separate feature) -->
+
+                <!-- Delete -->
+                <button (click)="deleteDocument(doc.id)"
+                    class="p-2 text-slate-400 hover:text-red-600 transition-colors">
+                    <i class="pi pi-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

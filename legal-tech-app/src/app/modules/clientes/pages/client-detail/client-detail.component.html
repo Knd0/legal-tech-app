@@ -1,0 +1,177 @@
+<div class="p-6 fade-in-up" *ngIf="client() as c">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800">{{ c.apellido }}, {{ c.nombre }}</h1>
+            <p class="text-slate-500">Detalle del Cliente</p>
+        </div>
+        <div class="flex gap-2">
+            <p-button label="Volver" icon="pi pi-arrow-left" styleClass="p-button-outlined"
+                (onClick)="goBack()"></p-button>
+            <p-button label="Editar" icon="pi pi-pencil" styleClass="p-button-outlined"
+                [routerLink]="['/clientes', c.id, 'edit']"></p-button>
+            <p-button label="Exportar Excel" icon="pi pi-file-excel" severity="success"
+                (onClick)="exportToExcel()"></p-button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Personal Information -->
+        <p-card header="Información Personal" styleClass="h-full shadow-sm">
+            <div class="flex flex-col gap-4">
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold text-slate-700">DNI:</span>
+                    <span class="text-slate-600">{{ c.dni }}</span>
+                </div>
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold text-slate-700">CUIT:</span>
+                    <span class="text-slate-600">{{ c.cuit || '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold text-slate-700">Fecha de Nacimiento:</span>
+                    <span class="text-slate-600">{{ c.fechaNacimiento ? (c.fechaNacimiento | date:'dd/MM/yyyy') : '-'
+                        }}</span>
+                </div>
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold text-slate-700">Ocupación:</span>
+                    <span class="text-slate-600">{{ c.ocupacion || '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold text-slate-700">Fecha Alta:</span>
+                    <span class="text-slate-600">{{ c.fechaAlta | date:'dd/MM/yyyy' }}</span>
+                </div>
+            </div>
+        </p-card>
+
+        <!-- Contact Information -->
+        <p-card header="Contacto" styleClass="h-full shadow-sm">
+            <div class="flex flex-col gap-4">
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold text-slate-700">Teléfono:</span>
+                    <span class="text-slate-600">{{ c.telefono }}</span>
+                </div>
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold text-slate-700">Teléfono Alt.:</span>
+                    <span class="text-slate-600">{{ c.telefonoAlternativo || '-' }}</span>
+                </div>
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold text-slate-700">Email:</span>
+                    <span class="text-slate-600">{{ c.email || '-' }}</span>
+                </div>
+                <div class="flex justify-between items-center border-b pb-2">
+                    <span class="font-bold text-slate-700">Domicilio:</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-slate-600">{{ c.domicilio || '-' }}</span>
+                        <button *ngIf="c.domicilio" pButton icon="pi pi-map-marker"
+                            class="p-button-rounded p-button-text p-button-sm text-orange-600 !p-0 !w-6 !h-6"
+                            pTooltip="Ver en Google Maps" tooltipPosition="top" (click)="openMap(c.domicilio)">
+                        </button>
+                    </div>
+                </div>
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold text-slate-700">Localidad:</span>
+                    <span class="text-slate-600">{{ c.localidad || '-' }}</span>
+                </div>
+            </div>
+        </p-card>
+
+        <!-- Consultation Details -->
+        <p-card header="Datos de la Consulta" styleClass="h-full shadow-sm md:col-span-2">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="flex flex-col gap-2">
+                    <span class="font-bold text-slate-700">Objeto de Consulta:</span>
+                    <p class="p-3 bg-slate-50 rounded border text-slate-600">{{ c.objetoConsulta || 'Sin datos' }}</p>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <span class="font-bold text-slate-700">Pretensión:</span>
+                    <p class="p-3 bg-slate-50 rounded border text-slate-600">{{ c.pretension || 'Sin datos' }}</p>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <span class="font-bold text-slate-700">Origen de Consulta:</span>
+                    <span class="text-slate-600">{{ c.origenConsulta || '-' }}</span>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <span class="font-bold text-slate-700">Expedientes Previos:</span>
+                    <p-tag [severity]="c.tieneExpedientesPrevios ? 'warn' : 'success'"
+                        [value]="c.tieneExpedientesPrevios ? 'SI' : 'NO'"></p-tag>
+                </div>
+            </div>
+            <div class="mt-4 flex flex-col gap-2">
+                <span class="font-bold text-slate-700">Observaciones Generales:</span>
+                <p class="p-3 bg-slate-50 rounded border text-slate-600 whitespace-pre-line">{{ c.observaciones || 'Sin
+                    observaciones' }}</p>
+            </div>
+        </p-card>
+
+        <!-- Family Group -->
+        <p-card header="Grupo Familiar" styleClass="h-full shadow-sm md:col-span-2"
+            *ngIf="c.grupoFamiliar && c.grupoFamiliar.length > 0">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+                        <tr>
+                            <th class="px-4 py-2">Nombre</th>
+                            <th class="px-4 py-2">Vínculo</th>
+                            <th class="px-4 py-2">Edad/Fecha Nac.</th>
+                            <th class="px-4 py-2">DNI</th>
+                            <th class="px-4 py-2">Ocupación/Escuela</th>
+                            <th class="px-4 py-2">Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let f of c.grupoFamiliar" class="bg-white border-b hover:bg-slate-50">
+                            <td class="px-4 py-2 font-medium text-slate-900">{{ f.apellido }} {{ f.nombre }}</td>
+                            <td class="px-4 py-2">{{ f.vinculo }}</td>
+                            <td class="px-4 py-2">{{ f.fechaNacimiento ? (f.fechaNacimiento | date:'dd/MM/yyyy') :
+                                (f.edad + ' años') }}</td>
+                            <td class="px-4 py-2">{{ f.dni || '-' }}</td>
+                            <td class="px-4 py-2">{{ f.ocupacion || f.escuela || '-' }}</td>
+                            <td class="px-4 py-2">{{ f.observaciones || '-' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </p-card>
+
+        <!-- Expedientes Related -->
+        <p-card header="Expedientes Vinculados" styleClass="h-full shadow-sm md:col-span-2"
+            *ngIf="expedientes().length > 0">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+                        <tr>
+                            <th class="px-4 py-2">Nro.</th>
+                            <th class="px-4 py-2">Carátula</th>
+                            <th class="px-4 py-2">Estado</th>
+                            <th class="px-4 py-2">Fecha Inicio</th>
+                            <th class="px-4 py-2 text-right">Ver</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let e of expedientes()" class="bg-white border-b hover:bg-slate-50">
+                            <td class="px-4 py-2 font-medium text-slate-900">{{ e.nroExpediente }}</td>
+                            <td class="px-4 py-2">{{ e.caratula }}</td>
+                            <td class="px-4 py-2">
+                                <span class="px-2 py-1 rounded bg-slate-100 font-bold text-xs">{{ e.estado }}</span>
+                            </td>
+                            <td class="px-4 py-2">{{ e.fechaInicio | date:'dd/MM/yyyy' }}</td>
+                            <td class="px-4 py-2 text-right">
+                                <button pButton icon="pi pi-eye" class="p-button-rounded p-button-text p-button-sm"
+                                    [routerLink]="['/expedientes', e.id]"></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </p-card>
+
+        <!-- Cuenta Corriente Section -->
+        <p-card header="Cuenta Corriente (Honorarios y Gastos)" styleClass="h-full shadow-sm md:col-span-2">
+            <app-cuenta-corriente [clientId]="c.id"></app-cuenta-corriente>
+        </p-card>
+
+        <!-- Document Management Section -->
+        <div class="col-span-1 md:col-span-2">
+            <app-documents-list [clientId]="c.id"></app-documents-list>
+        </div>
+    </div>
+</div>

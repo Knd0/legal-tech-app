@@ -1,0 +1,80 @@
+<div class="flex flex-col gap-6 pb-10">
+    <div class="flex justify-between items-end">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Expedientes</h1>
+            <p class="text-slate-500 text-sm mt-1">Gestión de causas y legajos judiciales.</p>
+        </div>
+        <div class="flex gap-2">
+            <button pButton label="Exportar" icon="pi pi-file-excel" (click)="exportList()"
+                class="p-button-outlined p-button-success"></button>
+            <button pButton label="Importar" icon="pi pi-upload" (click)="triggerImport()"
+                class="p-button-outlined p-button-help"></button>
+            <button pButton label="Ver Tablero" icon="pi pi-th-large" [routerLink]="['kanban']"
+                class="p-button-outlined p-button-info"></button>
+            <input type="file" id="importInputExp" (change)="onFileChange($event)" accept=".xlsx, .xls" class="hidden">
+
+            <button pButton label="Nuevo Expediente" icon="pi pi-plus" [routerLink]="['new']"
+                class="bg-blue-900 border-blue-900 hover:bg-blue-800 shadow-sm"></button>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <p-table [value]="expedientes()" [tableStyle]="{ 'min-width': '60rem' }" styleClass="p-datatable-sm"
+            [paginator]="true" [rows]="10" [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}">
+
+            <ng-template pTemplate="header">
+                <tr class="bg-slate-50 border-b border-slate-200">
+                    <th class="font-bold text-slate-600 text-xs uppercase tracking-wider py-4 px-6">Nro.</th>
+                    <th class="font-bold text-slate-600 text-xs uppercase tracking-wider py-4 px-6">Carátula</th>
+                    <th class="font-bold text-slate-600 text-xs uppercase tracking-wider py-4 px-6">Radicación</th>
+                    <th class="font-bold text-slate-600 text-xs uppercase tracking-wider py-4 px-6">Estado</th>
+                    <th class="font-bold text-slate-600 text-xs uppercase tracking-wider py-4 px-6">Fecha</th>
+                    <th class="font-bold text-slate-600 text-xs uppercase tracking-wider py-4 px-6 text-right">Acciones
+                    </th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-expediente>
+                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
+                    <td class="py-3 px-6 font-semibold text-slate-800">{{ expediente.nroExpediente }}</td>
+                    <td class="py-3 px-6 font-medium text-slate-800">{{ expediente.caratula }}</td>
+                    <td class="py-3 px-6">
+                        <div class="text-sm font-medium text-slate-700">{{ expediente.fuero }}</div>
+                        <div class="text-xs text-slate-500 mt-0.5">{{ expediente.juzgado }}</div>
+                    </td>
+                    <td class="py-3 px-6">
+                        <span
+                            class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide bg-slate-100 text-slate-700">
+                            {{ expediente.estado }}
+                        </span>
+                    </td>
+                    <td class="py-3 px-6 text-slate-600 text-sm">{{ expediente.fechaInicio | date:'dd/MM/yyyy' }}</td>
+                    <td class="py-3 px-6 text-right">
+                        <button pButton icon="pi pi-eye"
+                            class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                            [routerLink]="[expediente.id]" pTooltip="Ver Detalle" tooltipPosition="top"></button>
+                        <button pButton icon="pi pi-pencil"
+                            class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-amber-600 hover:bg-amber-50"
+                            [routerLink]="[expediente.id, 'edit']" pTooltip="Editar" tooltipPosition="top"></button>
+                        <button pButton icon="pi pi-trash"
+                            class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-red-600 hover:bg-red-50"
+                            (click)="expedienteService.deleteExpediente(expediente.id)" pTooltip="Eliminar"
+                            tooltipPosition="top"></button>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="6" class="text-center py-10 text-slate-500">
+                        <div class="flex flex-col items-center gap-3">
+                            <i class="pi pi-folder-open text-3xl text-slate-300"></i>
+                            <span class="text-sm font-medium">No hay expedientes registrados.</span>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>

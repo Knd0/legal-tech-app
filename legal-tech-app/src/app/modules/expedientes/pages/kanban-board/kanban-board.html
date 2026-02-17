@@ -1,0 +1,72 @@
+<div class="p-6 bg-slate-50 min-h-screen">
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Tablero de Expedientes</h1>
+            <p class="text-slate-500 text-sm">Gestiona el flujo de tus causas arrastrando y soltando.</p>
+        </div>
+        <a href="/expedientes" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">
+            <i class="pi pi-list mr-1"></i> Ver Lista
+        </a>
+    </div>
+
+    <div class="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-12rem)]" cdkDropListGroup>
+
+        <div *ngFor="let col of columns"
+            class="flex-shrink-0 w-80 bg-slate-100 rounded-lg flex flex-col h-full border border-slate-200">
+
+            <!-- Column Header -->
+            <div
+                class="p-3 border-b border-slate-200 bg-white rounded-t-lg flex justify-between items-center sticky top-0 z-10">
+                <h3 class="font-semibold text-slate-700">{{ col.title }}</h3>
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                    {{ col.items().length }}
+                </span>
+            </div>
+
+            <!-- Drop List -->
+            <div cdkDropList [id]="col.id" [cdkDropListData]="col.items()" (cdkDropListDropped)="drop($event)"
+                class="flex-1 overflow-y-auto p-3 space-y-3 min-h-[100px]">
+                <!-- Card -->
+                <div *ngFor="let item of col.items()" cdkDrag [cdkDragData]="item"
+                    class="bg-white p-4 rounded-md shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow group relative">
+                    <!-- Drag Handle / Placeholder -->
+                    <div class="custom-placeholder" *cdkDragPlaceholder></div>
+
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs font-mediun text-slate-500 uppercase tracking-wider">{{ item.nroExpediente
+                            }}</span>
+                        <div class="w-2 h-2 rounded-full" [ngClass]="{
+                'bg-green-500': item.estado === 'INICIADO',
+                'bg-blue-500': item.estado === 'PRUEBA',
+                'bg-purple-500': item.estado === 'ALEGATOS',
+                'bg-orange-500': item.estado === 'SENTENCIA',
+                'bg-gray-500': item.estado === 'ARCHIVADO'
+            }"></div>
+                    </div>
+
+                    <h4 class="text-sm font-semibold text-slate-800 mb-1 leading-snug hover:text-indigo-600">
+                        <a [routerLink]="['/expedientes', item.id]">{{ item.caratula }}</a>
+                    </h4>
+
+                    <p class="text-xs text-slate-500 mb-3 truncate">{{ item.juzgado }}</p>
+
+                    <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
+                        <div class="flex items-center space-x-2">
+                            <div class="flex -space-x-1 overflow-hidden" *ngIf="item.cliente">
+                                <div class="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600"
+                                    title="{{item.cliente.nombre}}">
+                                    {{ item.cliente.nombre.charAt(0) }}
+                                </div>
+                            </div>
+                        </div>
+                        <span class="text-xs text-slate-400">
+                            {{ item.fechaInicio | date:'dd/MM' }}
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

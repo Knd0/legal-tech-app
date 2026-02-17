@@ -56,12 +56,11 @@ export class UsersService {
     const newUser = this.usersRepository.create({
       ...userData,
       passwordHash,
-      // Ensure defaults
       isActive: true,
       role: userData.role || 'USER'
-    });
+    } as unknown as User); // Force cast to avoid ambiguous overload
     
-    return this.usersRepository.save(newUser);
+    return (await this.usersRepository.save(newUser)) as User; // Force cast return checking
   }
 
   async toggleStatus(id: string): Promise<User> {

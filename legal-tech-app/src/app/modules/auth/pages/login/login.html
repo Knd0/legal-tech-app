@@ -23,14 +23,14 @@
                 <div class="space-y-6">
                     <div>
                         <label for="email" class="block text-sm font-medium text-slate-700"> Correo Electrónico </label>
-                        <div class="mt-1 relative rounded-md shadow-sm">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="pi pi-envelope text-slate-400"></i>
-                            </div>
-                            <input id="email" type="email" formControlName="email" pInputText
-                                class="block w-full pl-10 sm:text-sm border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                [ngClass]="{'border-red-300': loginForm.get('email')?.invalid && loginForm.get('email')?.touched}"
-                                placeholder="abogada@estudio.com">
+                        <div class="mt-1">
+                            <p-inputGroup>
+                                <p-inputGroupAddon>
+                                    <i class="pi pi-envelope"></i>
+                                </p-inputGroupAddon>
+                                <input id="email" type="email" formControlName="email" pInputText
+                                    placeholder="abogada@estudio.com" />
+                            </p-inputGroup>
                         </div>
                         <small *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
                             class="text-red-500 text-xs mt-1">
@@ -40,13 +40,14 @@
 
                     <div>
                         <label for="password" class="block text-sm font-medium text-slate-700"> Contraseña </label>
-                        <div class="mt-1 relative rounded-md shadow-sm">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="pi pi-lock text-slate-400"></i>
-                            </div>
-                            <input id="password" type="password" formControlName="password" pInputText
-                                class="block w-full pl-10 sm:text-sm border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="••••••••">
+                        <div class="mt-1">
+                            <p-inputGroup>
+                                <p-inputGroupAddon>
+                                    <i class="pi pi-lock"></i>
+                                </p-inputGroupAddon>
+                                <input id="password" type="password" formControlName="password" pInputText
+                                    placeholder="••••••••" />
+                            </p-inputGroup>
                         </div>
                     </div>
                 </div>

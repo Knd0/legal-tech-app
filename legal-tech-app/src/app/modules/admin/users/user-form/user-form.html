@@ -1,0 +1,35 @@
+<form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+    <div class="flex flex-col gap-2">
+        <label for="fullName" class="font-semibold text-slate-700">Nombre Completo</label>
+        <input pInputText id="fullName" formControlName="fullName" placeholder="Ej. Juan Pérez" />
+        <small class="text-red-500" *ngIf="userForm.get('fullName')?.invalid && userForm.get('fullName')?.touched">
+            Requerido
+        </small>
+    </div>
+
+    <div class="flex flex-col gap-2">
+        <label for="email" class="font-semibold text-slate-700">Email</label>
+        <input pInputText id="email" type="email" formControlName="email" placeholder="email@ejemplo.com" />
+        <small class="text-red-500" *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+            Email válido requerido
+        </small>
+    </div>
+
+    <div class="flex flex-col gap-2">
+        <label for="password" class="font-semibold text-slate-700">Contraseña</label>
+        <input pInputText id="password" type="password" formControlName="password" placeholder="******" />
+        <small class="text-red-500" *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+            Mínimo 6 caracteres
+        </small>
+    </div>
+
+    <div class="flex flex-col gap-2">
+        <label for="role" class="font-semibold text-slate-700">Rol</label>
+        <p-select [options]="roles" formControlName="role" optionLabel="label" optionValue="value"
+            [style]="{'width':'100%'}"></p-select>
+    </div>
+
+    <div class="flex justify-end mt-4">
+        <p-button label="Crear Usuario" icon="pi pi-check" type="submit" [loading]="loading"></p-button>
+    </div>
+</form>

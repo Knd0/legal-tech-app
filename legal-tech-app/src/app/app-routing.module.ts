@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
+import { AdminGuard } from './core/guards/admin.guard';
 
 const routes: Routes = [
   { path: '', component: DashboardComponent, canActivate: [authGuard] },
@@ -12,6 +13,7 @@ const routes: Routes = [
   { path: 'calendario', loadChildren: () => import('./modules/calendario/calendario.module').then(m => m.CalendarioModule), canActivate: [authGuard] },
   { path: 'profile', loadChildren: () => import('./modules/profile/profile.module').then(m => m.ProfileModule), canActivate: [authGuard] },
   { path: 'ayuda', loadChildren: () => import('./modules/help/help-module').then(m => m.HelpModule), canActivate: [authGuard] },
+  { path: 'admin/users', loadComponent: () => import('./modules/admin/users/admin-users/admin-users').then(m => m.AdminUsers), canActivate: [authGuard, AdminGuard] },
   { path: '**', redirectTo: '' }
 ];
 

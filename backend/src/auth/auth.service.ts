@@ -17,6 +17,9 @@ export class AuthService {
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.usersService.findOneByEmail(email);
     if (user && await bcrypt.compare(pass, user.passwordHash)) {
+      if (!user.isActive) {
+          throw new UnauthorizedException('Account suspended. Contact administrator.');
+      }
       const { passwordHash, ...result } = user;
       return result;
     }

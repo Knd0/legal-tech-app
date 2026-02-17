@@ -19,6 +19,9 @@ export class User {
   @Column({ nullable: true })
   phoneNumber: string;
 
+  @Column({ default: true })
+  isActive: boolean;
+
   @OneToMany(() => Client, (client) => client.user)
   clients: Client[];
 

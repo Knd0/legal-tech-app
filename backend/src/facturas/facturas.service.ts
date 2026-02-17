@@ -93,9 +93,9 @@ export class FacturasService {
             docNro: payload.DocNro,
             clientId: data.clientId,
             userId: userId
-        });
+        } as unknown as Factura);
 
-        return await this.facturasRepository.save(factura);
+        return (await this.facturasRepository.save(factura)) as Factura;
 
     } catch (error) {
         console.error('Error AFIP', error);

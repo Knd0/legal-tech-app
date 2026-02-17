@@ -18,6 +18,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { SettingsModule } from './settings/settings.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { FacturasModule } from './facturas/facturas.module';
+import { SeedService } from './seed.service';
 
 
 @Module({
@@ -80,6 +81,6 @@ import { FacturasModule } from './facturas/facturas.module';
 
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, SeedService],
 })
 export class AppModule {}

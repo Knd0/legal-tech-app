@@ -29,7 +29,13 @@ import { FacturasModule } from './facturas/facturas.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
         const dbUrl = configService.get<string>('DATABASE_URL');
-        const isProduction = configService.get<string>('NODE_ENV') === 'production';
+        const nodeEnv = configService.get<string>('NODE_ENV');
+        
+        console.log(`[DEBUG] NODE_ENV: ${nodeEnv}`);
+        console.log(`[DEBUG] DATABASE_URL present: ${!!dbUrl}`);
+        if (!dbUrl) {
+             console.log(`[DEBUG] Fallback to LOCALHOST settings: Host=${configService.get('DB_HOST')}, Port=${configService.get('DB_PORT')}`);
+        }
 
         if (dbUrl) {
           return {

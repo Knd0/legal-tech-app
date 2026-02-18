@@ -70,6 +70,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadProfile();
+    this.notificationService.loadSettings(); // Load fresh settings
     
     // Load Integration Settings
     this.configDays = this.notificationService.daysBeforeAlert();

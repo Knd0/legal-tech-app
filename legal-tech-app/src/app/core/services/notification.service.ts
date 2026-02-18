@@ -21,7 +21,6 @@ export class NotificationService {
 
   constructor(private swPush: SwPush, private http: HttpClient) {
     this.checkSubscription();
-    this.loadSettings();
   }
 
   private readonly SETTINGS_API = `${environment.apiUrl}/settings`;
@@ -45,7 +44,7 @@ export class NotificationService {
     });
   }
 
-  private loadSettings() {
+  public loadSettings() {
     this.http.get<any[]>(this.SETTINGS_API).subscribe({
         next: (settings) => {
             if (Array.isArray(settings)) {

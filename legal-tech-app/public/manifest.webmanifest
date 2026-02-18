@@ -1,6 +1,8 @@
 {
-  "name": "legal-tech-app",
-  "short_name": "legal-tech-app",
+  "name": "LegalTech App",
+  "short_name": "LegalTech",
+  "theme_color": "#1e293b",
+  "background_color": "#0f172a",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",

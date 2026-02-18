@@ -15,6 +15,15 @@ import { MenuItem } from 'primeng/api';
 export class AppComponent implements OnInit {
   protected readonly title = signal('legal-tech-app');
   items: MenuItem[] | undefined;
+  isMobileMenuOpen = signal(false);
+
+  toggleMobileMenu() {
+    this.isMobileMenuOpen.update(v => !v);
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen.set(false);
+  }
 
   deadlineService = inject(DeadlineService);
   authService = inject(AuthService);

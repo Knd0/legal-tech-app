@@ -36,8 +36,7 @@ export class ClientesFormComponent implements OnInit {
       objetoConsulta: [''],
       origenConsulta: [''],
       tieneExpedientesPrevios: [false],
-      observaciones: [''],
-      notas: [''], // Added missing control
+      observaciones: [''], // Used for internal notes
       pretension: [''],
       grupoFamiliar: this.fb.array([])
     });

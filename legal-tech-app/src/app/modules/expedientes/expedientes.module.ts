@@ -5,7 +5,6 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { ExpedientesRoutingModule } from './expedientes-routing.module';
 import { ExpedientesListComponent } from './pages/expedientes-list/expedientes-list.component';
-import { ExpedientesListComponent } from './pages/expedientes-list/expedientes-list.component';
 import { ExpedientesFormComponent } from './pages/expedientes-form/expedientes-form.component';
 import { GavelLoaderComponent } from '../../shared/components/gavel-loader';
 

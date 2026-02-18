@@ -1,21 +1,24 @@
 <div class="flex flex-col gap-6 pb-10">
     <div class="flex justify-between items-end">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">Calendario</h1>
-            <p class="text-slate-500 text-sm mt-1">Agenda de plazos, audiencias y vencimientos.</p>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Calendario</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Agenda de plazos, audiencias y vencimientos.</p>
         </div>
         <div class="flex gap-2 items-center">
             <!-- View Toggles -->
-            <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 mr-2">
+            <div
+                class="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg border border-slate-200 dark:border-slate-600 mr-2">
                 <button (click)="toggleView('LIST')" [class.bg-white]="viewMode() === 'LIST'"
-                    [class.shadow-sm]="viewMode() === 'LIST'" [class.text-blue-900]="viewMode() === 'LIST'"
-                    [class.text-slate-500]="viewMode() !== 'LIST'"
+                    [class.dark:bg-slate-600]="viewMode() === 'LIST'" [class.shadow-sm]="viewMode() === 'LIST'"
+                    [class.text-blue-900]="viewMode() === 'LIST'" [class.dark:text-white]="viewMode() === 'LIST'"
+                    [class.text-slate-500]="viewMode() !== 'LIST'" [class.dark:text-slate-400]="viewMode() !== 'LIST'"
                     class="px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2">
                     <i class="pi pi-list"></i> Lista
                 </button>
                 <button (click)="toggleView('MONTH')" [class.bg-white]="viewMode() === 'MONTH'"
-                    [class.shadow-sm]="viewMode() === 'MONTH'" [class.text-blue-900]="viewMode() === 'MONTH'"
-                    [class.text-slate-500]="viewMode() !== 'MONTH'"
+                    [class.dark:bg-slate-600]="viewMode() === 'MONTH'" [class.shadow-sm]="viewMode() === 'MONTH'"
+                    [class.text-blue-900]="viewMode() === 'MONTH'" [class.dark:text-white]="viewMode() === 'MONTH'"
+                    [class.text-slate-500]="viewMode() !== 'MONTH'" [class.dark:text-slate-400]="viewMode() !== 'MONTH'"
                     class="px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2">
                     <i class="pi pi-calendar"></i> Mes
                 </button>
@@ -28,41 +31,52 @@
     </div>
 
     <!-- LIST VIEW -->
-    <div *ngIf="viewMode() === 'LIST'" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div *ngIf="viewMode() === 'LIST'"
+        class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
         <p-table [value]="deadlines()" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '50rem' }"
             styleClass="p-datatable-sm">
             <ng-template pTemplate="header">
-                <tr class="bg-slate-50 border-b border-slate-200">
-                    <th class="font-bold text-slate-600 text-xs uppercase tracking-wider py-4 px-6">Fecha</th>
-                    <th class="font-bold text-slate-600 text-xs uppercase tracking-wider py-4 px-6">Título</th>
-                    <th class="font-bold text-slate-600 text-xs uppercase tracking-wider py-4 px-6">Tipo</th>
-                    <th class="font-bold text-slate-600 text-xs uppercase tracking-wider py-4 px-6">Estado</th>
-                    <th class="font-bold text-slate-600 text-xs uppercase tracking-wider py-4 px-6">Urgencia</th>
-                    <th class="font-bold text-slate-600 text-xs uppercase tracking-wider py-4 px-6 text-right">Acciones
+                <tr class="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
+                        Fecha</th>
+                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
+                        Título</th>
+                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
+                        Tipo</th>
+                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
+                        Estado</th>
+                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
+                        Urgencia</th>
+                    <th
+                        class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6 text-right">
+                        Acciones
                     </th>
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-deadline>
-                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
-                    [ngClass]="{'bg-slate-50': deadline.estado === 'CUMPLIDO', 'bg-red-50': deadline.estado === 'EXPIRADO'}">
-                    <td class="py-3 px-6 font-bold text-slate-800"
-                        [ngClass]="{'line-through text-slate-400': deadline.estado === 'CUMPLIDO'}">{{
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-0"
+                    [ngClass]="{'bg-slate-50 dark:bg-slate-800/50': deadline.estado === 'CUMPLIDO', 'bg-red-50 dark:bg-red-900/10': deadline.estado === 'EXPIRADO'}">
+                    <td class="py-3 px-6 font-bold text-slate-800 dark:text-slate-200"
+                        [ngClass]="{'line-through text-slate-400 dark:text-slate-500': deadline.estado === 'CUMPLIDO'}">
+                        {{
                         deadline.fechaVencimiento | date:'dd/MM/yyyy' }}
                     </td>
                     <td class="py-3 px-6">
-                        <div class="font-semibold text-slate-800"
-                            [ngClass]="{'line-through text-slate-400': deadline.estado === 'CUMPLIDO'}">{{
+                        <div class="font-semibold text-slate-800 dark:text-slate-200"
+                            [ngClass]="{'line-through text-slate-400 dark:text-slate-500': deadline.estado === 'CUMPLIDO'}">
+                            {{
                             deadline.titulo }}</div>
-                        <div class="text-xs text-slate-500 truncate max-w-xs mt-0.5">{{ deadline.descripcion }}
+                        <div class="text-xs text-slate-500 dark:text-slate-400 truncate max-w-xs mt-0.5">{{
+                            deadline.descripcion }}
                         </div>
                     </td>
-                    <td class="py-3 px-6 text-slate-600 text-sm">{{ deadline.tipo }}</td>
+                    <td class="py-3 px-6 text-slate-600 dark:text-slate-300 text-sm">{{ deadline.tipo }}</td>
                     <td class="py-3 px-6">
                         <span class="rounded px-2 py-1 text-xs font-semibold" [ngClass]="{
-                        'bg-yellow-100 text-yellow-800': deadline.estado === 'PENDIENTE',
-                        'bg-green-100 text-green-800': deadline.estado === 'CUMPLIDO',
-                        'bg-red-100 text-red-800': deadline.estado === 'EXPIRADO',
-                        'bg-gray-100 text-gray-800': deadline.estado === 'CANCELADO'
+                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300': deadline.estado === 'PENDIENTE',
+                        'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300': deadline.estado === 'CUMPLIDO',
+                        'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300': deadline.estado === 'EXPIRADO',
+                        'bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-300': deadline.estado === 'CANCELADO'
                     }">
                             {{ deadline.estado }}
                         </span>
@@ -70,37 +84,38 @@
                     <td class="py-3 px-6">
                         <span *ngIf="deadline.estado === 'PENDIENTE'">
                             <span *ngIf="deadline.esPerentorio"
-                                class="bg-red-50 text-red-600 border border-red-200 rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide">PERENTORIO</span>
+                                class="bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide">PERENTORIO</span>
                             <span *ngIf="!deadline.esPerentorio"
-                                class="bg-blue-50 text-blue-600 border border-blue-200 rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide">ORDINARIO</span>
+                                class="bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide">ORDINARIO</span>
                         </span>
-                        <span *ngIf="deadline.estado !== 'PENDIENTE'" class="text-xs text-slate-400">-</span>
+                        <span *ngIf="deadline.estado !== 'PENDIENTE'"
+                            class="text-xs text-slate-400 dark:text-slate-600">-</span>
                     </td>
                     <td class="py-3 px-6 text-right">
                         <button pButton icon="pi pi-check"
                             *ngIf="deadline.estado === 'PENDIENTE' || deadline.estado === 'EXPIRADO'"
-                            class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-green-600 hover:bg-green-50 mr-1"
+                            class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 mr-1"
                             pTooltip="Marcar Cumplido" tooltipPosition="top"
                             (click)="markAsCompleted(deadline)"></button>
 
                         <button pButton icon="pi pi-bell"
-                            class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-amber-500 hover:bg-amber-50"
+                            class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
                             pTooltip="Simular Alerta" tooltipPosition="top"
                             (click)="simulateNotification(deadline)"></button>
                         <button pButton icon="pi pi-pencil"
-                            class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                            class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                             (click)="editDeadline(deadline)"></button>
                         <button pButton icon="pi pi-trash"
-                            class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-red-600 hover:bg-red-50"
+                            class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                             (click)="deleteDeadline(deadline.id)"></button>
                     </td>
                 </tr>
             </ng-template>
             <ng-template pTemplate="emptymessage">
                 <tr>
-                    <td colspan="6" class="text-center py-10 text-slate-500">
+                    <td colspan="6" class="text-center py-10 text-slate-500 dark:text-slate-400">
                         <div class="flex flex-col items-center gap-3">
-                            <i class="pi pi-calendar-times text-3xl text-slate-300"></i>
+                            <i class="pi pi-calendar-times text-3xl text-slate-300 dark:text-slate-600"></i>
                             <span class="text-sm font-medium">No hay vencimientos próximos.</span>
                         </div>
                     </td>
@@ -111,22 +126,23 @@
 
     <!-- MONTH VIEW -->
     <div *ngIf="viewMode() === 'MONTH'"
-        class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col">
         <!-- Header & Navigation -->
-        <div class="flex items-center justify-between p-6 border-b border-slate-100">
+        <div class="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700">
             <div class="flex items-center gap-4">
-                <h2 class="text-xl font-bold text-slate-800 capitalize tracking-tight">{{ currentMonthLabel }}</h2>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white capitalize tracking-tight">{{
+                    currentMonthLabel }}</h2>
                 <div class="flex gap-2">
                     <button pButton icon="pi pi-chevron-left"
-                        class="w-8 h-8 rounded-full bg-white text-slate-500 hover:bg-slate-50 hover:text-blue-900 border border-slate-200 flex items-center justify-center transition-colors shadow-sm"
+                        class="w-8 h-8 rounded-full bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 hover:text-blue-900 dark:hover:text-white border border-slate-200 dark:border-slate-600 flex items-center justify-center transition-colors shadow-sm"
                         (click)="prevMonth()"></button>
                     <button pButton icon="pi pi-chevron-right"
-                        class="w-8 h-8 rounded-full bg-white text-slate-500 hover:bg-slate-50 hover:text-blue-900 border border-slate-200 flex items-center justify-center transition-colors shadow-sm"
+                        class="w-8 h-8 rounded-full bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 hover:text-blue-900 dark:hover:text-white border border-slate-200 dark:border-slate-600 flex items-center justify-center transition-colors shadow-sm"
                         (click)="nextMonth()"></button>
                 </div>
             </div>
 
-            <div class="flex items-center gap-4 text-xs font-medium text-slate-500">
+            <div class="flex items-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400">
                 <div class="flex items-center gap-1.5">
                     <div class="w-2 h-2 rounded-full bg-red-500"></div> Urgente
                 </div>
@@ -140,44 +156,47 @@
         </div>
 
         <!-- Calendar Grid -->
-        <div class="bg-slate-50 border-b border-slate-100 flex-1">
+        <div class="bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700 flex-1">
             <!-- Weekday Headers -->
-            <div class="grid grid-cols-7 bg-white border-b border-slate-200">
+            <div class="grid grid-cols-7 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                 <div *ngFor="let day of ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado']"
-                    class="py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                    class="py-4 text-center text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                     <span class="hidden md:inline">{{ day }}</span>
                     <span class="md:hidden">{{ day.slice(0, 3) }}</span>
                 </div>
             </div>
 
             <!-- Days Grid -->
-            <div class="grid grid-cols-7 auto-rows-fr gap-px bg-slate-200 border-b border-slate-200">
+            <div
+                class="grid grid-cols-7 auto-rows-fr gap-px bg-slate-200 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-700">
                 <!-- Loop Days -->
                 <div *ngFor="let day of calendarDays()"
-                    class="bg-white min-h-[140px] p-3 hover:bg-slate-50/50 transition-colors flex flex-col relative group"
-                    [class.bg-slate-50]="!day.isCurrentMonth" [class.text-slate-400]="!day.isCurrentMonth">
+                    class="bg-white dark:bg-slate-800 min-h-[140px] p-3 hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition-colors flex flex-col relative group"
+                    [class.bg-slate-50]="!day.isCurrentMonth" [class.dark:bg-slate-900]="!day.isCurrentMonth"
+                    [class.text-slate-400]="!day.isCurrentMonth" [class.dark:text-slate-600]="!day.isCurrentMonth">
 
                     <!-- Day Number -->
                     <div class="flex justify-between items-start mb-2">
                         <div class="h-7 w-7 flex items-center justify-center rounded-full text-sm font-medium transition-all"
                             [class.bg-blue-900]="day.isToday" [class.text-white]="day.isToday"
-                            [class.shadow-md]="day.isToday" [class.text-slate-700]="!day.isToday && day.isCurrentMonth">
+                            [class.shadow-md]="day.isToday" [class.text-slate-700]="!day.isToday && day.isCurrentMonth"
+                            [class.dark:text-slate-300]="!day.isToday && day.isCurrentMonth">
                             {{ day.date.getDate() }}
                         </div>
                         <span *ngIf="day.isToday"
-                            class="text-[10px] font-bold text-blue-900 uppercase tracking-wide mt-1.5 mr-1">Hoy</span>
+                            class="text-[10px] font-bold text-blue-900 dark:text-blue-400 uppercase tracking-wide mt-1.5 mr-1">Hoy</span>
                     </div>
 
                     <!-- Deadlines List -->
                     <div class="flex-1 flex flex-col gap-1.5 overflow-y-auto max-h-[100px] custom-scrollbar pr-1">
                         <div *ngFor="let v of day.deadlines" (click)="editDeadline(v); $event.stopPropagation()"
-                            class="flex items-center gap-2 pl-2 pr-2 py-1.5 rounded border-l-[3px] cursor-pointer border-slate-100 shadow-sm hover:shadow transition-all bg-white hover:-translate-y-0.5 group/card"
+                            class="flex items-center gap-2 pl-2 pr-2 py-1.5 rounded border-l-[3px] cursor-pointer border-slate-100 dark:border-slate-600 shadow-sm hover:shadow transition-all bg-white dark:bg-slate-700 hover:-translate-y-0.5 group/card"
                             [ngClass]="getUrgencyBorder(v.urgencia)">
 
                             <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" [ngClass]="getUrgencyDot(v.urgencia)">
                             </div>
                             <span
-                                class="text-xs font-medium text-slate-700 truncate leading-tight group-hover/card:text-blue-900">{{
+                                class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate leading-tight group-hover/card:text-blue-900 dark:group-hover/card:text-blue-300">{{
                                 v.titulo }}</span>
                         </div>
                     </div>
@@ -186,11 +205,12 @@
         </div>
     </div>
 
-    <div class="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3 items-start">
-        <i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
+    <div
+        class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 rounded-xl flex gap-3 items-start">
+        <i class="pi pi-info-circle text-blue-500 dark:text-blue-400 mt-0.5"></i>
         <div>
-            <h3 class="font-bold text-blue-900 text-sm mb-1">Nota sobre Notificaciones</h3>
-            <p class="text-sm text-blue-800 leading-relaxed">
+            <h3 class="font-bold text-blue-900 dark:text-blue-300 text-sm mb-1">Nota sobre Notificaciones</h3>
+            <p class="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
                 Para que las notificaciones funcionen, asegurate de haber hecho click en "Activar Notificaciones" en
                 el
                 menú principal (ícono campana) y permitir el acceso en el navegador. El botón de campana en la tabla
@@ -205,7 +225,7 @@
         <ng-template pTemplate="content">
             <form [formGroup]="form" class="flex flex-col gap-4 mt-2">
                 <div class="flex flex-col gap-2">
-                    <label for="titulo" class="font-bold text-sm text-slate-700">Título</label>
+                    <label for="titulo" class="font-bold text-sm text-slate-700 dark:text-slate-300">Título</label>
                     <input type="text" pInputText id="titulo" formControlName="titulo" required autofocus />
                     <small class="text-red-500" *ngIf="form.get('titulo')?.invalid && form.get('titulo')?.touched">El
                         título es requerido.</small>
@@ -213,25 +233,27 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="flex flex-col gap-2">
-                        <label for="tipo" class="font-bold text-sm text-slate-700">Tipo</label>
+                        <label for="tipo" class="font-bold text-sm text-slate-700 dark:text-slate-300">Tipo</label>
                         <p-select [options]="tipos" formControlName="tipo" optionLabel="label" optionValue="value"
                             placeholder="Seleccione un tipo" appendTo="body" styleClass="w-full"></p-select>
                     </div>
                     <div class="flex flex-col gap-2">
-                        <label for="estado" class="font-bold text-sm text-slate-700">Estado</label>
+                        <label for="estado" class="font-bold text-sm text-slate-700 dark:text-slate-300">Estado</label>
                         <p-select [options]="estados" formControlName="estado" optionLabel="label" optionValue="value"
                             appendTo="body" styleClass="w-full" placeholder="Seleccione estado"></p-select>
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label for="fecha" class="font-bold text-sm text-slate-700">Fecha de Vencimiento</label>
+                    <label for="fecha" class="font-bold text-sm text-slate-700 dark:text-slate-300">Fecha de
+                        Vencimiento</label>
                     <p-datepicker formControlName="fechaVencimiento" [showIcon]="true" appendTo="body"
                         dateFormat="dd/mm/yy" styleClass="w-full"></p-datepicker>
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label for="descripcion" class="font-bold text-sm text-slate-700">Descripción</label>
+                    <label for="descripcion"
+                        class="font-bold text-sm text-slate-700 dark:text-slate-300">Descripción</label>
                     <textarea id="descripcion" pTextarea formControlName="descripcion" required rows="3" cols="20"
                         class="w-full"></textarea>
                 </div>
@@ -239,14 +261,15 @@
                 <div class="flex items-center gap-2 mt-2">
                     <input type="checkbox" id="esPerentorio" formControlName="esPerentorio"
                         class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
-                    <label for="esPerentorio" class="cursor-pointer font-bold text-sm text-slate-700">Es Plazo Fatal
+                    <label for="esPerentorio"
+                        class="cursor-pointer font-bold text-sm text-slate-700 dark:text-slate-300">Es Plazo Fatal
                         (Perentorio)</label>
                 </div>
             </form>
         </ng-template>
 
         <ng-template pTemplate="footer">
-            <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text text-slate-500"
+            <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text text-slate-500 dark:text-slate-400"
                 (click)="deadlineDialog = false"></button>
             <button pButton label="Guardar" icon="pi pi-check" class="bg-blue-900 border-blue-900 text-white"
                 (click)="saveDeadline()" [disabled]="form.invalid"></button>

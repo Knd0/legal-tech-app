@@ -211,6 +211,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   next: () => {
                       Swal.fire('Desconectado', 'Sesión cerrada.', 'success');
                       this.qrCodeUrl = null;
+                      this.configWhatsappNumber = '';
+                      // Update settings to clear the number
+                      this.notificationService.updateAlertSettings(this.configDays, this.configHours, this.configWhatsapp, '');
+                      
                       if (this.configWhatsapp) this.startQrPolling();
                   },
                   error: () => Swal.fire('Error', 'No se pudo cerrar la sesión.', 'error')

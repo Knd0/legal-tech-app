@@ -55,7 +55,13 @@ import Aura from '@primeng/themes/aura';
   ],
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(withInterceptors([authInterceptor])),
+import { loadingInterceptor } from './core/interceptors/loading.interceptor';
+
+// ... 
+
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    provideHttpClient(withInterceptors([authInterceptor, loadingInterceptor])),
     providePrimeNG({ 
         theme: {
             preset: Aura,

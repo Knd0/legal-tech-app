@@ -167,10 +167,17 @@
     </div>
   </div>
 
-  <main [class.pt-24]="authService.isAuthenticated()" class="container mx-auto px-4 md:px-6 max-w-7xl flex-grow">
+  <main [class.pt-24]="authService.isAuthenticated()"
+    class="container mx-auto px-4 md:px-6 max-w-7xl flex-grow relative">
     <router-outlet></router-outlet>
   </main>
 
   <app-footer *ngIf="authService.isAuthenticated()"></app-footer>
+
+  <!-- Global Loader Overlay using GavelLoader -->
+  <div *ngIf="loadingService.isLoading()"
+    class="fixed inset-0 z-[60] bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-200">
+    <app-gavel-loader></app-gavel-loader>
+  </div>
 
 </div>

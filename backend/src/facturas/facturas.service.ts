@@ -86,6 +86,8 @@ export class FacturasService {
 
     const date = new Date(Date.now() - ((new Date()).getTimezoneOffset() * 60000)).toISOString().split('T')[0];
 
+    const totalAmount = parseFloat(data.total);
+
     let payload = {
         'CantReg': 1, // Cantidad de comprobantes a registrar
         'PtoVta': 1, // Punto de venta
@@ -96,9 +98,9 @@ export class FacturasService {
         'CbteDesde': 1, // Numero de comprobante o numero del primer comprobante en caso de ser mas de uno
         'CbteHasta': 1, // Numero de comprobante o numero del ultimo comprobante en caso de ser mas de uno
         'CbteFch': parseInt(date.replace(/-/g, '')), // (Opcional) Fecha del comprobante (yyyymmdd) o fecha actual si es nulo
-        'ImpTotal': data.total, // Importe total del comprobante
+        'ImpTotal': totalAmount, // Importe total del comprobante
         'ImpTotConc': 0, // Importe neto no gravado
-        'ImpNeto': data.total, // Importe neto gravado
+        'ImpNeto': totalAmount, // Importe neto gravado
         'ImpOpEx': 0, // Importe exento
         'ImpIVA': 0, // Importe total de IVA
         'ImpTrib': 0, //Importe total de tributos

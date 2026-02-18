@@ -4,6 +4,7 @@ import { DeadlineService } from './core/services/deadline.service';
 import { AuthService } from './core/services/auth.service';
 import { ThemeService } from './core/services/theme.service';
 import { PwaUpdateService } from './core/services/pwa-update.service';
+import { LoadingService } from './core/services/loading.service';
 import { MenuItem } from 'primeng/api';
 
 @Component({
@@ -43,7 +44,8 @@ export class AppComponent implements OnInit {
 
   constructor(
     public notificationService: NotificationService,
-    private pwaUpdateService: PwaUpdateService // Injected to initialize logic
+    private pwaUpdateService: PwaUpdateService,
+    public loadingService: LoadingService
   ) {
     // Listen for the PWA install prompt
     window.addEventListener('beforeinstallprompt', (e) => {

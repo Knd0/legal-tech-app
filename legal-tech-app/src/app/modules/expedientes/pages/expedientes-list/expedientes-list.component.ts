@@ -9,7 +9,7 @@ import Swal from 'sweetalert2';
   selector: 'app-expedientes-list',
   standalone: false,
   templateUrl: './expedientes-list.component.html',
-  styleUrl: './expedientes-list.component.scss'
+  styleUrl: './expedientes-list.component.scss',
 })
 export class ExpedientesListComponent {
   expedienteService = inject(ExpedienteService); // Inject first

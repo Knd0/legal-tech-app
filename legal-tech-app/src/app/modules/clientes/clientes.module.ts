@@ -5,6 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ClientesRoutingModule } from './clientes-routing.module';
 import { ClientesListComponent } from './pages/clientes-list/clientes-list.component';
 import { ClientesFormComponent } from './pages/clientes-form/clientes-form.component';
+import { GavelLoaderComponent } from '../../shared/components/gavel-loader';
 
 // PrimeNG Imports
 import { TableModule } from 'primeng/table';
@@ -30,7 +31,8 @@ import { CheckboxModule } from 'primeng/checkbox';
     PanelModule,
     DatePickerModule,
     TextareaModule,
-    CheckboxModule
+    CheckboxModule,
+    GavelLoaderComponent
   ]
 })
 export class ClientesModule { }

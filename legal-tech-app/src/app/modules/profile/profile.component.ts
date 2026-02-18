@@ -43,6 +43,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   // Security Modal
   showSecurityModal = false;
   otpSent = false;
+  
+  whatsappError: string | null = null;
 
   private apiUrl = `${environment.apiUrl}/users/profile`;
 
@@ -163,6 +165,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.qrPollInterval = setInterval(() => {
           this.notificationService.getWhatsappStatus().subscribe({
             next: (status: any) => {
+              this.whatsappError = status.error || null; // Capture error
+              
               if (status.qr) {
                   this.qrCodeUrl = status.qr;
               } else if (status.ready) {
@@ -228,6 +232,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           next: () => {
               Swal.fire('Reiniciando', 'El servicio de WhatsApp se está reiniciando. Espere un momento...', 'info');
               this.qrCodeUrl = null;
+              this.whatsappError = null; // Clear error
               this.startQrPolling();
           },
           error: () => Swal.fire('Error', 'No se pudo reiniciar el servicio.', 'error')

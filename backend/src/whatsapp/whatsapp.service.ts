@@ -70,8 +70,10 @@ export class WhatsappService implements OnModuleInit {
 
   onModuleInit() {
     this.logger.log('Initializing WhatsApp Client...');
+    this.initializationError = null; // Clear previous errors
     this.client.initialize().catch((err: any) => {
         this.logger.error('Failed to initialize WhatsApp client', err);
+        this.initializationError = err.message || 'Unknown initialization error';
     });
   }
 
@@ -107,11 +109,15 @@ export class WhatsappService implements OnModuleInit {
     }
   }
 
+  private initializationError: string | null = null;
+  // ...
+
   getStatus() {
       return {
           ready: this.isReady,
           qr: this.qrCodeImage,
-          number: this.isReady ? this.client.info?.wid?.user : null
+          number: this.isReady ? this.client.info?.wid?.user : null,
+          error: this.initializationError // Expose error
       };
   }
 

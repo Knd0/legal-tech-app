@@ -124,9 +124,9 @@ select,
 }
 
 .dark .p-button.p-button-outlined {
-    color: #f8fafc;
+    color: #f8fafc !important;
     /* white text in dark mode */
-    border-color: #475569;
+    border-color: #475569 !important;
     /* slate-600 */
 }
 
@@ -137,10 +137,10 @@ select,
 }
 
 .dark .p-button.p-button-outlined:enabled:hover {
-    background: #1e293b;
+    background: #1e293b !important;
     /* slate-800 */
-    color: #ffffff;
-    border-color: #64748b;
+    color: #ffffff !important;
+    border-color: #64748b !important;
     /* slate-500 */
 }
 
@@ -211,6 +211,15 @@ select,
 .dark .p-datatable .p-sortable-column:hover {
     background-color: #334155 !important;
     /* slate-700 */
+}
+
+.dark .p-datatable .p-datatable-thead>tr>th {
+    background-color: #334155 !important;
+    /* slate-700 */
+    color: #e2e8f0 !important;
+    /* slate-200 */
+    border-color: #475569 !important;
+    /* slate-600 */
 }
 
 .dark .p-paginator .p-paginator-pages .p-paginator-page {

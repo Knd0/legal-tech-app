@@ -26,9 +26,13 @@ export class WhatsappService implements OnModuleInit {
             '--no-first-run',
             '--no-default-browser-check'
         ],
+        // Allow env override, otherwise let Puppeteer resolve it (undefined)
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined 
       }
     });
+
+    // Log the configuration for debugging
+    this.logger.log(`WhatsApp Service Initialized. Puppeteer Config: Headless=${true}, ExecutablePath=${process.env.PUPPETEER_EXECUTABLE_PATH || 'Auto-resolve'}`);
 
     this.client.on('qr', (qr: string) => {
       this.logger.log('QR Code received. Generating Data URL...');

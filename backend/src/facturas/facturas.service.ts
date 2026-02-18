@@ -53,7 +53,8 @@ export class FacturasService {
             CUIT: this.configService.get('AFIP_CUIT'),
             cert: certPath,
             key: keyPath,
-            production: true // Default to true, or use ENV to switch
+            production: true,
+            res_folder: path.dirname(certPath) // Force using the same dir as certs (e.g. /tmp)
         });
         
         console.log('AFIP Service Initialized');

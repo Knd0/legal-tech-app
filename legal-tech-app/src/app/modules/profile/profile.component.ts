@@ -23,7 +23,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   fb = inject(FormBuilder);
   http = inject(HttpClient);
   authService = inject(AuthService);
+  authService = inject(AuthService);
   notificationService = inject(NotificationService);
+  cdr = inject(import('@angular/core').ChangeDetectorRef);
 
 
   profileForm: FormGroup;
@@ -166,11 +168,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.qrPollInterval = setInterval(() => {
           this.notificationService.getWhatsappStatus().subscribe({
             next: (status: any) => {
-              this.whatsappError = status.error || null; // Capture error
-              console.log('WhatsApp Status Poll:', status);
+              // console.log('WhatsApp Status Poll:', status); // Removed per user request
               
               if (status.qr) {
                   this.qrCodeUrl = status.qr;
+                  this.cdr.detectChanges(); // Force UI update
               } else if (status.ready) {
                   this.qrCodeUrl = null;
                   this.stopQrPolling();

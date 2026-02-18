@@ -49,8 +49,7 @@ export class WhatsappService implements OnModuleInit {
         this.logger.error('Failed to generate QR image via QRCode lib', err);
       }
       
-      // Still show in terminal for fallback
-      qrcodeTerminal.generate(qr, { small: true });
+      // qrcodeTerminal.generate(qr, { small: true }); // Removed to keep logs clean
     });
 
     this.client.on('ready', () => {

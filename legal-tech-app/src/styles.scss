@@ -182,3 +182,27 @@ select,
     color: #93c5fd !important;
     /* blue-300 */
 }
+
+/* 8. Table Body & Rows Dark Mode */
+.dark .p-datatable .p-datatable-tbody>tr {
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+}
+
+.dark .p-datatable .p-datatable-tbody>tr>td {
+    border-color: var(--border-color);
+}
+
+.dark .p-datatable .p-sortable-column:hover {
+    background-color: #334155 !important;
+    /* slate-700 */
+}
+
+.dark .p-paginator .p-paginator-pages .p-paginator-page {
+    color: var(--text-muted);
+}
+
+.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+    background-color: var(--brand-navy);
+    color: white;
+}

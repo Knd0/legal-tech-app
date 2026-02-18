@@ -3,6 +3,7 @@ import { ClientService } from '../../../../core/services/client.service';
 import { Cliente } from '../../../../core/models/cliente.model';
 import { ExcelService } from '../../../../core/services/excel.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { LoadingService } from '../../../../core/services/loading.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -17,6 +18,7 @@ export class ClientesListComponent {
 
   excelService = inject(ExcelService);
   notificationService = inject(NotificationService);
+  loadingService = inject(LoadingService);
 
   // constructor(public clientService: ClientService) {} // Removed constructor injection
 

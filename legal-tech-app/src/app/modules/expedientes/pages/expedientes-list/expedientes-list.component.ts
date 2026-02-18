@@ -2,6 +2,7 @@ import { Component, effect, inject } from '@angular/core';
 import { ExpedienteService } from '../../../../core/services/expediente.service';
 import { Expediente } from '../../../../core/models/expediente.model';
 import { ExcelService } from '../../../../core/services/excel.service';
+import { LoadingService } from '../../../../core/services/loading.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -15,6 +16,7 @@ export class ExpedientesListComponent {
   expedientes = this.expedienteService.expedientes; // Then use
 
   excelService = inject(ExcelService);
+  loadingService = inject(LoadingService);
 
   // constructor(public expedienteService: ExpedienteService) {} // Removed constructor injection
 

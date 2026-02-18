@@ -97,6 +97,39 @@
                 </div>
             </div>
 
+            <!-- SECTION 3: DATOS DE CONSULTA -->
+            <div>
+                <h3
+                    class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2 mt-2">
+                    <i class="pi pi-briefcase mr-2"></i>Datos de la Consulta
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Objeto Consulta -->
+                    <div class="flex flex-col gap-2">
+                        <label for="objetoConsulta" class="text-sm font-semibold text-slate-700">Objeto de
+                            Consulta</label>
+                        <input pInputText id="objetoConsulta" formControlName="objetoConsulta" class="w-full"
+                            placeholder="Ej: Despido, Sucesión..." />
+                    </div>
+
+                    <!-- Origen Consulta -->
+                    <div class="flex flex-col gap-2">
+                        <label for="origenConsulta" class="text-sm font-semibold text-slate-700">Origen de
+                            Consulta</label>
+                        <input pInputText id="origenConsulta" formControlName="origenConsulta" class="w-full"
+                            placeholder="Ej: Recomendación, Web..." />
+                    </div>
+
+                    <!-- Pretension (Full Width) -->
+                    <div class="md:col-span-2 flex flex-col gap-2">
+                        <label for="pretension" class="text-sm font-semibold text-slate-700">Pretensión</label>
+                        <input pInputText id="pretension" formControlName="pretension" class="w-full"
+                            placeholder="Ej: Indemnización, Reincorporación..." />
+                    </div>
+                </div>
+            </div>
+
             <!-- SECTION 3: NOTAS -->
             <div>
                 <h3

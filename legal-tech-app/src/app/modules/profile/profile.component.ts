@@ -21,7 +21,6 @@ import { environment } from '../../../environments/environment';
 })
 export class ProfileComponent implements OnInit, OnDestroy {
   fb = inject(FormBuilder);
-  http = inject(HttpClient);
   authService = inject(AuthService);
   notificationService = inject(NotificationService);
   cdr = inject(ChangeDetectorRef);
@@ -189,7 +188,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   });
               }
             },
-            error: (err) => console.warn('Polling error:', err)
+            error: (err: any) => console.warn('Polling error:', err)
           });
       }, 3000);
   }

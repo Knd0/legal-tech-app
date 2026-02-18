@@ -21,6 +21,7 @@ import { environment } from '../../../environments/environment';
 })
 export class ProfileComponent implements OnInit, OnDestroy {
   fb = inject(FormBuilder);
+  http = inject(HttpClient);
   authService = inject(AuthService);
   notificationService = inject(NotificationService);
   cdr = inject(ChangeDetectorRef);
@@ -81,7 +82,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   loadProfile() {
     this.http.get<any>(this.apiUrl).subscribe({
-        next: (user) => {
+        next: (user: any) => {
             if (user) {
                 let dateStr = user.initActivityUser;
                 if (dateStr && typeof dateStr === 'string' && dateStr.includes('T')) {
@@ -101,7 +102,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 });
             }
         },
-        error: (err) => console.error('Error loading profile', err)
+        error: (err: any) => console.error('Error loading profile', err)
     });
   }
 
@@ -137,7 +138,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             const currentUser = this.authService.currentUser();
             this.authService.currentUser.set({ ...currentUser, ...payload });
         },
-        error: (err) => {
+        error: (err: any) => {
             this.saving.set(false);
             console.error('Error updating profile', err);
             Swal.fire('Error', 'No se pudieron guardar los cambios', 'error');

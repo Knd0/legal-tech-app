@@ -124,9 +124,12 @@ export class CuentaCorrienteComponent implements OnInit {
       });
   }
 
-  onSubmit() {
-    if (this.movimientoForm.invalid) return;
+  isSubmitting = false;
 
+  onSubmit() {
+    if (this.movimientoForm.invalid || this.isSubmitting) return;
+
+    this.isSubmitting = true;
     const formValue = this.movimientoForm.value;
     const movimiento: Partial<Movimiento> = {
       ...formValue,
@@ -135,6 +138,7 @@ export class CuentaCorrienteComponent implements OnInit {
 
     this.movimientoService.create(movimiento).subscribe({
       next: () => {
+        this.isSubmitting = false;
         this.loadBalance();
         this.closeModal();
         Swal.fire({
@@ -145,6 +149,7 @@ export class CuentaCorrienteComponent implements OnInit {
         });
       },
       error: (err) => {
+        this.isSubmitting = false;
         console.error('Error creating movement', err);
         Swal.fire({
           icon: 'error',

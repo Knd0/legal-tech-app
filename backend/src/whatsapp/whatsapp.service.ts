@@ -69,12 +69,19 @@ export class WhatsappService implements OnModuleInit {
   }
 
   onModuleInit() {
-    this.logger.log('Initializing WhatsApp Client...');
     this.initializationError = null; // Clear previous errors
-    this.client.initialize().catch((err: any) => {
-        this.logger.error('Failed to initialize WhatsApp client', err);
-        this.initializationError = err.message || 'Unknown initialization error';
-    });
+    
+    // Delay initialization to prevent blocking NestJS bootstrap on low-resource environments (Render)
+    const delay = 20000; // 20 seconds
+    this.logger.log(`Scheduling WhatsApp Client initialization in ${delay/1000}s to allow server startup...`);
+
+    setTimeout(() => {
+        this.logger.log('Initializing WhatsApp Client now...');
+        this.client.initialize().catch((err: any) => {
+            this.logger.error('Failed to initialize WhatsApp client', err);
+            this.initializationError = err.message || 'Unknown initialization error';
+        });
+    }, delay);
   }
 
   async sendMessage(number: string, message: string): Promise<any> {

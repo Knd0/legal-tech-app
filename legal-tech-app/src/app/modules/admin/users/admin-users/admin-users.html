@@ -35,8 +35,8 @@
                         (onClick)="editUser(user)"></p-button>
 
                     <p-button [icon]="user.isActive ? 'pi pi-ban' : 'pi pi-check'" [rounded]="true" [text]="true"
-                        [severity]="getSeverity(user.isActive)" pTooltip="{{ user.isActive ? 'Suspender' : 'Activar' }}"
-                        (onClick)="toggleSuspension(user)">
+                        [severity]="$any(getSeverity(user.isActive))"
+                        pTooltip="{{ user.isActive ? 'Suspender' : 'Activar' }}" (onClick)="toggleSuspension(user)">
                     </p-button>
 
                     <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Eliminar"

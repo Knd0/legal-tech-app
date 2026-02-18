@@ -132,7 +132,8 @@ export class CalendarioViewComponent {
       fechaVencimiento: [null, Validators.required],
       tipo: ['VENCIMIENTO_PLAZO', Validators.required],
       estado: ['PENDIENTE', Validators.required],
-      esPerentorio: [false]
+      esPerentorio: [false],
+      expedienteId: [null] // Keep track of relation
     });
   }
 
@@ -246,7 +247,7 @@ export class CalendarioViewComponent {
       const newDeadline: Omit<Vencimiento, 'id'> = {
         ...formValue,
         // estado: 'PENDIENTE', // Taken from form now
-        expedienteId: 'a8d7d08b-df5d-417b-a747-557a775b6e77' // Mock ID (Valid UUID from seed)
+        expedienteId: formValue.expedienteId || null
       };
       this.deadlineService.addDeadline(newDeadline);
       

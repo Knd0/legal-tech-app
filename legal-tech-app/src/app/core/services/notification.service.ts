@@ -183,6 +183,10 @@ export class NotificationService {
       return this.http.post(`${environment.apiUrl}/whatsapp/logout`, {});
   }
 
+  restartWhatsapp() {
+      return this.http.post(`${environment.apiUrl}/whatsapp/restart`, {});
+  }
+
   private checkSubscription() {
     if (this.swPush.isEnabled) {
       this.swPush.subscription.subscribe(sub => {

@@ -182,8 +182,10 @@
 
                             <ng-template #statusInfo>
                                 <div *ngIf="!qrCodeUrl && !configWhatsappNumber"
-                                    class="text-green-700 dark:text-green-400 text-sm py-2">
-                                    <i class="pi pi-spin pi-spinner mr-2"></i> Iniciando servicio...
+                                    class="text-green-700 dark:text-green-400 text-sm py-2 flex flex-col items-center gap-2">
+                                    <span><i class="pi pi-spin pi-spinner mr-2"></i> Iniciando servicio...</span>
+                                    <button pButton label="Reiniciar Servicio" icon="pi pi-refresh"
+                                        class="p-button-text p-button-sm text-xs" (click)="restartWhatsapp()"></button>
                                 </div>
                                 <div *ngIf="configWhatsappNumber" class="space-y-2">
                                     <span class="text-green-700 dark:text-green-400 font-bold text-sm block">Bot

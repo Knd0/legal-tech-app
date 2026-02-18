@@ -32,4 +32,14 @@ export class WhatsappController {
           throw new HttpException(error.message || 'Failed to logout', HttpStatus.INTERNAL_SERVER_ERROR);
       }
   }
+
+  @Post('restart')
+  async restart() {
+      try {
+          await this.whatsappService.restart();
+          return { success: true, message: 'Restarted successfully' };
+      } catch (error: any) {
+          throw new HttpException(error.message || 'Failed to restart', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+  }
 }

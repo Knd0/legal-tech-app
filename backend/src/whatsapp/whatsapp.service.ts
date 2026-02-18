@@ -119,4 +119,19 @@ export class WhatsappService implements OnModuleInit {
           throw error;
       }
   }
+
+  async restart() {
+      this.logger.log('Force restarting WhatsApp client...');
+      try {
+          await this.client.destroy();
+      } catch (e) {
+          this.logger.warn('Error destroying client during restart', e);
+      }
+      
+      this.isReady = false;
+      this.qrCodeImage = null;
+      
+      this.client.initialize().catch(err => this.logger.error('Failed to re-initialize', err));
+      return { success: true };
+  }
 }

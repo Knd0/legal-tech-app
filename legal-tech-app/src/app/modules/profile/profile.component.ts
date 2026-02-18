@@ -223,6 +223,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
   }
 
+  restartWhatsapp() {
+      this.notificationService.restartWhatsapp().subscribe({
+          next: () => {
+              Swal.fire('Reiniciando', 'El servicio de WhatsApp se está reiniciando. Espere un momento...', 'info');
+              this.qrCodeUrl = null;
+              this.startQrPolling();
+          },
+          error: () => Swal.fire('Error', 'No se pudo reiniciar el servicio.', 'error')
+      });
+  }
+
   sendTestMessage() {
       if (!this.configWhatsappNumber) {
           Swal.fire('Error', 'Ingrese un número de WhatsApp válido.', 'error');

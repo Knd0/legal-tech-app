@@ -50,7 +50,15 @@ export class AuthService {
       this.otps.set(userId, { code, expires: Date.now() + 5 * 60 * 1000 });
 
       // Send via WhatsApp
-      await this.whatsappService.sendMessage(user.phoneNumber, `Tu código de verificación para cambiar la contraseña es: *${code}*`);
+      try {
+          await this.whatsappService.sendMessage(user.phoneNumber, `Tu código de verificación para cambiar la contraseña es: *${code}*`);
+      } catch (error: any) {
+          console.error('WhatsApp OTP Error:', error);
+          if (error.message.includes('not ready')) {
+             throw new UnauthorizedException('El servicio de WhatsApp se está reiniciando. Intente en unos segundos.');
+          }
+          throw new UnauthorizedException('No se pudo enviar el WhatsApp. Verifique que el número esté vinculado.');
+      }
   }
 
   async changePassword(userId: string, otp: string, newPass: string): Promise<void> {

@@ -231,17 +231,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   loadingQr = signal<boolean>(false);
+  pairingCode: string | null = null;
+  loadingPairingCode = signal<boolean>(false);
 
   restartWhatsapp() {
       this.loadingQr.set(true);
       this.notificationService.restartWhatsapp().subscribe({
           next: () => {
-              // Swal.fire('Reiniciando', 'Generando nuevo QR...', 'info'); // Removed to be less intrusive
               this.qrCodeUrl = null;
+              this.pairingCode = null;
               this.whatsappError = null;
               this.startQrPolling();
-              // Loading will remain true until QR appears or timeout, but for now let's reset it after a delay or keep it?
-              // Let's keep it true for a few seconds to show action
               setTimeout(() => this.loadingQr.set(false), 3000); 
           },
           error: () => {
@@ -249,6 +249,84 @@ export class ProfileComponent implements OnInit, OnDestroy {
               Swal.fire('Error', 'No se pudo generar el QR.', 'error');
           }
       });
+  }
+
+  generatePairingCode() {
+      const phone = this.profileForm.get('phoneNumber')?.value;
+      if (!phone) {
+          Swal.fire('Atención', 'Debes ingresar tu número de teléfono en el perfil para usar este método.', 'warning');
+          return;
+      }
+      
+      this.loadingPairingCode.set(true);
+      this.notificationService.requestPairingCode(phone).subscribe({
+          next: (res) => {
+              this.loadingPairingCode.set(false);
+              if (res.success && res.code) {
+                  this.pairingCode = res.code;
+                  this.qrCodeUrl = null; // Hide QR if showing code
+                  this.stopQrPolling(); // Stop polling while showing code? Or keep polling to detect connection? 
+                  // Better keep polling but maybe slower
+                  this.startQrPolling(5000);
+              }
+          },
+          error: (err) => {
+              this.loadingPairingCode.set(false);
+              console.error(err);
+              Swal.fire('Error', 'No se pudo generar el código. Asegúrate que el bot se haya reiniciado primero (usa el botón Generar QR primero para iniciar el proceso).', 'error');
+          }
+      });
+  }
+
+  startQrPolling(intervalMs = 3000) {
+      this.stopQrPolling();
+      let errorCount = 0;
+      
+      this.qrPollInterval = setInterval(() => {
+          this.notificationService.getWhatsappStatus().subscribe({
+            next: (status: any) => {
+              errorCount = 0; // Reset error count on success
+              
+              if (status.qr) {
+                  this.qrCodeUrl = status.qr;
+                  // If we have a QR, we probably don't have a pairing code active anymore, or maybe we do.
+                  // Let's not clear pairingCode automatically unless it conflicts.
+                  this.cdr.detectChanges(); 
+              } else if (status.ready) {
+                  this.qrCodeUrl = null;
+                  this.pairingCode = null;
+                  this.stopQrPolling();
+                  
+                  if (status.number && !this.configWhatsappNumber) {
+                      this.configWhatsappNumber = status.number;
+                  }
+
+                  Swal.fire({
+                    title: '¡Conectado!',
+                    text: status.number ? `Vinculado con ${status.number}` : 'El bot de WhatsApp está listo.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                  });
+              } else if (status.error) {
+                  // status.error indicates backend caught an error (e.g. auth failure)
+                  // We can display it but keep polling?
+              }
+            },
+            error: (err: any) => {
+                console.warn('Polling error:', err);
+                errorCount++;
+                if (err.status === 504 || err.status === 500) {
+                    // Server overloaded or down. Back off.
+                    if (errorCount > 2) {
+                        console.warn('High error rate, slowing down polling...');
+                        this.stopQrPolling();
+                        this.startQrPolling(10000); // Slow down to 10s
+                    }
+                }
+            }
+          });
+      }, intervalMs);
   }
 
   sendTestMessage() {

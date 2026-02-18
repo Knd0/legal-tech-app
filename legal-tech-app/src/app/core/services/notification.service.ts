@@ -193,6 +193,10 @@ export class NotificationService {
       return this.http.post(`${environment.apiUrl}/whatsapp/restart`, {});
   }
 
+  requestPairingCode(number: string) {
+      return this.http.post<{ success: boolean, code: string }>(`${environment.apiUrl}/whatsapp/pairing-code`, { number });
+  }
+
   private checkSubscription() {
     if (this.swPush.isEnabled) {
       this.swPush.subscription.subscribe(sub => {

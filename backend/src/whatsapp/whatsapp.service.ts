@@ -119,6 +119,28 @@ export class WhatsappService implements OnModuleInit {
     }
   }
 
+  async requestPairingCode(phoneNumber: string): Promise<string> {
+      if (!this.client) {
+          throw new Error('Client not initialized');
+      }
+      this.logger.log(`Requesting pairing code for ${phoneNumber}`);
+      try {
+          // ensure we are in a state to pair (not ready)
+           if (this.isReady) {
+               throw new Error('Client is already connected');
+           }
+           
+           // Format: 54911...
+           const cleanCode = phoneNumber.replace(/\D/g, '');
+           const code = await this.client.requestPairingCode(cleanCode);
+           this.logger.log(`Pairing code generated: ${code}`);
+           return code;
+      } catch (error) {
+           this.logger.error('Error requesting pairing code', error);
+           throw error;
+      }
+  }
+
   getStatus() {
       // Debug log (can be verbose, but useful here)
       // this.logger.debug(`getStatus called. Ready: ${this.isReady}, QR present: ${!!this.qrCodeImage}`);

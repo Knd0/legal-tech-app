@@ -193,6 +193,30 @@
                                         [loading]="loadingQr()">
                                     </button>
 
+                                    <div class="flex items-center gap-2 my-2 w-full justify-center">
+                                        <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                                        <span class="text-xs text-slate-400">O usa código</span>
+                                        <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                                    </div>
+
+                                    <button pButton label="Vincular con Código" icon="pi pi-mobile"
+                                        class="p-button-secondary p-button-outlined p-button-sm"
+                                        (click)="generatePairingCode()" [loading]="loadingPairingCode()">
+                                    </button>
+
+                                    <!-- Pairing Code Config -->
+                                    <div *ngIf="pairingCode"
+                                        class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700 mt-2 text-center animate-fade-in">
+                                        <p class="text-xs text-yellow-800 dark:text-yellow-200 mb-1">Ingresa este código
+                                            en tu WhatsApp:</p>
+                                        <p class="text-xs text-slate-500 mb-2">(Dispositivos vinculados > Vincular >
+                                            Vincular con número)</p>
+                                        <div
+                                            class="text-3xl font-mono font-bold tracking-widest text-slate-800 dark:text-white select-all">
+                                            {{ pairingCode }}
+                                        </div>
+                                    </div>
+
                                     <!-- Error Display -->
                                     <div *ngIf="whatsappError"
                                         class="mt-2 bg-red-50 dark:bg-red-900/20 p-2 rounded text-red-600 dark:text-red-400 text-xs text-center max-w-xs break-words">

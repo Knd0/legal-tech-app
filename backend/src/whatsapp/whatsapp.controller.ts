@@ -42,4 +42,17 @@ export class WhatsappController {
           throw new HttpException(error.message || 'Failed to restart', HttpStatus.INTERNAL_SERVER_ERROR);
       }
   }
+
+  @Post('pairing-code')
+  async getPairingCode(@Body() body: { number: string }) {
+      try {
+          if (!body.number) {
+              throw new HttpException('Number is required', HttpStatus.BAD_REQUEST);
+          }
+          const code = await this.whatsappService.requestPairingCode(body.number);
+          return { success: true, code };
+      } catch (error: any) {
+          throw new HttpException(error.message || 'Failed to get pairing code', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+  }
 }

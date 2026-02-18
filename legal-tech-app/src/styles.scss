@@ -123,10 +123,25 @@ select,
     border-color: #e2e8f0;
 }
 
+.dark .p-button.p-button-outlined {
+    color: #f8fafc;
+    /* white text in dark mode */
+    border-color: #475569;
+    /* slate-600 */
+}
+
 .p-button.p-button-outlined:enabled:hover {
     background: #f8fafc;
     color: var(--brand-navy);
     border-color: #cbd5e1;
+}
+
+.dark .p-button.p-button-outlined:enabled:hover {
+    background: #1e293b;
+    /* slate-800 */
+    color: #ffffff;
+    border-color: #64748b;
+    /* slate-500 */
 }
 
 /* 4. Menubar Clean */
@@ -205,4 +220,35 @@ select,
 .dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
     background-color: var(--brand-navy);
     color: white;
+}
+
+/* 9. Global Input & Dropdown Dark Mode */
+.dark .p-inputtext,
+.dark .p-dropdown,
+.dark .p-dropdown-panel,
+.dark .p-multiselect,
+.dark .p-multiselect-panel,
+.dark .p-inputgroup-addon {
+    background-color: #1e293b !important;
+    /* slate-800 */
+    color: white !important;
+    border-color: #475569 !important;
+    /* slate-600 */
+}
+
+.dark .p-float-label label {
+    color: #94a3b8 !important;
+    /* slate-400 */
+}
+
+.dark .p-dropdown-item {
+    color: #f8fafc !important;
+    background-color: transparent;
+}
+
+.dark .p-dropdown-item:hover,
+.dark .p-dropdown-item.p-highlight {
+    background-color: #334155 !important;
+    /* slate-700 */
+    color: white !important;
 }

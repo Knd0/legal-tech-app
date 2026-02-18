@@ -181,7 +181,9 @@ export class NotificationService {
   }
 
   getWhatsappStatus() {
-      return this.http.get<{ ready: boolean, qr: string | null }>(`${environment.apiUrl}/whatsapp/status`);
+      return this.http.get<{ ready: boolean, qr: string | null }>(`${environment.apiUrl}/whatsapp/status`, {
+          headers: { 'X-Skip-Loader': 'true' }
+      });
   }
 
   logoutWhatsapp() {

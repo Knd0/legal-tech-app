@@ -7,7 +7,10 @@ export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
   const loadingService = inject(LoadingService);
   
   // Skip loader for background tasks if needed (e.g. notifications polling)
-  // if (req.headers.has('X-Skip-Loader')) { ... }
+  if (req.headers.has('X-Skip-Loader')) {
+      const newReq = req.clone({ headers: req.headers.delete('X-Skip-Loader') });
+      return next(newReq);
+  }
 
   loadingService.show();
 

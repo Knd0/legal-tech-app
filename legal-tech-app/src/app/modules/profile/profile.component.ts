@@ -230,15 +230,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
   }
 
+  loadingQr = signal<boolean>(false);
+
   restartWhatsapp() {
+      this.loadingQr.set(true);
       this.notificationService.restartWhatsapp().subscribe({
           next: () => {
-              Swal.fire('Reiniciando', 'El servicio de WhatsApp se está reiniciando. Espere un momento...', 'info');
+              // Swal.fire('Reiniciando', 'Generando nuevo QR...', 'info'); // Removed to be less intrusive
               this.qrCodeUrl = null;
-              this.whatsappError = null; // Clear error
+              this.whatsappError = null;
               this.startQrPolling();
+              // Loading will remain true until QR appears or timeout, but for now let's reset it after a delay or keep it?
+              // Let's keep it true for a few seconds to show action
+              setTimeout(() => this.loadingQr.set(false), 3000); 
           },
-          error: () => Swal.fire('Error', 'No se pudo reiniciar el servicio.', 'error')
+          error: () => {
+              this.loadingQr.set(false);
+              Swal.fire('Error', 'No se pudo generar el QR.', 'error');
+          }
       });
   }
 

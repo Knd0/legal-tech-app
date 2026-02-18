@@ -44,7 +44,33 @@ export class AppComponent implements OnInit {
   constructor(
     public notificationService: NotificationService,
     private pwaUpdateService: PwaUpdateService // Injected to initialize logic
-  ) {}
+  ) {
+    // Listen for the PWA install prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Stash the event so it can be triggered later.
+      this.deferredPrompt = e;
+      // Update UI notify the user they can install the PWA
+      this.showInstallButton.set(true);
+    });
+  }
+
+  deferredPrompt: any;
+  showInstallButton = signal(false);
+
+  async installApp() {
+    if (!this.deferredPrompt) {
+      return;
+    }
+    // Show the install prompt
+    this.deferredPrompt.prompt();
+    // Wait for the user to respond to the prompt
+    const { outcome } = await this.deferredPrompt.userChoice;
+    // We've used the prompt, and can't use it again, throw it away
+    this.deferredPrompt = null;
+    this.showInstallButton.set(false);
+  }
 
   ngOnInit() {
     this.items = [

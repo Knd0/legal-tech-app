@@ -87,6 +87,11 @@
                 <i class="pi pi-question-circle mr-2 text-slate-400"></i> Ayuda
               </a>
 
+              <a *ngIf="showInstallButton()" (click)="installApp()"
+                class="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer font-bold">
+                <i class="pi pi-download mr-2"></i> Instalar App
+              </a>
+
               <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
 
               <a (click)="authService.logout()"
@@ -146,6 +151,12 @@
         class="flex items-center gap-3 p-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         <i class="pi pi-question-circle"></i> Ayuda
       </a>
+
+      <!-- Install App Button (Mobile) -->
+      <button *ngIf="showInstallButton()" (click)="installApp(); closeMobileMenu()"
+        class="flex items-center gap-3 p-3 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors w-full text-left font-bold">
+        <i class="pi pi-download"></i> Instalar Aplicación
+      </button>
 
       <div class="border-t border-slate-100 dark:border-slate-700 my-4"></div>
 

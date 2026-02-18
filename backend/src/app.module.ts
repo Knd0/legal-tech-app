@@ -47,6 +47,12 @@ import { SeedService } from './seed.service';
             ssl: {
               rejectUnauthorized: false,
             },
+            extra: {
+              connectionTimeoutMillis: 30000, // Wait 30s before timing out
+            },
+            retryAttempts: 10, // Retry connection 10 times
+            retryDelay: 3000, // Wait 3s between retries
+            autoLoadEntities: true,
           };
         }
 
@@ -59,6 +65,8 @@ import { SeedService } from './seed.service';
           database: configService.get<string>('DB_DATABASE'),
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
           synchronize: true,
+          retryAttempts: 10,
+          retryDelay: 3000,
         };
       },
       inject: [ConfigService],

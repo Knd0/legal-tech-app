@@ -1,25 +1,25 @@
 <div class="flex flex-col gap-6 pb-10">
-    <div class="flex justify-between items-end">
+    <div class="flex flex-col md:flex-row justify-between items-end gap-4">
         <div>
             <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Expedientes</h1>
             <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Gestión de causas y legajos judiciales.</p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
             <button pButton label="Exportar" icon="pi pi-file-excel" (click)="exportList()"
-                class="p-button-outlined p-button-success border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"></button>
+                class="p-button-outlined p-button-success border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 w-full sm:w-auto"></button>
             <button pButton label="Importar" icon="pi pi-upload" (click)="triggerImport()"
-                class="p-button-outlined p-button-help border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"></button>
+                class="p-button-outlined p-button-help border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 w-full sm:w-auto"></button>
             <button pButton label="Ver Tablero" icon="pi pi-th-large" [routerLink]="['kanban']"
-                class="p-button-outlined p-button-info border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"></button>
+                class="p-button-outlined p-button-info border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 w-full sm:w-auto"></button>
             <input type="file" id="importInputExp" (change)="onFileChange($event)" accept=".xlsx, .xls" class="hidden">
 
             <button pButton label="Nuevo Expediente" icon="pi pi-plus" [routerLink]="['new']"
-                class="bg-blue-900 dark:bg-blue-600 border-blue-900 dark:border-blue-600 hover:bg-blue-800 dark:hover:bg-blue-500 shadow-sm"></button>
+                class="bg-blue-900 dark:bg-blue-600 border-blue-900 dark:border-blue-600 hover:bg-blue-800 dark:hover:bg-blue-500 shadow-sm w-full sm:w-auto"></button>
         </div>
     </div>
 
     <div
-        class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden overflow-x-auto">
         <p-table [value]="expedientes()" [tableStyle]="{ 'min-width': '60rem' }" styleClass="p-datatable-sm"
             [paginator]="true" [rows]="10" [showCurrentPageReport]="true"
             currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}">

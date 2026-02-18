@@ -11,10 +11,10 @@ export class LoadingService {
   show() {
     this.activeRequests++;
     if (this.activeRequests === 1) {
-      // Only show loader if request takes longer than 300ms
+      // Only show loader if request takes longer than 800ms (less intrusive)
       this.timeoutId = setTimeout(() => {
         this.isLoading.set(true);
-      }, 300);
+      }, 800);
     }
   }
 

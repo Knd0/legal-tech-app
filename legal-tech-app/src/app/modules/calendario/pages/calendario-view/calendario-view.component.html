@@ -1,38 +1,38 @@
 <div class="flex flex-col gap-6 pb-10">
-    <div class="flex justify-between items-end">
+    <div class="flex flex-col md:flex-row justify-between items-end gap-4">
         <div>
             <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Calendario</h1>
             <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Agenda de plazos, audiencias y vencimientos.</p>
         </div>
-        <div class="flex gap-2 items-center">
+        <div class="flex flex-col sm:flex-row gap-2 items-center w-full md:w-auto">
             <!-- View Toggles -->
             <div
-                class="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg border border-slate-200 dark:border-slate-600 mr-2">
+                class="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg border border-slate-200 dark:border-slate-600 w-full sm:w-auto justify-center">
                 <button (click)="toggleView('LIST')" [class.bg-white]="viewMode() === 'LIST'"
                     [class.dark:bg-slate-600]="viewMode() === 'LIST'" [class.shadow-sm]="viewMode() === 'LIST'"
                     [class.text-blue-900]="viewMode() === 'LIST'" [class.dark:text-white]="viewMode() === 'LIST'"
                     [class.text-slate-500]="viewMode() !== 'LIST'" [class.dark:text-slate-400]="viewMode() !== 'LIST'"
-                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2">
+                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 flex-1 sm:flex-none justify-center">
                     <i class="pi pi-list"></i> Lista
                 </button>
                 <button (click)="toggleView('MONTH')" [class.bg-white]="viewMode() === 'MONTH'"
                     [class.dark:bg-slate-600]="viewMode() === 'MONTH'" [class.shadow-sm]="viewMode() === 'MONTH'"
                     [class.text-blue-900]="viewMode() === 'MONTH'" [class.dark:text-white]="viewMode() === 'MONTH'"
                     [class.text-slate-500]="viewMode() !== 'MONTH'" [class.dark:text-slate-400]="viewMode() !== 'MONTH'"
-                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2">
+                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 flex-1 sm:flex-none justify-center">
                     <i class="pi pi-calendar"></i> Mes
                 </button>
             </div>
 
             <button pButton label="Nuevo Vencimiento" icon="pi pi-plus"
-                class="bg-blue-900 border-blue-900 hover:bg-blue-800 shadow-sm" (click)="openNew()">
+                class="bg-blue-900 border-blue-900 hover:bg-blue-800 shadow-sm w-full sm:w-auto" (click)="openNew()">
             </button>
         </div>
     </div>
 
     <!-- LIST VIEW -->
     <div *ngIf="viewMode() === 'LIST'"
-        class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden overflow-x-auto">
         <p-table [value]="deadlines()" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '50rem' }"
             styleClass="p-datatable-sm">
             <ng-template pTemplate="header">

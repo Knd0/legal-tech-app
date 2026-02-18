@@ -24,7 +24,12 @@ export class WhatsappService implements OnModuleInit {
             '--no-zygote',
             '--single-process', 
             '--no-first-run',
-            '--no-default-browser-check'
+            '--no-default-browser-check',
+            '--disable-extensions',
+            '--disable-software-rasterizer',
+            '--disable-accelerated-2d-canvas',
+            '--disable-gl-drawing-for-tests',
+            '--mute-audio'
         ],
         // Allow env override, otherwise let Puppeteer resolve it (undefined)
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined 

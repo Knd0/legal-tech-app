@@ -70,4 +70,25 @@ export class UsersService {
     user.isActive = !user.isActive;
     return this.usersRepository.save(user);
   }
+
+  async updateUser(id: string, updateData: any): Promise<User> {
+    const user = await this.findOneById(id);
+    if (!user) throw new NotFoundException('User not found');
+
+    if (updateData.password) {
+        const salt = await bcrypt.genSalt();
+        updateData.passwordHash = await bcrypt.hash(updateData.password, salt);
+        delete updateData.password;
+    }
+
+    await this.usersRepository.update(id, updateData);
+    return this.findOneById(id);
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    const result = await this.usersRepository.delete(id);
+    if (result.affected === 0) {
+        throw new NotFoundException('User not found');
+    }
+  }
 }

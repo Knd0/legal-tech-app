@@ -1,20 +1,23 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
-import { UsersService } from '../../../../core/services/users';
+import { UsersService, User } from '../../../../core/services/users';
 
 @Component({
   selector: 'app-user-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, InputTextModule, ButtonModule, SelectModule],
   templateUrl: './user-form.html',
-  styleUrl: './user-form.css',
+  providers: [] // Removed UserForm from imports array to avoid circular dependency if any
 })
-export class UserForm {
+export class UserForm implements OnChanges {
+  @Input() userToEdit: User | null = null;
   @Output() userCreated = new EventEmitter<void>();
+  @Output() userUpdated = new EventEmitter<void>();
+  
   userForm: FormGroup;
   loading: boolean = false;
   roles = [
@@ -34,20 +37,57 @@ export class UserForm {
     });
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['userToEdit']) {
+      if (this.userToEdit) {
+        // Edit Mode
+        this.userForm.patchValue({
+          fullName: this.userToEdit.fullName,
+          email: this.userToEdit.email,
+          role: this.userToEdit.role,
+          password: '' // Don't fill password
+        });
+        // Remove password required validator
+        this.userForm.get('password')?.clearValidators();
+        this.userForm.get('password')?.addValidators([Validators.minLength(6)]); // Keep min length if typed
+        this.userForm.get('password')?.updateValueAndValidity();
+      } else {
+        // Create Mode
+        this.userForm.reset({ role: 'USER' });
+        this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
+        this.userForm.get('password')?.updateValueAndValidity();
+      }
+    }
+  }
+
   onSubmit() {
     if (this.userForm.valid) {
       this.loading = true;
-      this.usersService.createUser(this.userForm.value).subscribe({
-        next: () => {
-          this.loading = false;
-          this.userForm.reset({ role: 'USER' });
-          this.userCreated.emit();
-        },
-        error: () => {
-          this.loading = false;
-          // Error handled by parent toast or global interceptor
-        }
-      });
+      const formData = this.userForm.value;
+
+      // Remove empty password if editing
+      if (this.userToEdit && !formData.password) {
+          delete formData.password;
+      }
+
+      if (this.userToEdit) {
+        this.usersService.updateUser(this.userToEdit.id, formData).subscribe({
+            next: () => {
+                this.loading = false;
+                this.userUpdated.emit();
+            },
+            error: () => this.loading = false
+        });
+      } else {
+        this.usersService.createUser(formData).subscribe({
+            next: () => {
+                this.loading = false;
+                this.userForm.reset({ role: 'USER' });
+                this.userCreated.emit();
+            },
+            error: () => this.loading = false
+        });
+      }
     } else {
         this.userForm.markAllAsTouched();
     }

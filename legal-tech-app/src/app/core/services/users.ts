@@ -32,4 +32,12 @@ export class UsersService {
   suspendUser(id: string): Observable<User> {
       return this.http.patch<User>(`${this.apiUrl}/${id}/suspend`, {});
   }
+
+  updateUser(id: string, user: any): Observable<User> {
+      return this.http.patch<User>(`${this.apiUrl}/${id}`, user);
+  }
+
+  deleteUser(id: string): Observable<void> {
+      return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }

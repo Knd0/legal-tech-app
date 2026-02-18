@@ -16,8 +16,10 @@
     </div>
 
     <div class="flex flex-col gap-2">
-        <label for="password" class="font-semibold text-slate-700">Contraseña</label>
-        <input pInputText id="password" type="password" formControlName="password" placeholder="******" />
+        <label for="password" class="block text-sm font-medium text-slate-700 mb-1">Contraseña {{ userToEdit ?
+            '(Opcional)' : '' }}</label>
+        <input pInputText id="password" type="password" formControlName="password" class="w-full"
+            [placeholder]="userToEdit ? 'Dejar en blanco para mantener' : '******'" />
         <small class="text-red-500" *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
             Mínimo 6 caracteres
         </small>
@@ -29,7 +31,10 @@
             [style]="{'width':'100%'}"></p-select>
     </div>
 
-    <div class="flex justify-end mt-4">
-        <p-button label="Crear Usuario" icon="pi pi-check" type="submit" [loading]="loading"></p-button>
+    <div class="flex justify-end gap-2 mt-6">
+        <p-button label="Cancelar" styleClass="p-button-secondary p-button-text"
+            (onClick)="userForm.reset()"></p-button>
+        <p-button [label]="userToEdit ? 'Guardar Cambios' : 'Crear Usuario'" [loading]="loading" (onClick)="onSubmit()"
+            [disabled]="userForm.invalid"></p-button>
     </div>
 </form>

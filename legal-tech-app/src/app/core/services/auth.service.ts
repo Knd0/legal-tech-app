@@ -27,7 +27,12 @@ export class AuthService {
           localStorage.setItem(this.tokenKey, response.access_token);
           this.isAuthenticated.set(true);
           this.currentUser.set(response.user);
-          this.router.navigate(['/dashboard']);
+          
+          if (response.user.role === 'ADMIN') {
+              this.router.navigate(['/admin/users']);
+          } else {
+              this.router.navigate(['/dashboard']);
+          }
         })
       );
   }

@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Req, Patch, Body, Post, Param } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Patch, Body, Post, Param, Delete } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -35,11 +35,24 @@ export class UsersController {
       return result;
   }
 
-  @Patch(':id/suspend')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
   async toggleStatus(@Param('id') id: string) {
       return this.usersService.toggleStatus(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async update(@Param('id') id: string, @Body() updateData: any) {
+      const user = await this.usersService.updateUser(id, updateData);
+      const { passwordHash, ...result } = user;
+      return result;
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async remove(@Param('id') id: string) {
+      return this.usersService.deleteUser(id);
   }
 
   // --- User Profile ---

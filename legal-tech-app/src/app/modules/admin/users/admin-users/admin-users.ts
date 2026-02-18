@@ -20,6 +20,8 @@ import { UserForm } from '../user-form/user-form';
 export class AdminUsers implements OnInit {
   users: User[] = [];
   displayCreateDialog: boolean = false;
+  selectedUser: User | null = null;
+  headerText: string = 'Crear Nuevo Usuario';
 
   constructor(
     private usersService: UsersService,
@@ -38,13 +40,39 @@ export class AdminUsers implements OnInit {
   }
 
   openCreateDialog() {
+    this.selectedUser = null;
+    this.headerText = 'Crear Nuevo Usuario';
     this.displayCreateDialog = true;
+  }
+
+  editUser(user: User) {
+    this.selectedUser = user;
+    this.headerText = 'Editar Usuario';
+    this.displayCreateDialog = true;
+  }
+
+  deleteUser(user: User) {
+    if (confirm(`¿Estás seguro de eliminar a ${user.fullName}? esta acción no se puede deshacer.`)) {
+        this.usersService.deleteUser(user.id).subscribe({
+            next: () => {
+                this.messageService.add({severity:'success', summary:'Eliminado', detail:'Usuario eliminado permanentemente'});
+                this.loadUsers();
+            },
+            error: () => this.messageService.add({severity:'error', summary:'Error', detail:'No se pudo eliminar el usuario'})
+        });
+    }
   }
 
   onUserCreated() {
     this.displayCreateDialog = false;
     this.loadUsers();
-    this.messageService.add({severity:'success', summary:'Success', detail:'User created'});
+    this.messageService.add({severity:'success', summary:'Creado', detail:'Usuario creado exitosamente'});
+  }
+
+  onUserUpdated() {
+    this.displayCreateDialog = false;
+    this.loadUsers();
+    this.messageService.add({severity:'success', summary:'Actualizado', detail:'Usuario actualizado exitosamente'});
   }
 
   toggleSuspension(user: User) {
@@ -54,10 +82,14 @@ export class AdminUsers implements OnInit {
         if (index !== -1) {
             this.users[index] = updatedUser;
         }
-        const msg = updatedUser.isActive ? 'User Activated' : 'User Suspended';
-        this.messageService.add({severity:'info', summary:'Status Updated', detail: msg});
+        const msg = updatedUser.isActive ? 'Usuario Activado' : 'Usuario Suspendido';
+        this.messageService.add({severity:'info', summary:'Estado Actualizado', detail: msg});
       },
-      error: (err) => this.messageService.add({severity:'error', summary:'Error', detail:'Failed to update status'})
+      error: (err) => this.messageService.add({severity:'error', summary:'Error', detail:'Falló al actualizar estado'})
     });
+  }
+
+  getSeverity(isActive: boolean): any {
+      return isActive ? 'warning' : 'success';
   }
 }

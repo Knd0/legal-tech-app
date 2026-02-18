@@ -91,7 +91,8 @@ export class WhatsappService implements OnModuleInit {
   getStatus() {
       return {
           ready: this.isReady,
-          qr: this.qrCodeImage
+          qr: this.qrCodeImage,
+          number: this.isReady ? this.client.info?.wid?.user : null
       };
   }
 

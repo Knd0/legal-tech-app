@@ -26,16 +26,8 @@ export class DeadlinesService {
     const savedDeadline = await this.deadlinesRepository.save(newDeadline);
 
     if (savedDeadline.userId && savedDeadline.fechaVencimiento) {
-        // Prepare event data
-        const eventData = {
-            title: savedDeadline.titulo,
-            description: savedDeadline.descripcion || `Vencimiento de expediente (ID: ${savedDeadline.expedienteId})`,
-            startDate: savedDeadline.fechaVencimiento,
-            endDate: new Date(savedDeadline.fechaVencimiento.getTime() + 60 * 60 * 1000) // Default 1 hour duration
-        };
-        
-        // Fire and forget sync
-        this.calendarService.createEvent(savedDeadline.userId, eventData).catch(err => console.error('Calendar Sync Error', err));
+        // Calendar Sync removed
+        // this.calendarService.createEvent(savedDeadline.userId, eventData).catch(err => console.error('Calendar Sync Error', err));
     }
 
     return savedDeadline;

@@ -52,8 +52,8 @@ export class User {
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column({ nullable: true })
-  googleRefreshToken: string;
+  // @Column({ nullable: true })
+  // googleRefreshToken: string;
 
   @UpdateDateColumn()
   updatedAt: Date;

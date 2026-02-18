@@ -70,7 +70,8 @@ export class AuthService {
                 id: decoded.sub,
                 email: decoded.username,
                 role: decoded.role,
-                phoneNumber: decoded.phoneNumber
+                phoneNumber: decoded.phoneNumber,
+                fullName: decoded.fullName
             });
         } else {
             this.logout();

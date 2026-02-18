@@ -10,7 +10,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import Swal from 'sweetalert2';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { GoogleCalendarService } from '../../core/services/google-calendar.service';
+
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -24,7 +24,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   http = inject(HttpClient);
   authService = inject(AuthService);
   notificationService = inject(NotificationService);
-  googleCalendarService = inject(GoogleCalendarService);
+
 
   profileForm: FormGroup;
   securityForm: FormGroup;
@@ -162,15 +162,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.stopQrPolling();
       this.qrPollInterval = setInterval(() => {
           this.notificationService.getWhatsappStatus().subscribe({
-            next: (status) => {
+            next: (status: any) => {
               if (status.qr) {
                   this.qrCodeUrl = status.qr;
               } else if (status.ready) {
                   this.qrCodeUrl = null;
                   this.stopQrPolling();
+                  
+                  if (status.number && !this.configWhatsappNumber) {
+                      this.configWhatsappNumber = status.number;
+                  }
+
                   Swal.fire({
                     title: '¡Conectado!',
-                    text: 'El bot de WhatsApp se ha vinculado correctamente.',
+                    text: status.number ? `Vinculado con ${status.number}` : 'El bot de WhatsApp está listo.',
                     icon: 'success',
                     timer: 2000,
                     showConfirmButton: false
@@ -222,12 +227,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.notificationService.sendWhatsappMessage(this.configWhatsappNumber, 'Hola! Esta es una prueba de notificación desde tu Perfil.');
   }
 
-  connectGoogleCalendar() {
-    this.googleCalendarService.getAuthUrl().subscribe({
-      next: (res) => window.location.href = res.url,
-      error: (err) => Swal.fire('Error', 'No se pudo iniciar la conexión con Google.', 'error')
-    });
-  }
+
 
   // --- SECURITY ---
 

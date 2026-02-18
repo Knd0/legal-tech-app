@@ -131,15 +131,7 @@
                     </div>
                 </div>
 
-                <!-- Google Calendar -->
-                <div class="mb-6 border-t border-slate-100 pt-4">
-                    <h3 class="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                        <i class="pi pi-google"></i> Google Calendar
-                    </h3>
-                    <button pButton label="Conectar Cuenta" icon="pi pi-link"
-                        class="p-button-outlined p-button-secondary w-full text-sm"
-                        (click)="connectGoogleCalendar()"></button>
-                </div>
+
 
                 <!-- WhatsApp -->
                 <div class="border-t border-slate-100 pt-4">
@@ -151,10 +143,12 @@
                     </div>
 
                     <div *ngIf="configWhatsapp" class="animate-fade-in space-y-3">
-                        <div>
-                            <label class="text-xs text-slate-500">Número Bot (Tu número)</label>
-                            <input type="text" pInputText [(ngModel)]="configWhatsappNumber" class="w-full p-1 text-sm"
-                                placeholder="54911...">
+                        <div *ngIf="configWhatsappNumber">
+                            <label class="text-xs text-slate-500">Número Vinculado</label>
+                            <div class="flex items-center gap-2 p-2 bg-slate-50 rounded border border-slate-200">
+                                <i class="pi pi-whatsapp text-green-600"></i>
+                                <span class="text-sm font-bold text-slate-800">{{ configWhatsappNumber }}</span>
+                            </div>
                         </div>
 
                         <!-- Actions -->

@@ -2,6 +2,7 @@ import { Component, OnInit, signal, inject, computed, effect } from '@angular/co
 import { NotificationService } from './core/services/notification.service';
 import { DeadlineService } from './core/services/deadline.service';
 import { AuthService } from './core/services/auth.service';
+import { ThemeService } from './core/services/theme.service';
 import { PwaUpdateService } from './core/services/pwa-update.service';
 import { MenuItem } from 'primeng/api';
 
@@ -17,6 +18,7 @@ export class AppComponent implements OnInit {
 
   deadlineService = inject(DeadlineService);
   authService = inject(AuthService);
+  themeService = inject(ThemeService);
   
   // Calculate distinct urgent deadlines (< 3 days)
   notificationCount = computed(() => {
@@ -57,13 +59,7 @@ export class AppComponent implements OnInit {
             icon: 'pi pi-calendar',
             routerLink: '/calendario'
         },
-        {
-          label: 'Notificaciones',
-          icon: 'pi pi-bell',
-          badge: this.notificationCount().toString(),
-          badgeStyleClass: this.notificationCount() > 0 ? 'bg-red-500 text-white' : 'hidden', 
-          command: () => this.requestNotifications()
-        }
+
     ];
   }
 

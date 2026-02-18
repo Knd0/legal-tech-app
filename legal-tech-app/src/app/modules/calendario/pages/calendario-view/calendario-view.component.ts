@@ -16,7 +16,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 // Services & Models
 import { DeadlineService } from '../../../../core/services/deadline.service';
 import { NotificationService } from '../../../../core/services/notification.service';
-import { GoogleCalendarService } from '../../../../core/services/google-calendar.service';
+
 import { Vencimiento } from '../../../../core/models/vencimiento.model';
 import Swal from 'sweetalert2';
 
@@ -44,7 +44,7 @@ export class CalendarioViewComponent {
   // DI
   deadlineService = inject(DeadlineService);
   notificationService = inject(NotificationService);
-  googleCalendarService = inject(GoogleCalendarService);
+
   fb = inject(FormBuilder);
 
   // Properties
@@ -308,15 +308,5 @@ export class CalendarioViewComponent {
     });
   }
 
-  connectGoogleCalendar() {
-    this.googleCalendarService.getAuthUrl().subscribe({
-      next: (res) => {
-        window.location.href = res.url;
-      },
-      error: (err) => {
-        console.error(err);
-        Swal.fire('Error', 'No se pudo iniciar la conexión con Google.', 'error');
-      }
-    });
-  }
+
 }

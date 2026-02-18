@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, signal, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -23,9 +23,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   fb = inject(FormBuilder);
   http = inject(HttpClient);
   authService = inject(AuthService);
-  authService = inject(AuthService);
   notificationService = inject(NotificationService);
-  cdr = inject(import('@angular/core').ChangeDetectorRef);
+  cdr = inject(ChangeDetectorRef);
 
 
   profileForm: FormGroup;

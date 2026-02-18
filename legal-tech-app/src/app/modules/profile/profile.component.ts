@@ -166,6 +166,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.notificationService.getWhatsappStatus().subscribe({
             next: (status: any) => {
               this.whatsappError = status.error || null; // Capture error
+              console.log('WhatsApp Status Poll:', status);
               
               if (status.qr) {
                   this.qrCodeUrl = status.qr;

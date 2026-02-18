@@ -39,15 +39,16 @@ export class WhatsappService implements OnModuleInit {
     // Log the configuration for debugging
     this.logger.log(`WhatsApp Service Initialized. Puppeteer Config: Headless=${true}, ExecutablePath=${process.env.PUPPETEER_EXECUTABLE_PATH || 'Auto-resolve'}`);
 
-    this.client.on('qr', (qr: string) => {
-      this.logger.log('QR Code received. Generating Data URL...');
-      QRCode.toDataURL(qr, (err, url) => {
-        if (err) {
-            this.logger.error('Failed to generate QR image', err);
-            return;
-        }
+    this.client.on('qr', async (qr: string) => {
+      this.logger.log('QR Code received from WhatsApp Web. Generating Data URL...');
+      try {
+        const url = await QRCode.toDataURL(qr);
         this.qrCodeImage = url;
-      });
+        this.logger.log(`QR Code Data URL generated successfully. Length: ${url.length}`);
+      } catch (err) {
+        this.logger.error('Failed to generate QR image via QRCode lib', err);
+      }
+      
       // Still show in terminal for fallback
       qrcodeTerminal.generate(qr, { small: true });
     });
@@ -76,7 +77,7 @@ export class WhatsappService implements OnModuleInit {
     this.logger.log(`Scheduling WhatsApp Client initialization in ${delay/1000}s to allow server startup...`);
 
     setTimeout(() => {
-        this.logger.log('Initializing WhatsApp Client now...');
+        this.logger.log('Initializing WhatsApp Client now (delayed start)...');
         this.client.initialize().catch((err: any) => {
             this.logger.error('Failed to initialize WhatsApp client', err);
             this.initializationError = err.message || 'Unknown initialization error';
@@ -120,6 +121,8 @@ export class WhatsappService implements OnModuleInit {
   // ...
 
   getStatus() {
+      // Debug log (can be verbose, but useful here)
+      // this.logger.debug(`getStatus called. Ready: ${this.isReady}, QR present: ${!!this.qrCodeImage}`);
       return {
           ready: this.isReady,
           qr: this.qrCodeImage,

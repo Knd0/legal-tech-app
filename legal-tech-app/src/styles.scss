@@ -3,6 +3,24 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --primary-color: #3b82f6;
+    --text-color: #334155;
+    --bg-surface: #ffffff;
+    --text-main: #334155;
+    --border-color: #e2e8f0;
+}
+
+.dark {
+    --primary-color: #60a5fa;
+    --text-color: #f8fafc;
+    --bg-surface: #1e293b;
+    /* slate-800 */
+    --text-main: #f8fafc;
+    --border-color: #475569;
+    /* slate-600 */
+}
+
 /* =========================================
    VISUAL REBOOT: HIGH-FIDELITY CORPORATE
    ========================================= */
@@ -233,6 +251,7 @@ select,
 
 /* 9. Global Input & Dropdown Dark Mode */
 .dark .p-inputtext,
+.dark .p-inputtextarea,
 .dark .p-dropdown,
 .dark .p-dropdown-panel,
 .dark .p-multiselect,

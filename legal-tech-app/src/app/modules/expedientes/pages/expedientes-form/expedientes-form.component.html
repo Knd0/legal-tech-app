@@ -1,41 +1,46 @@
 <div class="max-w-4xl mx-auto pb-10">
 
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-slate-900">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
             {{ isEditMode() ? 'Editar Expediente' : 'Nuevo Expediente' }}
         </h1>
-        <p class="text-slate-500 mt-1 text-sm">
+        <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">
             Complete la siguiente información para registrar un nuevo caso judicial en el sistema.
         </p>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8 space-y-8">
+        <div
+            class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 md:p-8 space-y-8">
 
             <div>
                 <h3
-                    class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2 flex items-center">
+                    class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-700 pb-2 flex items-center">
                     <i class="pi pi-folder mr-2"></i>Datos Generales
                 </h3>
 
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
                     <div class="md:col-span-4 flex flex-col gap-1.5">
-                        <label for="nroExpediente" class="text-sm font-semibold text-slate-700">Nro. Expediente /
+                        <label for="nroExpediente" class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nro.
+                            Expediente /
                             Año</label>
                         <input pInputText id="nroExpediente" formControlName="nroExpediente"
                             placeholder="Ej: 12345/2024" class="w-full p-inputtext-sm" />
                     </div>
 
                     <div class="md:col-span-8 flex flex-col gap-1.5">
-                        <label for="caratula" class="text-sm font-semibold text-slate-700">Carátula</label>
+                        <label for="caratula"
+                            class="text-sm font-semibold text-slate-700 dark:text-slate-300">Carátula</label>
                         <input pInputText id="caratula" formControlName="caratula"
                             placeholder="Ej: GOMEZ, JUAN c/ EMPRESA S.A. s/ DESPIDO" class="w-full p-inputtext-sm" />
                     </div>
 
                     <div class="md:col-span-6 flex flex-col gap-1.5">
-                        <label for="clienteId" class="text-sm font-semibold text-slate-700">Cliente Vinculado</label>
+                        <label for="clienteId" class="text-sm font-semibold text-slate-700 dark:text-slate-300">Cliente
+                            Vinculado</label>
                         <p-select [options]="clientes" formControlName="clienteId" optionLabel="apellido"
-                            optionValue="id" placeholder="Seleccione..." styleClass="w-full p-inputtext-sm">
+                            optionValue="id" placeholder="Seleccione..." styleClass="w-full p-inputtext-sm"
+                            appendTo="body">
                             <ng-template let-cliente pTemplate="item">
                                 <div>{{ cliente.apellido }}, {{ cliente.nombre }}</div>
                             </ng-template>
@@ -46,37 +51,42 @@
                     </div>
 
                     <div class="md:col-span-3 flex flex-col gap-1.5">
-                        <label for="estado" class="text-sm font-semibold text-slate-700">Estado</label>
+                        <label for="estado"
+                            class="text-sm font-semibold text-slate-700 dark:text-slate-300">Estado</label>
                         <p-select [options]="estados" formControlName="estado" optionLabel="label" optionValue="value"
-                            placeholder="Estado..." styleClass="w-full p-inputtext-sm"></p-select>
+                            placeholder="Estado..." styleClass="w-full p-inputtext-sm" appendTo="body"></p-select>
                     </div>
 
                     <div class="md:col-span-3 flex flex-col gap-1.5">
-                        <label for="fechaInicio" class="text-sm font-semibold text-slate-700">Fecha Inicio</label>
+                        <label for="fechaInicio" class="text-sm font-semibold text-slate-700 dark:text-slate-300">Fecha
+                            Inicio</label>
                         <p-datepicker id="fechaInicio" formControlName="fechaInicio" dateFormat="dd/mm/yy"
-                            [showIcon]="true" styleClass="w-full p-inputtext-sm"></p-datepicker>
+                            [showIcon]="true" styleClass="w-full p-inputtext-sm" appendTo="body"></p-datepicker>
                     </div>
                 </div>
             </div>
 
             <div>
                 <h3
-                    class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2 flex items-center">
+                    class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-700 pb-2 flex items-center">
                     <i class="pi pi-building mr-2"></i>Radicación
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <div class="flex flex-col gap-1.5">
-                        <label for="fuero" class="text-sm font-semibold text-slate-700">Fuero</label>
+                        <label for="fuero"
+                            class="text-sm font-semibold text-slate-700 dark:text-slate-300">Fuero</label>
                         <input pInputText id="fuero" formControlName="fuero" placeholder="Ej: Civil y Comercial"
                             class="w-full p-inputtext-sm" />
                     </div>
                     <div class="flex flex-col gap-1.5">
-                        <label for="juzgado" class="text-sm font-semibold text-slate-700">Juzgado</label>
+                        <label for="juzgado"
+                            class="text-sm font-semibold text-slate-700 dark:text-slate-300">Juzgado</label>
                         <input pInputText id="juzgado" formControlName="juzgado" placeholder="Ej: N° 5"
                             class="w-full p-inputtext-sm" />
                     </div>
                     <div class="flex flex-col gap-1.5">
-                        <label for="secretaria" class="text-sm font-semibold text-slate-700">Secretaría</label>
+                        <label for="secretaria"
+                            class="text-sm font-semibold text-slate-700 dark:text-slate-300">Secretaría</label>
                         <input pInputText id="secretaria" formControlName="secretaria" placeholder="Ej: Única"
                             class="w-full p-inputtext-sm" />
                     </div>
@@ -85,18 +95,21 @@
 
             <div>
                 <h3
-                    class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2 flex items-center">
+                    class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-700 pb-2 flex items-center">
                     <i class="pi pi-users mr-2"></i>Contraparte
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div class="flex flex-col gap-1.5">
-                        <label for="contraparte" class="text-sm font-semibold text-slate-700">Nombre / Razón
+                        <label for="contraparte" class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nombre
+                            /
+                            Razón
                             Social</label>
                         <input pInputText id="contraparte" formControlName="contraparte"
                             class="w-full p-inputtext-sm" />
                     </div>
                     <div class="flex flex-col gap-1.5">
-                        <label for="abogadoContraparte" class="text-sm font-semibold text-slate-700">Abogado
+                        <label for="abogadoContraparte"
+                            class="text-sm font-semibold text-slate-700 dark:text-slate-300">Abogado
                             Patrocinante</label>
                         <input pInputText id="abogadoContraparte" formControlName="abogadoContraparte"
                             class="w-full p-inputtext-sm" />
@@ -106,10 +119,10 @@
 
             <div>
                 <h3
-                    class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2 flex items-center">
+                    class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-700 pb-2 flex items-center">
                     <i class="pi pi-align-left mr-2"></i>Observaciones
                 </h3>
-                <textarea pTextarea id="descripcion" formControlName="descripcion" rows="3"
+                <textarea pInputTextarea id="descripcion" formControlName="descripcion" rows="3"
                     class="w-full p-inputtext-sm"
                     placeholder="Ingrese notas adicionales importantes sobre el caso..."></textarea>
             </div>
@@ -117,9 +130,9 @@
 
         <div class="mt-6 flex justify-end gap-3">
             <button pButton label="Cancelar" icon="pi pi-times" [routerLink]="['/expedientes']"
-                class="p-button-outlined p-button-secondary bg-white text-slate-700 border-slate-300 hover:bg-slate-50"></button>
+                class="p-button-outlined p-button-secondary bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700"></button>
             <button pButton label="Guardar Expediente" icon="pi pi-check" type="submit" [disabled]="form.invalid"
-                class="bg-blue-900 border-blue-900 hover:bg-blue-800"></button>
+                class="bg-blue-900 dark:bg-blue-600 border-blue-900 dark:border-blue-600 hover:bg-blue-800 dark:hover:bg-blue-500 text-white"></button>
         </div>
     </form>
 </div>

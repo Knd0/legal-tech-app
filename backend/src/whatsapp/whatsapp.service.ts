@@ -22,11 +22,11 @@ export class WhatsappService implements OnModuleInit {
             '--disable-gpu', 
             '--disable-dev-shm-usage',
             '--no-zygote',
-            '--single-process', // Warning: this might affect performance but helps with memory
+            '--single-process', 
             '--no-first-run',
             '--no-default-browser-check'
         ],
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable' // Fallback for standard Render/Linux
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined 
       }
     });
 

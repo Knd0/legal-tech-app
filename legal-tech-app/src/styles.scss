@@ -226,6 +226,66 @@ select,
     border-color: var(--border-color);
 }
 
+/* Dark Mode Overrides for PrimeNG Components */
+.dark .p-dialog .p-dialog-content,
+.dark .p-dialog .p-dialog-header,
+.dark .p-dialog .p-dialog-footer {
+    background-color: #1e293b !important;
+    /* slate-800 */
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+    /* slate-700 */
+}
+
+.dark .p-dialog-footer {
+    border-top: 1px solid #334155 !important;
+    /* Separator line */
+}
+
+.dark .p-dropdown,
+.dark .p-dropdown-panel,
+.dark .p-datepicker,
+.dark .p-calendar,
+.dark .p-inputtext,
+.dark .p-inputtextarea {
+    background-color: #0f172a !important;
+    /* slate-900 (darker for inputs) */
+    color: #f8fafc !important;
+    border-color: #475569 !important;
+    /* slate-600 */
+}
+
+.dark .p-dropdown-panel .p-dropdown-items .p-dropdown-item {
+    color: #f8fafc !important;
+    background: transparent;
+}
+
+.dark .p-dropdown-panel .p-dropdown-items .p-dropdown-item:hover,
+.dark .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight {
+    background-color: #334155 !important;
+    /* slate-700 */
+}
+
+.dark .p-datepicker-header {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border-bottom: 1px solid #334155 !important;
+}
+
+.dark .p-datepicker table td>span {
+    color: #f8fafc !important;
+}
+
+.dark .p-datepicker table td.p-datepicker-today>span {
+    background-color: #334155 !important;
+    font-weight: bold;
+}
+
+.dark .p-icon {
+    color: #94a3b8 !important;
+    /* slate-400 */
+}
+
 .dark .p-datatable .p-sortable-column:hover {
     background-color: #334155 !important;
     /* slate-700 */
@@ -250,10 +310,6 @@ select,
 }
 
 /* 9. Global Input & Dropdown Dark Mode */
-.dark .p-inputtext,
-.dark .p-inputtextarea,
-.dark .p-dropdown,
-.dark .p-dropdown-panel,
 .dark .p-multiselect,
 .dark .p-multiselect-panel,
 .dark .p-inputgroup-addon {
@@ -267,16 +323,4 @@ select,
 .dark .p-float-label label {
     color: #94a3b8 !important;
     /* slate-400 */
-}
-
-.dark .p-dropdown-item {
-    color: #f8fafc !important;
-    background-color: transparent;
-}
-
-.dark .p-dropdown-item:hover,
-.dark .p-dropdown-item.p-highlight {
-    background-color: #334155 !important;
-    /* slate-700 */
-    color: white !important;
 }

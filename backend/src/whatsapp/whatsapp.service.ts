@@ -124,8 +124,18 @@ export class WhatsappService implements OnModuleInit {
       this.logger.log('Force restarting WhatsApp client...');
       try {
           await this.client.destroy();
+          
+          // Wait a moment for file locks to release
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          const fs = require('fs');
+          const path = './whatsapp-auth';
+          if (fs.existsSync(path)) {
+              this.logger.log('Clearing session data...');
+              fs.rmSync(path, { recursive: true, force: true });
+          }
       } catch (e) {
-          this.logger.warn('Error destroying client during restart', e);
+          this.logger.warn('Error during restart/cleanup', e);
       }
       
       this.isReady = false;

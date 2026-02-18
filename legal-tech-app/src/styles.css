@@ -45,6 +45,22 @@ body {
     color: var(--text-body);
     font-family: var(--font-family);
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark body {
+    background-color: #0f172a;
+    /* slate-900 */
+    color: #f8fafc;
+    /* slate-50 */
+    --bg-app: #0f172a;
+    --bg-surface: #1e293b;
+    /* slate-800 */
+    --text-main: #f8fafc;
+    --text-body: #94a3b8;
+    /* slate-400 */
+    --border-color: #334155;
+    /* slate-700 */
 }
 
 /* Prevent Zoom on Mobile Inputs */
@@ -139,4 +155,30 @@ select,
 .swal2-container {
     z-index: 11000 !important;
     /* Higher than PrimeNG masks (approx 10000) */
+}
+
+/* 7. PrimeNG Dark Mode Overrides */
+.dark .p-dialog .p-dialog-content,
+.dark .p-dialog .p-dialog-header,
+.dark .p-dropdown-panel,
+.dark .p-datepicker,
+.dark .p-paginator,
+.dark .p-datatable-header,
+.dark .p-datatable-footer {
+    background-color: var(--bg-surface) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+}
+
+.dark .p-dropdown-item:hover,
+.dark .p-datepicker table td>span:hover {
+    background-color: #334155 !important;
+    /* slate-700 */
+}
+
+.dark .p-highlight {
+    background-color: rgba(59, 130, 246, 0.2) !important;
+    /* blue-500/20 */
+    color: #93c5fd !important;
+    /* blue-300 */
 }

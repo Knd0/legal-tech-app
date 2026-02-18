@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Param, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Body, Param, Put, Post, UseGuards } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -15,5 +15,10 @@ export class SettingsController {
   @Put(':key')
   update(@Param('key') key: string, @Body('value') value: string) {
     return this.settingsService.update(key, value);
+  }
+
+  @Post()
+  updateBulk(@Body() settings: any) {
+      return this.settingsService.updateMany(settings);
   }
 }

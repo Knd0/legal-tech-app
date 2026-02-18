@@ -46,13 +46,18 @@ export class NotificationService {
   }
 
   private loadSettings() {
-    this.http.get<any>(this.SETTINGS_API).subscribe({
+    this.http.get<any[]>(this.SETTINGS_API).subscribe({
         next: (settings) => {
-            if (settings) {
-                this.daysBeforeAlert.set(settings.daysBeforeAlert || 3);
-                this.checkFrequencyHours.set(settings.checkFrequencyHours || 24);
-                this.enableWhatsapp.set(settings.enableWhatsapp || false);
-                this.whatsappNumber.set(settings.whatsappNumber || '');
+            if (Array.isArray(settings)) {
+                const days = settings.find(s => s.key === 'DAYS_BEFORE_ALERT')?.value;
+                const hours = settings.find(s => s.key === 'CHECK_FREQUENCY_HOURS')?.value;
+                const enable = settings.find(s => s.key === 'ENABLE_WHATSAPP')?.value;
+                const number = settings.find(s => s.key === 'WHATSAPP_NUMBER')?.value;
+
+                if (days) this.daysBeforeAlert.set(Number(days));
+                if (hours) this.checkFrequencyHours.set(Number(hours));
+                if (enable) this.enableWhatsapp.set(enable === '1');
+                if (number) this.whatsappNumber.set(number);
             }
         },
         error: (err) => console.error('Failed to load settings', err)

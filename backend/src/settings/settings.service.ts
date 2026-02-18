@@ -49,6 +49,31 @@ export class SettingsService implements OnModuleInit {
     return this.settingsRepository.findOneBy({ key });
   }
 
+  async updateMany(settings: Record<string, any>) {
+      const updates = [];
+      for (const [key, value] of Object.entries(settings)) {
+          // Map frontend keys to DB keys if necessary, or ensure they match
+          const dbKey = this.mapToDbKey(key);
+          if (dbKey) {
+            await this.settingsRepository.update({ key: dbKey }, { value: String(value) });
+            updates.push({ key: dbKey, value });
+          }
+      }
+      return updates;
+  }
+
+  private mapToDbKey(frontendKey: string): string | null {
+      const mapping = {
+          'daysBeforeAlert': 'DAYS_BEFORE_ALERT',
+          'checkFrequencyHours': 'CHECK_FREQUENCY_HOURS',
+          'enableWhatsapp': 'ENABLE_WHATSAPP',
+          'whatsappNumber': 'WHATSAPP_NUMBER',
+          'VALOR_JUS_ENTRE_RIOS': 'VALOR_JUS_ENTRE_RIOS',
+          'VALOR_UMA_NACION': 'VALOR_UMA_NACION'
+      };
+      return mapping[frontendKey] || null;
+  }
+
   async getValue(key: string): Promise<number> {
     const setting = await this.settingsRepository.findOneBy({ key });
     return setting ? Number(setting.value) : 0;

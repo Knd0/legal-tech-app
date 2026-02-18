@@ -72,7 +72,7 @@ export class WhatsappService implements OnModuleInit {
     this.initializationError = null; // Clear previous errors
     
     // Delay initialization to prevent blocking NestJS bootstrap on low-resource environments (Render)
-    const delay = 4000; // 4 seconds (compromise)
+    const delay = 8000; // 8 seconds (compromise)
     this.logger.log(`Scheduling WhatsApp Client initialization in ${delay/1000}s to allow server startup...`);
 
     setTimeout(() => {

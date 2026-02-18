@@ -43,12 +43,4 @@ import { CommonModule } from '@angular/common';
 export class GavelLoaderComponent {}
 
 
-@Component({
-  selector: 'app-gavel-loader',
-  standalone: false,
-  templateUrl: './gavel-loader.html',
-  styleUrl: './gavel-loader.scss',
-})
-export class GavelLoader {
 
-}

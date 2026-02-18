@@ -36,10 +36,32 @@
                             placeholder="Ej: Perez" />
                     </div>
 
-                    <!-- DNI/CUIT (Span 4) -->
+                    <!-- DNI (Span 4) -->
                     <div class="md:col-span-4 flex flex-col gap-2">
-                        <label for="dni" class="text-sm font-semibold text-slate-700">DNI / CUIT</label>
+                        <label for="dni" class="text-sm font-semibold text-slate-700">DNI</label>
                         <input pInputText id="dni" formControlName="dni" class="w-full" placeholder="Sin puntos" />
+                    </div>
+
+                    <!-- CUIT (Span 4) -->
+                    <div class="md:col-span-4 flex flex-col gap-2">
+                        <label for="cuit" class="text-sm font-semibold text-slate-700">CUIT</label>
+                        <input pInputText id="cuit" formControlName="cuit" class="w-full"
+                            placeholder="Ej: 20-12345678-9" />
+                    </div>
+
+                    <!-- Fecha Nacimiento (Span 4) -->
+                    <div class="md:col-span-4 flex flex-col gap-2">
+                        <label for="fechaNacimiento" class="text-sm font-semibold text-slate-700">Fecha de
+                            Nacimiento</label>
+                        <p-datepicker id="fechaNacimiento" formControlName="fechaNacimiento" dateFormat="dd/mm/yy"
+                            [showIcon]="true" styleClass="w-full" appendTo="body"></p-datepicker>
+                    </div>
+
+                    <!-- Ocupacion (Span 12) -->
+                    <div class="md:col-span-12 flex flex-col gap-2">
+                        <label for="ocupacion" class="text-sm font-semibold text-slate-700">Ocupación</label>
+                        <input pInputText id="ocupacion" formControlName="ocupacion" class="w-full"
+                            placeholder="Ej: Empleado de Comercio" />
                     </div>
                 </div>
             </div>

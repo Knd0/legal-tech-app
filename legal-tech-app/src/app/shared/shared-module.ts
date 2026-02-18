@@ -1,17 +1,20 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { GavelLoader } from './components/gavel-loader';
+import { GavelLoaderComponent } from './components/gavel-loader';
 
 @NgModule({
-  declarations: [
-    GavelLoader
-  ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    FormsModule
+    FormsModule,
+    GavelLoaderComponent
   ],
-  exports: []
+  exports: [
+    GavelLoaderComponent,
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule
+  ]
 })
 export class SharedModule { }

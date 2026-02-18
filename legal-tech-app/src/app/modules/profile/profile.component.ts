@@ -162,37 +162,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
   }
 
-  startQrPolling() {
-      this.stopQrPolling();
-      this.qrPollInterval = setInterval(() => {
-          this.notificationService.getWhatsappStatus().subscribe({
-            next: (status: any) => {
-              // console.log('WhatsApp Status Poll:', status); // Removed per user request
-              
-              if (status.qr) {
-                  this.qrCodeUrl = status.qr;
-                  this.cdr.detectChanges(); // Force UI update
-              } else if (status.ready) {
-                  this.qrCodeUrl = null;
-                  this.stopQrPolling();
-                  
-                  if (status.number && !this.configWhatsappNumber) {
-                      this.configWhatsappNumber = status.number;
-                  }
 
-                  Swal.fire({
-                    title: '¡Conectado!',
-                    text: status.number ? `Vinculado con ${status.number}` : 'El bot de WhatsApp está listo.',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                  });
-              }
-            },
-            error: (err: any) => console.warn('Polling error:', err)
-          });
-      }, 3000);
-  }
 
   stopQrPolling() {
       if (this.qrPollInterval) {

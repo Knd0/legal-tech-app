@@ -87,6 +87,73 @@ export class WhatsappService implements OnModuleInit {
 
   // ... (onModuleInit remains mostly the same, ensuring delay is reasonable)
 
+  async sendMessage(number: string, message: string): Promise<any> {
+    if (!this.isReady) {
+      throw new Error('WhatsApp client is not ready yet');
+    }
+
+    // Format number: remove non-digits
+    const cleanNumber = number.replace(/\D/g, '');
+    
+    // We need to resolve the correct ID for the number
+    // This handles cases like Argentina (549...) vs other formats
+    const sanitized_number = `${cleanNumber}@c.us`;
+
+    try {
+        // First try to check if the number is registered
+        const numberDetails = await this.client.getNumberId(sanitized_number);
+        
+        if (!numberDetails) {
+             this.logger.warn(`Number ${cleanNumber} not registered on WhatsApp`);
+             throw new Error('Number not registered on WhatsApp');
+        }
+
+        const serializedId = numberDetails._serialized;
+        const response = await this.client.sendMessage(serializedId, message);
+        this.logger.log(`Message sent to ${serializedId}`);
+        return response;
+
+    } catch (error: any) {
+        this.logger.error(`Error sending message to ${cleanNumber}`, error);
+        throw error;
+    }
+  }
+
+  getStatus() {
+      // Debug log (can be verbose, but useful here)
+      // this.logger.debug(`getStatus called. Ready: ${this.isReady}, QR present: ${!!this.qrCodeImage}`);
+      return {
+          ready: this.isReady,
+          qr: this.qrCodeImage,
+          number: this.isReady ? this.client.info?.wid?.user : null,
+          error: this.initializationError // Expose error
+      };
+  }
+
+  async logout() {
+      this.logger.log('Logging out WhatsApp client...');
+      try {
+          if (this.isReady) {
+              await this.client.logout();
+          }
+          await this.client.destroy();
+          this.isReady = false;
+          this.qrCodeImage = null;
+          this.logger.log('Client destroyed. Re-initializing...');
+          
+          // Re-initialize to generate new QR
+          this.client.initialize().catch(err => this.logger.error('Failed to re-initialize', err));
+          
+          return { success: true };
+      } catch (error) {
+          this.logger.error('Error during logout', error);
+          // Force re-init even if logout fails
+          this.isReady = false;
+          this.client.initialize().catch(err => this.logger.error('Failed to re-initialize', err));
+          throw error;
+      }
+  }
+
   async restart() {
       this.logger.log('Force restarting WhatsApp client (Background Process)...');
       

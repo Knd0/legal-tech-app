@@ -146,27 +146,41 @@ export class WhatsappService implements OnModuleInit {
   }
 
   async restart() {
-      this.logger.log('Force restarting WhatsApp client...');
-      try {
-          await this.client.destroy();
-          
-          // Wait a moment for file locks to release
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          const fs = require('fs');
-          const path = './whatsapp-auth';
-          if (fs.existsSync(path)) {
-              this.logger.log('Clearing session data...');
-              fs.rmSync(path, { recursive: true, force: true });
+      this.logger.log('Force restarting WhatsApp client (Background Process)...');
+      
+      // Run in background to prevent 504 Timeout
+      (async () => {
+          try {
+              if (this.client) {
+                await this.client.destroy().catch(e => this.logger.warn('Error destroying client', e));
+              }
+              
+              // Wait a moment for file locks to release
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              
+              const fs = require('fs');
+              const path = './whatsapp-auth';
+              if (fs.existsSync(path)) {
+                  this.logger.log('Clearing session data...');
+                  try {
+                    fs.rmSync(path, { recursive: true, force: true });
+                  } catch(e) {
+                      this.logger.warn('Could not remove auth folder', e);
+                  }
+              }
+
+              this.isReady = false;
+              this.qrCodeImage = null;
+              this.initializationError = null;
+              
+              this.logger.log('Re-initializing client...');
+              await this.client.initialize();
+          } catch (e: any) {
+              this.logger.error('Error during background restart', e);
+              this.initializationError = e.message || 'Restart failed';
           }
-      } catch (e) {
-          this.logger.warn('Error during restart/cleanup', e);
-      }
-      
-      this.isReady = false;
-      this.qrCodeImage = null;
-      
-      this.client.initialize().catch(err => this.logger.error('Failed to re-initialize', err));
-      return { success: true };
+      })();
+
+      return { success: true, message: 'Restart triggered in background' };
   }
 }

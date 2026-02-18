@@ -28,6 +28,9 @@ export class FacturasService {
         const envCert = this.configService.get('AFIP_CERT');
         const envKey = this.configService.get('AFIP_KEY');
 
+        console.log(`[DEBUG] AFIP_CERT present: ${!!envCert}, Length: ${envCert ? envCert.length : 0}`);
+        console.log(`[DEBUG] AFIP_KEY present: ${!!envKey}, Length: ${envKey ? envKey.length : 0}`);
+
         if (envCert && envKey) {
             const tmpDir = '/tmp'; // Standard temp dir for Linux/Render
             // Ensure temp dir exists (it should)

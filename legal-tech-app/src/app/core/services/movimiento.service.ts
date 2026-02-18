@@ -49,6 +49,14 @@ export class MovimientoService {
       });
   }
 
+  update(id: string, movimiento: Partial<Movimiento>) {
+    return this.http.patch<Movimiento>(`${this.apiUrl}/${id}`, movimiento);
+  }
+
+  delete(id: string) {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
   getFacturasByClient(clientId: string) {
       return this.http.get<any[]>(`${environment.apiUrl}/facturas/client/${clientId}`);
   }

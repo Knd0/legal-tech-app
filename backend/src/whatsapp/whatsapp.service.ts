@@ -16,8 +16,17 @@ export class WhatsappService implements OnModuleInit {
       authStrategy: new LocalAuth({ dataPath: './whatsapp-auth' }),
       puppeteer: {
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage'],
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+        args: [
+            '--no-sandbox', 
+            '--disable-setuid-sandbox', 
+            '--disable-gpu', 
+            '--disable-dev-shm-usage',
+            '--no-zygote',
+            '--single-process', // Warning: this might affect performance but helps with memory
+            '--no-first-run',
+            '--no-default-browser-check'
+        ],
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable' // Fallback for standard Render/Linux
       }
     });
 

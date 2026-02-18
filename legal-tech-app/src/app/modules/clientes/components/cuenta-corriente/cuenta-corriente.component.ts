@@ -15,10 +15,12 @@ import { ClientService } from '../../../../core/services/client.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+import { GavelLoaderComponent } from '../../../../shared/components/gavel-loader'; 
+
 @Component({
   selector: 'app-cuenta-corriente',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TableModule, ButtonModule, TooltipModule, TagModule],
+  imports: [CommonModule, ReactiveFormsModule, TableModule, ButtonModule, TooltipModule, TagModule, GavelLoaderComponent],
   templateUrl: './cuenta-corriente.component.html',
   styleUrls: ['./cuenta-corriente.component.scss']
 })
@@ -90,7 +92,8 @@ export class CuentaCorrienteComponent implements OnInit {
 
   openModal() {
     this.showModal = true;
-    this.movimientoForm.patchValue({
+    this.editingId = null; // Reset to create mode
+    this.movimientoForm.reset({ // Use reset instead of patchValue for cleaner state
       tipo: 'HONORARIO',
       unidad: 'PESOS',
       cantidad: null,
@@ -113,6 +116,7 @@ export class CuentaCorrienteComponent implements OnInit {
   closeModal() {
     this.showModal = false;
     this.showSettingsModal = false;
+    this.editingId = null;
   }
 
   saveSettings() {
@@ -125,39 +129,85 @@ export class CuentaCorrienteComponent implements OnInit {
   }
 
   isSubmitting = false;
+  editingId: string | null = null; // Track which movement is being edited
 
   onSubmit() {
     if (this.movimientoForm.invalid || this.isSubmitting) return;
 
     this.isSubmitting = true;
     const formValue = this.movimientoForm.value;
-    const movimiento: Partial<Movimiento> = {
+    const movimientoData: Partial<Movimiento> = {
       ...formValue,
       clientId: this.clientId
     };
 
-    this.movimientoService.create(movimiento).subscribe({
+    const request$ = this.editingId 
+        ? this.movimientoService.update(this.editingId, movimientoData)
+        : this.movimientoService.create(movimientoData);
+
+    request$.subscribe({
       next: () => {
         this.isSubmitting = false;
         this.loadBalance();
         this.closeModal();
         Swal.fire({
           icon: 'success',
-          title: 'Movimiento registrado',
+          title: this.editingId ? 'Movimiento actualizado' : 'Movimiento registrado',
           showConfirmButton: false,
           timer: 1500
         });
       },
       error: (err) => {
         this.isSubmitting = false;
-        console.error('Error creating movement', err);
+        console.error('Error saving movement', err);
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'No se pudo registrar el movimiento'
+          text: 'No se pudo guardar el movimiento'
         });
       }
     });
+  }
+
+  editMovimiento(m: Movimiento) {
+      this.editingId = m.id;
+      this.showModal = true;
+      
+      this.movimientoForm.patchValue({
+          tipo: m.tipo,
+          unidad: m.unidad,
+          cantidad: m.cantidad,
+          monto: m.monto,
+          fecha: new Date(m.fecha).toISOString().split('T')[0],
+          descripcion: m.descripcion,
+          estado: m.estado,
+          expedienteId: m.expedienteId
+      });
+  }
+
+  deleteMovimiento(id: string) {
+      Swal.fire({
+          title: '¿Eliminar movimiento?',
+          text: 'Esta acción no se puede deshacer',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar',
+          confirmButtonColor: '#ef4444'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              this.movimientoService.delete(id).subscribe({
+                  next: () => {
+                      this.loadBalance();
+                      Swal.fire('Eliminado', 'El movimiento ha sido eliminado', 'success');
+                  },
+                  error: (err) => {
+                      console.error('Error deleting', err);
+                      Swal.fire('Error', 'No se pudo eliminar el movimiento', 'error');
+                  }
+              });
+          }
+      });
   }
 
   getTipoLabel(tipo: string): string {

@@ -8,12 +8,27 @@ import { RolesGuard } from '../auth/roles.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get('test')
-  getTest() {
-    return 'Users Controller is working';
+  // --- User Profile (MUST BE BEFORE :id routes) ---
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@Req() req) {
+    const user = await this.usersService.findOneById(req.user.userId);
+    // Sanitize password
+    if (user) {
+        const { passwordHash, ...result } = user;
+        return result;
+    }
+    return null;
   }
 
-  // --- Admin Endpoints ---
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(@Req() req, @Body() updateData: any) {
+    return this.usersService.updateProfile(req.user.userId, updateData);
+  }
+
+  // --- Admin Endpoints (Dynamic IDs) ---
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -35,6 +50,11 @@ export class UsersController {
       return result;
   }
 
+  @Get('test')
+  getTest() {
+    return 'Users Controller is working';
+  }
+
   async toggleStatus(@Param('id') id: string) {
       return this.usersService.toggleStatus(id);
   }
@@ -53,25 +73,5 @@ export class UsersController {
   @Roles('ADMIN')
   async remove(@Param('id') id: string) {
       return this.usersService.deleteUser(id);
-  }
-
-  // --- User Profile ---
-
-  @Get('profile')
-  @UseGuards(JwtAuthGuard)
-  async getProfile(@Req() req) {
-    const user = await this.usersService.findOneById(req.user.userId);
-    // Sanitize password
-    if (user) {
-        const { passwordHash, ...result } = user;
-        return result;
-    }
-    return null;
-  }
-
-  @Patch('profile')
-  @UseGuards(JwtAuthGuard)
-  async updateProfile(@Req() req, @Body() updateData: any) {
-    return this.usersService.updateProfile(req.user.userId, updateData);
   }
 }

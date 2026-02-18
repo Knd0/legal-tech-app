@@ -51,4 +51,20 @@ export class MovimientosService {
       movimientos
     };
   }
+  async update(id: string, updateMovimientoDto: Partial<Movimiento>, userId: string) {
+    const movimiento = await this.movimientosRepository.findOne({ where: { id, userId } });
+    if (!movimiento) {
+      throw new Error('Movimiento not found or access denied');
+    }
+    await this.movimientosRepository.update(id, updateMovimientoDto);
+    return this.movimientosRepository.findOne({ where: { id } });
+  }
+
+  async remove(id: string, userId: string) {
+    const movimiento = await this.movimientosRepository.findOne({ where: { id, userId } });
+    if (!movimiento) {
+      throw new Error('Movimiento not found or access denied');
+    }
+    return this.movimientosRepository.delete(id);
+  }
 }

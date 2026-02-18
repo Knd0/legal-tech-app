@@ -14,17 +14,50 @@ export class FacturasService {
     private facturasRepository: Repository<Factura>,
     private configService: ConfigService
   ) {
-    // Initialize AFIP SDK just like in their docs
-    // We would need actual certificates here. 
-    // For now we mock the initialization or protect it with try/catch to avoid crash if files missing.
+    // Initialize AFIP SDK
     try {
+        const fs = require('fs');
+        const path = require('path');
         const Afip = require('@afipsdk/afip.js');
+        
+        // Prepare Cert paths
+        let certPath = './cert.crt';
+        let keyPath = './cert.key';
+
+        // PRODUCTION: Write certs from ENV to temp files
+        const envCert = this.configService.get('AFIP_CERT');
+        const envKey = this.configService.get('AFIP_KEY');
+
+        if (envCert && envKey) {
+            const tmpDir = '/tmp'; // Standard temp dir for Linux/Render
+            // Ensure temp dir exists (it should)
+            if (!fs.existsSync(tmpDir)) {
+                 // Fallback if /tmp doesn't exist (e.g. windows)
+            }
+            
+            const tmpCertPath = path.join(tmpDir, 'cert.crt');
+            const tmpKeyPath = path.join(tmpDir, 'cert.key');
+
+            // Write files
+            fs.writeFileSync(tmpCertPath, envCert);
+            fs.writeFileSync(tmpKeyPath, envKey);
+
+            certPath = tmpCertPath;
+            keyPath = tmpKeyPath;
+            console.log('AFIP Certs loaded from ENV and written to temp:', certPath);
+        } else {
+             console.log('AFIP Certs using local files (Dev mode)');
+        }
+
         this.afip = new Afip({
             CUIT: this.configService.get('AFIP_CUIT'),
-            cert: './cert.crt',
-            key: './cert.key',
-            production: false
+            cert: certPath,
+            key: keyPath,
+            production: true // Default to true, or use ENV to switch
         });
+        
+        console.log('AFIP Service Initialized');
+
     } catch (e) {
         console.warn('AFIP SDK not initialized (Missing certs or dependecy):', e.message);
     }

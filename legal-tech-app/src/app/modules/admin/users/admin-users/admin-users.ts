@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -18,15 +18,24 @@ import { UserForm } from '../user-form/user-form';
   providers: [MessageService]
 })
 export class AdminUsers implements OnInit {
-  users: User[] = [];
-  displayCreateDialog: boolean = false;
-  selectedUser: User | null = null;
-  headerText: string = 'Crear Nuevo Usuario';
+  private usersService = inject(UsersService);
+  private messageService = inject(MessageService);
 
-  constructor(
-    private usersService: UsersService,
-    private messageService: MessageService
-  ) {}
+  users = signal<User[]>([]);
+  displayCreateDialog = false;
+  selectedUser: User | null = null;
+  headerText = 'Crear Nuevo Usuario';
+
+  // Computed metrics
+  activeSubscriptionsCount = computed(() => 
+    this.users().filter(u => u.subscriptionStatus === 'active').length
+  );
+
+  cancelledCount = computed(() => 
+    this.users().filter(u => u.subscriptionStatus === 'cancelled').length
+  );
+
+  constructor() {}
 
   ngOnInit() {
     this.loadUsers();
@@ -34,7 +43,7 @@ export class AdminUsers implements OnInit {
 
   loadUsers() {
     this.usersService.getUsers().subscribe({
-      next: (data) => this.users = data,
+      next: (data) => this.users.set(data),
       error: (err) => this.messageService.add({severity:'error', summary:'Error', detail:'Failed to load users'})
     });
   }
@@ -78,10 +87,15 @@ export class AdminUsers implements OnInit {
   toggleSuspension(user: User) {
     this.usersService.suspendUser(user.id).subscribe({
       next: (updatedUser) => {
-        const index = this.users.findIndex(u => u.id === updatedUser.id);
-        if (index !== -1) {
-            this.users[index] = updatedUser;
-        }
+        this.users.update(prev => {
+          const index = prev.findIndex(u => u.id === updatedUser.id);
+          if (index !== -1) {
+            const newUsers = [...prev];
+            newUsers[index] = updatedUser;
+            return newUsers;
+          }
+          return prev;
+        });
         const msg = updatedUser.isActive ? 'Usuario Activado' : 'Usuario Suspendido';
         this.messageService.add({severity:'info', summary:'Estado Actualizado', detail: msg});
       },
@@ -91,13 +105,5 @@ export class AdminUsers implements OnInit {
 
   getSeverity(isActive: boolean): any {
       return isActive ? 'warning' : 'success';
-  }
-
-  getActiveSubscriptionsCount(): number {
-    return this.users.filter(u => u.subscriptionStatus === 'active').length;
-  }
-
-  getCancelledCount(): number {
-    return this.users.filter(u => u.subscriptionStatus === 'cancelled').length;
   }
 }

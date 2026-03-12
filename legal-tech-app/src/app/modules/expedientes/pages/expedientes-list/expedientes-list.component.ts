@@ -3,6 +3,7 @@ import { ExpedienteService } from '../../../../core/services/expediente.service'
 import { Expediente } from '../../../../core/models/expediente.model';
 import { ExcelService } from '../../../../core/services/excel.service';
 import { LoadingService } from '../../../../core/services/loading.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -12,6 +13,7 @@ import Swal from 'sweetalert2';
   styleUrl: './expedientes-list.component.scss',
 })
 export class ExpedientesListComponent {
+  authService = inject(AuthService);
   expedienteService = inject(ExpedienteService); // Inject first
   expedientes = this.expedienteService.expedientes; // Then use
 

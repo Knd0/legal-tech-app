@@ -17,6 +17,7 @@ export class AppComponent implements OnInit {
   protected readonly title = signal('legal-tech-app');
   items: MenuItem[] | undefined;
   isMobileMenuOpen = signal(false);
+  bannerDismissed = signal(false);
 
   toggleMobileMenu() {
     this.isMobileMenuOpen.update(v => !v);
@@ -24,6 +25,10 @@ export class AppComponent implements OnInit {
 
   closeMobileMenu() {
     this.isMobileMenuOpen.set(false);
+  }
+
+  dismissBanner() {
+    this.bannerDismissed.set(true);
   }
 
   deadlineService = inject(DeadlineService);
@@ -79,7 +84,7 @@ export class AppComponent implements OnInit {
         {
             label: 'Inicio',
             icon: 'pi pi-home',
-            routerLink: '/'
+            routerLink: '/dashboard'
         },
         {
             label: 'Clientes',

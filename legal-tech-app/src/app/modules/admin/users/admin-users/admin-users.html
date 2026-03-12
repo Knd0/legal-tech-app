@@ -8,19 +8,19 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white border text-center border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
             <h3 class="text-slate-500 font-medium mb-2">Total Usuarios</h3>
-            <p class="text-3xl font-bold text-slate-800">{{ users.length }}</p>
+            <p class="text-3xl font-bold text-slate-800">{{ users().length }}</p>
         </div>
         <div class="bg-blue-50 border text-center border-blue-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
             <h3 class="text-blue-600 font-medium mb-2">Suscripciones Activas</h3>
-            <p class="text-3xl font-bold text-blue-900">{{ getActiveSubscriptionsCount() }}</p>
+            <p class="text-3xl font-bold text-blue-900">{{ activeSubscriptionsCount() }}</p>
         </div>
         <div class="bg-red-50 border text-center border-red-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
             <h3 class="text-red-600 font-medium mb-2">Tasa de Cancelación</h3>
-            <p class="text-3xl font-bold text-red-900">{{ getCancelledCount() }}</p>
+            <p class="text-3xl font-bold text-red-900">{{ cancelledCount() }}</p>
         </div>
     </div>
 
-    <p-table [value]="users" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '50rem' }" styleClass="p-datatable-striped">
+    <p-table [value]="users()" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '50rem' }" styleClass="p-datatable-striped">
         <ng-template pTemplate="header">
             <tr>
                 <th>Nombre</th>

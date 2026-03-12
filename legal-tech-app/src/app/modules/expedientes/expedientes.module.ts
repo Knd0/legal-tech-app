@@ -17,6 +17,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { KanbanBoard } from './pages/kanban-board/kanban-board';
 
 @NgModule({
@@ -37,6 +38,7 @@ import { KanbanBoard } from './pages/kanban-board/kanban-board';
     TextareaModule,
     SelectModule,
     TagModule,
+    TooltipModule,
     DragDropModule,
     GavelLoaderComponent
   ]

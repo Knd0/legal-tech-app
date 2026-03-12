@@ -35,3 +35,8 @@ Thumbs.db
 
 # NestJS specific
 /backend/dist
+
+# WhatsApp Bot Sessions
+backend/whatsapp-auth/
+backend/.wwebjs_cache/
+backend/uploads/

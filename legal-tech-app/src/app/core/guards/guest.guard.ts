@@ -7,12 +7,12 @@ export const guestGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
 
   if (authService.isAuthenticated()) {
-    return router.createUrlTree(['/']); // Redirect to home if already logged in
+    return router.createUrlTree(['/dashboard']); // Redirect to dashboard if already logged in
   }
 
   // Check storage in case signals aren't ready
   if (authService.getToken()) {
-      return router.createUrlTree(['/']);
+      return router.createUrlTree(['/dashboard']);
   }
 
   return true;

@@ -1,7 +1,7 @@
 <div class="bg-slate-50 dark:bg-slate-900 transition-colors scroll-smooth selection:bg-blue-300 selection:text-blue-900 overflow-x-hidden">
   
   <!-- Navigation Header -->
-  <header class="absolute inset-x-0 top-0 z-50 animate-fade-in">
+  <header *ngIf="!authService.isAuthenticated()" class="absolute inset-x-0 top-0 z-50 animate-fade-in">
     <nav class="flex items-center justify-between p-6 lg:px-8 max-w-7xl mx-auto" aria-label="Global">
       <div class="flex lg:flex-1">
         <a href="#" class="-m-1.5 p-1.5 flex items-center gap-3 group">
@@ -49,8 +49,9 @@
         Organizá tus expedientes, automatizá los avisos a tus clientes por WhatsApp y llevá el control real de tus cobros. Olvidate de los papeles y las planillas complicadas.
       </p>
       <div class="mt-10 flex items-center justify-center gap-x-6">
-        <a routerLink="/auth/register" class="rounded-full bg-blue-600 px-6 py-3.5 text-base font-bold text-white shadow-xl shadow-blue-500/40 hover:bg-blue-500 hover:-translate-y-1 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-          Comienza tu prueba de 14 días
+        <a [routerLink]="authService.isAuthenticated() ? '/dashboard' : '/auth/register'" 
+           class="rounded-full bg-blue-600 px-6 py-3.5 text-base font-bold text-white shadow-xl shadow-blue-500/40 hover:bg-blue-500 hover:-translate-y-1 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+          {{ authService.isAuthenticated() ? 'Ir a mi Panel de Control' : 'Comienza tu prueba de 14 días' }}
         </a>
         <a href="#features" class="text-base font-semibold leading-6 text-slate-900 dark:text-white hover:text-blue-600 transition-colors flex items-center gap-2 group">
           Ver funcionalidades
@@ -169,7 +170,10 @@
               <li class="flex gap-x-3 items-center opacity-50"><i class="pi pi-times-circle text-slate-500 text-lg"></i> Sin Bot de WhatsApp</li>
             </ul>
           </div>
-          <a routerLink="/auth/register" class="mt-8 block rounded-xl py-3 px-3 text-center text-sm font-bold leading-6 text-white ring-1 ring-inset ring-slate-600 hover:bg-slate-700 transition-colors">Crear Cuenta Gratis</a>
+          <a [routerLink]="authService.isAuthenticated() ? '/dashboard' : '/auth/register'" 
+             class="mt-8 block rounded-xl py-3 px-3 text-center text-sm font-bold leading-6 text-white ring-1 ring-inset ring-slate-600 hover:bg-slate-700 transition-colors">
+            {{ authService.isAuthenticated() ? 'Volver al Dashboard' : 'Crear Cuenta Gratis' }}
+          </a>
         </div>
 
         <!-- Pro -->
@@ -191,7 +195,10 @@
               <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-white text-lg drop-shadow-sm"></i> Soporte Prioritario 24/7</li>
             </ul>
           </div>
-          <a routerLink="/auth/register" class="mt-8 block rounded-xl bg-white px-3 py-3 text-center text-sm font-bold leading-6 text-blue-600 hover:bg-slate-50 shadow-md transition-colors">Empezar el Trial de 14 Días</a>
+          <a [routerLink]="authService.isAuthenticated() ? '/dashboard' : '/auth/register'" 
+             class="mt-8 block rounded-xl bg-white px-3 py-3 text-center text-sm font-bold leading-6 text-blue-600 hover:bg-slate-50 shadow-md transition-colors">
+            {{ authService.isAuthenticated() ? 'Ir al Dashboard Pro' : 'Empezar el Trial de 14 Días' }}
+          </a>
         </div>
 
       </div>

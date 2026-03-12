@@ -1,4 +1,5 @@
 import { Component, effect, inject } from '@angular/core';
+import { AuthService } from '../../../../core/services/auth.service';
 import { ClientService } from '../../../../core/services/client.service';
 import { Cliente } from '../../../../core/models/cliente.model';
 import { ExcelService } from '../../../../core/services/excel.service';
@@ -19,6 +20,7 @@ export class ClientesListComponent {
   excelService = inject(ExcelService);
   notificationService = inject(NotificationService);
   loadingService = inject(LoadingService);
+  authService = inject(AuthService);
 
   // constructor(public clientService: ClientService) {} // Removed constructor injection
 

@@ -324,3 +324,30 @@ select,
     color: #94a3b8 !important;
     /* slate-400 */
 }
+
+/* 10. Premium Locked Utility */
+.premium-locked:disabled {
+    filter: grayscale(1);
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    position: relative;
+    pointer-events: auto !important; /* Allow tooltip to show */
+}
+
+.premium-locked:disabled::after {
+    content: '\e91d'; /* pi-lock from primeicons */
+    font-family: 'primeicons';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #b45309; /* amber-700 */
+    color: white;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}

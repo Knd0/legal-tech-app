@@ -17,11 +17,20 @@ export const subscriptionGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  // Allow access if active or trial
+  // Allow access if active or trial, but check expiration
   if (user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trial') {
-    return true;
+    if (!user.subscriptionExpiresAt) return true;
+
+    const expiry = new Date(user.subscriptionExpiresAt).getTime();
+    const now = Date.now();
+    const gracePeriodEnd = expiry + (7 * 24 * 60 * 60 * 1000); // 7 days
+
+    // If within grace period, allow access (Creation blocked by components)
+    if (now <= gracePeriodEnd) {
+        return true;
+    }
   }
 
-  // Redirect to pricing page if expired, cancelled, paused etc
+  // Redirect to pricing page if strictly expired (past grace period)
   return router.createUrlTree(['/subscription/pricing']);
 };

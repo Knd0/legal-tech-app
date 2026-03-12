@@ -1,6 +1,28 @@
 <div
   class="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 pb-0 flex flex-col transition-colors duration-300">
 
+  <!-- Global Subscription Banner (Grace Period) -->
+  <div *ngIf="authService.isGracePeriod() && !bannerDismissed()" 
+    class="fixed top-20 left-1/2 -translate-x-1/2 z-[60] w-[95%] max-w-2xl">
+    <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-amber-200 dark:border-amber-800/50 shadow-xl rounded-2xl p-4 flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500 group relative">
+      <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+        <i class="pi pi-exclamation-triangle text-xl text-amber-600 dark:text-amber-400"></i>
+      </div>
+      <div class="flex-grow">
+        <h4 class="text-sm font-bold text-slate-800 dark:text-white leading-tight">Acceso Restringido - Plan Vencido</h4>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+          Tu suscripción Pro ha expirado. Tenés 7 días para renovar antes de perder el acceso total. La creación de nuevos registros está deshabilitada.
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button pButton label="Renovar" icon="pi pi-refresh" [routerLink]="['/subscription/pricing']"
+          class="p-button-sm p-button-warning shadow-sm !px-4"></button>
+        <button pButton icon="pi pi-times" (click)="dismissBanner()"
+          class="p-button-rounded p-button-text p-button-secondary p-button-sm hover:bg-slate-100 dark:hover:bg-slate-700"></button>
+      </div>
+    </div>
+  </div>
+
   <nav *ngIf="authService.isAuthenticated()"
     class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 fixed w-full top-0 z-50 h-16 px-6 flex justify-between items-center transition-colors duration-300">
 
@@ -12,7 +34,7 @@
     </div>
 
     <div class="hidden md:flex items-center gap-8" *ngIf="authService.currentUser()?.role !== 'ADMIN'">
-      <a routerLink="/"
+      <a routerLink="/dashboard"
         routerLinkActive="text-blue-900 dark:text-blue-400 font-semibold border-b-2 border-blue-900 dark:border-blue-400"
         [routerLinkActiveOptions]="{exact: true}"
         class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-blue-900 dark:hover:text-blue-300 h-16 flex items-center transition-colors">Inicio</a>
@@ -125,7 +147,7 @@
       </div>
 
       <!-- Navigation Links -->
-      <a routerLink="/" (click)="closeMobileMenu()"
+      <a routerLink="/dashboard" (click)="closeMobileMenu()"
         routerLinkActive="bg-blue-50 dark:bg-slate-700 text-blue-900 dark:text-blue-400"
         [routerLinkActiveOptions]="{exact: true}"
         class="flex items-center gap-3 p-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">

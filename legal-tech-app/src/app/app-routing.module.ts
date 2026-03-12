@@ -10,7 +10,7 @@ import { subscriptionGuard } from './core/guards/subscription.guard';
 import { Landing } from './pages/landing/landing';
 
 const routes: Routes = [
-  { path: '', component: Landing },
+  { path: '', component: Landing, canActivate: [guestGuard] },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'auth', loadChildren: () => import('./modules/auth/auth-module').then(m => m.AuthModule), canActivate: [guestGuard] },
   { path: 'clientes', loadChildren: () => import('./modules/clientes/clientes.module').then(m => m.ClientesModule), canActivate: [authGuard, subscriptionGuard] },

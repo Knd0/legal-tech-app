@@ -19,6 +19,7 @@ import { SettingsModule } from './settings/settings.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { FacturasModule } from './facturas/facturas.module';
 import { SeedService } from './seed.service';
+import { MercadopagoModule } from './mercadopago/mercadopago.module';
 
 
 @Module({
@@ -86,6 +87,7 @@ import { SeedService } from './seed.service';
     SettingsModule,
     CalendarModule,
     FacturasModule,
+    MercadopagoModule,
 
   ],
   controllers: [AppController],

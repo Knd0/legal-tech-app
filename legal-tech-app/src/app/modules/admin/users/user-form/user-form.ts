@@ -24,6 +24,12 @@ export class UserForm implements OnChanges {
     { label: 'Administrador', value: 'ADMIN' },
     { label: 'Usuario (Abogado)', value: 'USER' }
   ];
+  subscriptionStatuses = [
+    { label: 'Prueba (Trial)', value: 'trial' },
+    { label: 'Activo (Pago)', value: 'active' },
+    { label: 'Pausado', value: 'paused' },
+    { label: 'Cancelado', value: 'cancelled' }
+  ];
 
   constructor(
     private fb: FormBuilder,
@@ -33,7 +39,9 @@ export class UserForm implements OnChanges {
       fullName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      role: ['USER', Validators.required]
+      role: ['USER', Validators.required],
+      subscriptionStatus: ['trial'],
+      subscriptionExpiresAt: [null]
     });
   }
 
@@ -45,6 +53,8 @@ export class UserForm implements OnChanges {
           fullName: this.userToEdit.fullName,
           email: this.userToEdit.email,
           role: this.userToEdit.role,
+          subscriptionStatus: this.userToEdit.subscriptionStatus || 'trial',
+          subscriptionExpiresAt: this.userToEdit.subscriptionExpiresAt ? new Date(this.userToEdit.subscriptionExpiresAt).toISOString().split('T')[0] : null,
           password: '' // Don't fill password
         });
         // Remove password required validator
@@ -53,7 +63,7 @@ export class UserForm implements OnChanges {
         this.userForm.get('password')?.updateValueAndValidity();
       } else {
         // Create Mode
-        this.userForm.reset({ role: 'USER' });
+        this.userForm.reset({ role: 'USER', subscriptionStatus: 'trial' });
         this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
         this.userForm.get('password')?.updateValueAndValidity();
       }

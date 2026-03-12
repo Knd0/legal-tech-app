@@ -5,13 +5,19 @@ import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { AdminGuard } from './core/guards/admin.guard';
 
+import { subscriptionGuard } from './core/guards/subscription.guard';
+
+import { Landing } from './pages/landing/landing';
+
 const routes: Routes = [
-  { path: '', component: DashboardComponent, canActivate: [authGuard] },
+  { path: '', component: Landing },
+  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'auth', loadChildren: () => import('./modules/auth/auth-module').then(m => m.AuthModule), canActivate: [guestGuard] },
-  { path: 'clientes', loadChildren: () => import('./modules/clientes/clientes.module').then(m => m.ClientesModule), canActivate: [authGuard] },
-  { path: 'expedientes', loadChildren: () => import('./modules/expedientes/expedientes.module').then(m => m.ExpedientesModule), canActivate: [authGuard] },
-  { path: 'calendario', loadChildren: () => import('./modules/calendario/calendario.module').then(m => m.CalendarioModule), canActivate: [authGuard] },
+  { path: 'clientes', loadChildren: () => import('./modules/clientes/clientes.module').then(m => m.ClientesModule), canActivate: [authGuard, subscriptionGuard] },
+  { path: 'expedientes', loadChildren: () => import('./modules/expedientes/expedientes.module').then(m => m.ExpedientesModule), canActivate: [authGuard, subscriptionGuard] },
+  { path: 'calendario', loadChildren: () => import('./modules/calendario/calendario.module').then(m => m.CalendarioModule), canActivate: [authGuard, subscriptionGuard] },
   { path: 'profile', loadChildren: () => import('./modules/profile/profile.module').then(m => m.ProfileModule), canActivate: [authGuard] },
+  { path: 'subscription', loadChildren: () => import('./modules/subscription/subscription-module').then(m => m.SubscriptionModule), canActivate: [authGuard] },
   { path: 'ayuda', loadChildren: () => import('./modules/help/help-module').then(m => m.HelpModule), canActivate: [authGuard] },
   { path: 'admin/users', loadComponent: () => import('./modules/admin/users/admin-users/admin-users').then(m => m.AdminUsers), canActivate: [authGuard, AdminGuard] },
   { path: '**', redirectTo: '' }

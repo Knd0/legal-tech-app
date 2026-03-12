@@ -25,7 +25,9 @@ export class AuthController {
           email,
           passwordHash: hashedPassword,
           fullName,
-          phoneNumber
+          phoneNumber,
+          subscriptionStatus: 'trial',
+          isActive: true
       });
   }
 

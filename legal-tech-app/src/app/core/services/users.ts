@@ -10,6 +10,8 @@ export interface User {
   phoneNumber?: string;
   role: 'ADMIN' | 'USER';
   isActive: boolean;
+  subscriptionStatus?: string;
+  subscriptionExpiresAt?: Date;
   createdAt?: string;
 }
 

@@ -36,6 +36,9 @@ export class AuthService {
         })
       );
   }
+  register(email: string, pass: string, fullName: string, phoneNumber?: string) {
+    return this.http.post(`${this.apiUrl}/register`, { email, password: pass, fullName, phoneNumber });
+  }
 
   logout() {
     localStorage.removeItem(this.tokenKey);
@@ -71,7 +74,8 @@ export class AuthService {
                 email: decoded.username,
                 role: decoded.role,
                 phoneNumber: decoded.phoneNumber,
-                fullName: decoded.fullName
+                fullName: decoded.fullName,
+                subscriptionStatus: decoded.subscriptionStatus
             });
         } else {
             this.logout();

@@ -55,6 +55,9 @@ export class UsersController {
     return 'Users Controller is working';
   }
 
+  @Patch(':id/suspend')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   async toggleStatus(@Param('id') id: string) {
       return this.usersService.toggleStatus(id);
   }

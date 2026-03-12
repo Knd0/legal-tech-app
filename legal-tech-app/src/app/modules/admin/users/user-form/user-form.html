@@ -31,6 +31,24 @@
             [style]="{'width':'100%'}"></p-select>
     </div>
 
+    <!-- Modificadores de Suscripción -->
+    <div class="flex flex-col gap-2 border-t pt-4 mt-2 border-slate-200">
+        <label class="font-semibold text-slate-800 text-lg">Control de Suscripción</label>
+        <p class="text-sm text-slate-500 mb-2">Modificar manualmente el estado de un usuario para soporte.</p>
+        
+        <label for="subscriptionStatus" class="font-semibold text-slate-700">Estado de Plan</label>
+        <p-select [options]="subscriptionStatuses" formControlName="subscriptionStatus" optionLabel="label" optionValue="value"
+            [style]="{'width':'100%'}"></p-select>
+    </div>
+
+    <div class="flex flex-col gap-2">
+        <label for="subscriptionExpiresAt" class="font-semibold text-slate-700">Vencimiento Manual</label>
+        <input pInputText type="date" id="subscriptionExpiresAt" formControlName="subscriptionExpiresAt" />
+        <small class="text-slate-500">
+            Dejar en blanco para mantener dinámico o indefinido.
+        </small>
+    </div>
+
     <div class="flex justify-end gap-2 mt-6">
         <p-button label="Cancelar" styleClass="p-button-secondary p-button-text"
             (onClick)="userForm.reset()"></p-button>

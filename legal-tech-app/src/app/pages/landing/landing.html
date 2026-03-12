@@ -1,0 +1,206 @@
+<div class="bg-slate-50 dark:bg-slate-900 transition-colors scroll-smooth selection:bg-blue-300 selection:text-blue-900 overflow-x-hidden">
+  
+  <!-- Navigation Header -->
+  <header class="absolute inset-x-0 top-0 z-50 animate-fade-in">
+    <nav class="flex items-center justify-between p-6 lg:px-8 max-w-7xl mx-auto" aria-label="Global">
+      <div class="flex lg:flex-1">
+        <a href="#" class="-m-1.5 p-1.5 flex items-center gap-3 group">
+          <span class="sr-only">LexSaaS</span>
+          <img class="h-10 w-auto rounded-xl shadow-md group-hover:scale-105 transition-transform" src="favicon.png" alt="LexSaaS Logo">
+          <span class="text-2xl font-black tracking-tight text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">LexSaaS</span>
+        </a>
+      </div>
+      <div class="hidden lg:flex lg:gap-x-12">
+        <a href="#features" class="text-sm font-semibold leading-6 text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Funcionalidades</a>
+        <a href="#pricing" class="text-sm font-semibold leading-6 text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Planes y Precios</a>
+      </div>
+      <div class="hidden lg:flex lg:flex-1 lg:justify-end gap-x-6 items-center">
+        <a routerLink="/auth/login" class="text-sm font-semibold leading-6 text-slate-800 dark:text-slate-200 hover:text-blue-600 transition-colors">
+          Ingresar
+        </a>
+        <a routerLink="/auth/register" class="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+          Probar Gratis
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <div class="relative isolate pt-14 flex flex-col justify-center overflow-hidden">
+    <!-- Beautiful gradient blur background -->
+    <div class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80" aria-hidden="true">
+      <div class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#9089fc] to-[#4f46e5] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"></div>
+    </div>
+    
+    <div class="mx-auto max-w-4xl py-24 sm:py-32 lg:pb-24 lg:pt-32 text-center animate-fade-in-up">
+      <div class="hidden sm:mb-10 sm:flex sm:justify-center">
+        <div class="relative rounded-full px-4 py-1.5 text-sm leading-6 text-slate-600 dark:text-slate-300 ring-1 ring-slate-900/10 dark:ring-white/20 hover:ring-slate-900/20 hover:scale-105 transition-all bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm cursor-pointer shadow-sm">
+          <span class="font-semibold text-blue-600 dark:text-blue-400 mr-2">¡Novedad!</span>
+          Ahora con IA para redacción automática. 
+          <a routerLink="/auth/register" class="font-semibold text-slate-900 dark:text-white ml-2">
+            <span class="absolute inset-0" aria-hidden="true"></span>Saber más <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+      </div>
+      <h1 class="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-7xl leading-tight">
+        Lleva tu <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">Estudio Jurídico</span> al futuro
+      </h1>
+      <p class="mt-8 text-xl leading-8 text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium">
+        Un moderno CRM en la nube para abogados. Toda la gestión de expedientes, cobros, recordatorios de WhatsApp automáticos y más, en un solo lugar.
+      </p>
+      <div class="mt-10 flex items-center justify-center gap-x-6">
+        <a routerLink="/auth/register" class="rounded-full bg-blue-600 px-6 py-3.5 text-base font-bold text-white shadow-xl shadow-blue-500/40 hover:bg-blue-500 hover:-translate-y-1 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+          Comienza tu prueba de 14 días
+        </a>
+        <a href="#features" class="text-base font-semibold leading-6 text-slate-900 dark:text-white hover:text-blue-600 transition-colors flex items-center gap-2 group">
+          Ver funcionalidades
+          <i class="pi pi-arrow-right group-hover:translate-x-1 transition-transform text-sm"></i>
+        </a>
+      </div>
+    </div>
+    
+    <!-- Hero Mockup Image with floating effect -->
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 mt-4 sm:mt-10 pb-20 animate-fade-in-up" style="animation-delay: 0.3s; animation-fill-mode: both;">
+      <div class="relative rounded-2xl bg-slate-900/5 p-2 ring-1 ring-inset ring-slate-900/10 lg:-m-4 lg:rounded-3xl lg:p-4 shadow-2xl backdrop-blur-3xl transform hover:-translate-y-2 transition-transform duration-500">
+        <img src="assets/lexsaas_dashboard_mockup.png" alt="App Dashboard Mockup" class="w-full rounded-xl shadow-2xl ring-1 ring-slate-900/10 dark:ring-white/10 mx-auto" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="w-full border-t border-slate-200 dark:border-slate-800"></div>
+
+  <!-- Features Section -->
+  <div id="features" class="py-24 sm:py-32 bg-white dark:bg-slate-900 relative overflow-hidden">
+    <!-- Abstract background shape -->
+    <div class="absolute right-0 top-0 -z-10 blur-3xl opacity-30">
+        <div class="aspect-square w-[50rem] rounded-full bg-gradient-to-br from-blue-400 to-indigo-200 translate-x-1/2 -translate-y-1/2"></div>
+    </div>
+
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 animate-fade-in-up" style="animation-delay: 0.2s;">
+      <div class="mx-auto max-w-2xl text-center">
+        <h2 class="text-base font-bold leading-7 text-blue-600 dark:text-blue-400 tracking-wide uppercase">Potencia Tu Productividad</h2>
+        <p class="mt-2 text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-5xl">Todo lo que necesitas, hecho simple</p>
+        <p class="mt-6 text-lg leading-8 text-slate-600 dark:text-slate-400 font-medium">
+          Menos tiempo administrando papeles y hojas de cálculo, más tiempo ganando casos. LexSaaS hace el trabajo pesado por ti.
+        </p>
+      </div>
+      
+      <div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
+        <dl class="grid max-w-xl grid-cols-1 gap-x-12 gap-y-16 lg:max-w-none lg:grid-cols-3">
+          
+          <!-- Feature 1 -->
+          <div class="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:border-blue-200 dark:hover:border-blue-900 transition-all hover:-translate-y-1">
+            <dt class="flex flex-col gap-y-4 text-xl font-bold leading-7 text-slate-900 dark:text-white">
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg">
+                <i class="pi pi-folder-open text-xl"></i>
+              </div>
+              Bóveda Judicial Centralizada
+            </dt>
+            <dd class="mt-4 flex flex-auto flex-col text-base leading-7 text-slate-600 dark:text-slate-400">
+              <p class="flex-auto">Control maestro sobre cada caso judicial. Crea carpetas digitales, adjunta sentencias ilimitadas, rastrea honorarios y haz seguimiento detallado de instancias y partes involucradas con un buscador veloz.</p>
+            </dd>
+          </div>
+
+          <!-- Feature 2 -->
+          <div class="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:border-green-200 dark:hover:border-green-900 transition-all hover:-translate-y-1">
+            <dt class="flex flex-col gap-y-4 text-xl font-bold leading-7 text-slate-900 dark:text-white">
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500 text-white shadow-lg">
+                <i class="pi pi-whatsapp text-xl"></i>
+              </div>
+              Recordatorios Automáticos
+            </dt>
+            <dd class="mt-4 flex flex-auto flex-col text-base leading-7 text-slate-600 dark:text-slate-400">
+              <p class="flex-auto">Despreocúpate de avisar sobre audiencias. Nuestro motor de notificaciones envía proactivamente mensajes de WhatsApp a clientes y recordatorios a tu teléfono para que no te pierdas ni un solo vencimiento.</p>
+            </dd>
+          </div>
+
+          <!-- Feature 3 -->
+          <div class="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:border-purple-200 dark:hover:border-purple-900 transition-all hover:-translate-y-1">
+            <dt class="flex flex-col gap-y-4 text-xl font-bold leading-7 text-slate-900 dark:text-white">
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-600 text-white shadow-lg">
+                <i class="pi pi-chart-line text-xl"></i>
+              </div>
+              Cobranzas y Facturación
+            </dt>
+            <dd class="mt-4 flex flex-auto flex-col text-base leading-7 text-slate-600 dark:text-slate-400">
+              <p class="flex-auto">Una radiografía financiera de tu estudio. Lleva el control de pagos recibidos por cliente, genera facturas imprimibles y configura planes de cuotas. Monitorea tus ingresos en un tablero interactivo.</p>
+            </dd>
+          </div>
+          
+        </dl>
+      </div>
+
+      <div class="mx-auto max-w-5xl mt-24">
+         <div class="relative rounded-2xl p-2 lg:p-4 shadow-2xl overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 group">
+            <img src="assets/lexsaas_cases_mockup.png" alt="Gestión de Expedientes" class="w-full rounded-xl shadow-inner group-hover:scale-105 transition-transform duration-700 ease-out" />
+            <!-- Overlay gradient to give it a pop -->
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent pointer-events-none rounded-2xl"></div>
+         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pricing Section -->
+  <div id="pricing" class="py-24 sm:py-32 bg-slate-900 text-white">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 text-center animate-fade-in-up">
+      <div class="mx-auto max-w-2xl sm:text-center">
+        <h2 class="text-3xl font-extrabold tracking-tight sm:text-5xl">Precios claros, escalabilidad real</h2>
+        <p class="mt-6 text-xl leading-8 text-slate-300">
+          Inicia hoy mismo y potencia tu gestión. No pedimos tarjeta de crédito para la prueba gratis.
+        </p>
+      </div>
+      <div class="mx-auto mt-16 grid max-w-lg grid-cols-1 items-stretch gap-8 sm:mt-20 lg:max-w-4xl lg:grid-cols-2 text-left">
+        
+        <!-- Básico -->
+        <div class="flex flex-col justify-between rounded-3xl bg-slate-800 p-8 ring-1 ring-slate-700 xl:p-10 hover:ring-blue-500/50 transition-shadow hover:shadow-2xl hover:shadow-blue-900/20">
+          <div>
+            <div class="flex items-center justify-between gap-x-4">
+              <h3 class="text-xl font-semibold leading-8 text-white">Plan Básico</h3>
+            </div>
+            <p class="mt-4 text-sm leading-6 text-slate-400">Perfecto para abogados independientes construyendo su cartera.</p>
+            <p class="mt-6 flex items-baseline gap-x-1">
+              <span class="text-5xl font-bold tracking-tight text-white">Gratis</span>
+            </p>
+            <ul role="list" class="mt-8 space-y-3 text-sm leading-6 text-slate-300">
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-blue-400 text-lg"></i> CRM de Clientes Completo</li>
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-blue-400 text-lg"></i> Límite de 30 Expedientes Activos</li>
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-blue-400 text-lg"></i> Agenda Básica</li>
+              <li class="flex gap-x-3 items-center opacity-50"><i class="pi pi-times-circle text-slate-500 text-lg"></i> Sin Bot de WhatsApp</li>
+            </ul>
+          </div>
+          <a routerLink="/auth/register" class="mt-8 block rounded-xl py-3 px-3 text-center text-sm font-bold leading-6 text-white ring-1 ring-inset ring-slate-600 hover:bg-slate-700 transition-colors">Crear Cuenta Gratis</a>
+        </div>
+
+        <!-- Pro -->
+        <div class="flex flex-col justify-between rounded-3xl bg-blue-600 p-8 shadow-2xl shadow-blue-900/50 ring-1 ring-blue-500 relative xl:p-10 transform lg:-translate-y-4 hover:-translate-y-6 transition-transform">
+          <div class="absolute -top-4 right-8 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 text-xs font-black uppercase px-3 py-1 rounded-full shadow-md animate-bounce-slow">
+            Recomendado
+          </div>
+          <div>
+            <h3 class="text-xl font-semibold leading-8 text-white">Estudio Pro</h3>
+            <p class="mt-4 text-sm leading-6 text-blue-100">La suite de herramientas sin límites para estudios jurídicos top.</p>
+            <p class="mt-6 flex items-baseline gap-x-1">
+              <span class="text-5xl font-bold tracking-tight text-white">$15.000</span>
+              <span class="text-sm font-semibold leading-6 text-blue-200">ARS / mes</span>
+            </p>
+            <ul role="list" class="mt-8 space-y-3 text-sm leading-6 text-blue-50">
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-white text-lg drop-shadow-sm"></i> Expedientes y Clientes Ilimitados</li>
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-white text-lg drop-shadow-sm"></i> Notificaciones por WhatsApp Automáticas</li>
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-white text-lg drop-shadow-sm"></i> Facturación y Reportes Avanzados</li>
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-white text-lg drop-shadow-sm"></i> Soporte Prioritario 24/7</li>
+            </ul>
+          </div>
+          <a routerLink="/auth/register" class="mt-8 block rounded-xl bg-white px-3 py-3 text-center text-sm font-bold leading-6 text-blue-600 hover:bg-slate-50 shadow-md transition-colors">Empezar el Trial de 14 Días</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-slate-950 py-12 text-center text-slate-500 text-sm">
+    <p>&copy; 2026 LexSaaS App. Todos los derechos reservados.</p>
+  </footer>
+
+</div>

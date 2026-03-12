@@ -55,6 +55,15 @@ export class User {
   // @Column({ nullable: true })
   // googleRefreshToken: string;
 
+  @Column({ nullable: true })
+  mpSubscriptionId: string;
+
+  @Column({ default: 'trial' }) // 'active', 'trial', 'paused', 'cancelled'
+  subscriptionStatus: string;
+
+  @Column({ nullable: true })
+  subscriptionExpiresAt: Date;
+
   @UpdateDateColumn()
   updatedAt: Date;
 }

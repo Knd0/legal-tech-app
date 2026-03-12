@@ -92,4 +92,12 @@ export class AdminUsers implements OnInit {
   getSeverity(isActive: boolean): any {
       return isActive ? 'warning' : 'success';
   }
+
+  getActiveSubscriptionsCount(): number {
+    return this.users.filter(u => u.subscriptionStatus === 'active').length;
+  }
+
+  getCancelledCount(): number {
+    return this.users.filter(u => u.subscriptionStatus === 'cancelled').length;
+  }
 }

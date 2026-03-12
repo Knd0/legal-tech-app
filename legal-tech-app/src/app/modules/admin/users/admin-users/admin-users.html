@@ -1,7 +1,23 @@
 <div class="card p-6">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-slate-800">Gestión de Usuarios</h2>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h2 class="text-2xl font-bold text-slate-800">Panel Super Administrador</h2>
         <p-button label="Nuevo Usuario" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
+    </div>
+
+    <!-- Metricas de Negocio -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white border text-center border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <h3 class="text-slate-500 font-medium mb-2">Total Usuarios</h3>
+            <p class="text-3xl font-bold text-slate-800">{{ users.length }}</p>
+        </div>
+        <div class="bg-blue-50 border text-center border-blue-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <h3 class="text-blue-600 font-medium mb-2">Suscripciones Activas</h3>
+            <p class="text-3xl font-bold text-blue-900">{{ getActiveSubscriptionsCount() }}</p>
+        </div>
+        <div class="bg-red-50 border text-center border-red-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <h3 class="text-red-600 font-medium mb-2">Tasa de Cancelación</h3>
+            <p class="text-3xl font-bold text-red-900">{{ getCancelledCount() }}</p>
+        </div>
     </div>
 
     <p-table [value]="users" [tableStyle]="{ 'min-width': '50rem' }" styleClass="p-datatable-striped">
@@ -10,7 +26,9 @@
                 <th>Nombre</th>
                 <th>Email</th>
                 <th>Rol</th>
-                <th>Estado</th>
+                <th>Estado Acceso</th>
+                <th>Suscripción</th>
+                <th>Vencimiento</th>
                 <th>Acciones</th>
             </tr>
         </ng-template>
@@ -28,6 +46,17 @@
                     <span
                         [class]="'px-2 py-1 rounded text-xs font-bold ' + (user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')">
                         {{ user.isActive ? 'ACTIVO' : 'SUSPENDIDO' }}
+                    </span>
+                </td>
+                <td>
+                    <span
+                        [class]="'uppercase px-2 py-1 rounded text-xs font-bold ' + (user.subscriptionStatus === 'active' ? 'bg-blue-100 text-blue-800' : user.subscriptionStatus === 'trial' ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-800')">
+                        {{ user.subscriptionStatus || 'N/A' }}
+                    </span>
+                </td>
+                <td>
+                    <span class="text-sm font-medium text-slate-600">
+                        {{ user.subscriptionExpiresAt ? (user.subscriptionExpiresAt | date:'dd/MM/yyyy') : 'N/A' }}
                     </span>
                 </td>
                 <td class="flex gap-2">

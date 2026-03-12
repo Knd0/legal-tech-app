@@ -45,7 +45,7 @@ export class MercadopagoService {
             { id: 'debit_card' }
           ],
         },
-        back_url: 'http://localhost:4200/subscription/success',
+        back_url: 'https://legal-tech-app-woad.vercel.app/subscription/success',
       }
     });
   }
@@ -69,7 +69,7 @@ export class MercadopagoService {
                  transaction_amount: 15000,
                  currency_id: 'ARS',
              },
-             back_url: 'http://localhost:4200/subscription/success',
+             back_url: 'https://legal-tech-app-woad.vercel.app/subscription/success',
              status: 'pending'
           }
       };

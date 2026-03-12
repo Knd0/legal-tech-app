@@ -16,7 +16,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 // Services & Models
 import { DeadlineService } from '../../../../core/services/deadline.service';
 import { NotificationService } from '../../../../core/services/notification.service';
-
+import { AuthService } from '../../../../core/services/auth.service';
 import { Vencimiento } from '../../../../core/models/vencimiento.model';
 import Swal from 'sweetalert2';
 
@@ -44,6 +44,7 @@ export class CalendarioViewComponent {
   // DI
   deadlineService = inject(DeadlineService);
   notificationService = inject(NotificationService);
+  authService = inject(AuthService);
 
   fb = inject(FormBuilder);
 

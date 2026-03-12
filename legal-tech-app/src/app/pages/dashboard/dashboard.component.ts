@@ -2,13 +2,16 @@ import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { AuditService } from '../../core/services/audit.service';
 import { DeadlineService } from '../../core/services/deadline.service';
+import { AuthService } from '../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TooltipModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -16,7 +19,8 @@ export class DashboardComponent implements OnInit {
   
   dashboardService = inject(DashboardService);
   auditService = inject(AuditService);
-  deadlineService = inject(DeadlineService); // Inject DeadlineService
+  deadlineService = inject(DeadlineService); 
+  authService = inject(AuthService);
 
   stats = signal<any>(null);
   recentActivity = this.auditService.recentLogs;

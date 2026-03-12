@@ -25,7 +25,9 @@
             </div>
 
             <button pButton label="Nuevo Vencimiento" icon="pi pi-plus"
-                class="bg-blue-900 border-blue-900 hover:bg-blue-800 shadow-sm w-full sm:w-auto" (click)="openNew()">
+                [disabled]="authService.isCreationBlocked()"
+                [pTooltip]="authService.isCreationBlocked() ? 'Suscripción vencida. Actualice su plan.' : ''"
+                class="bg-blue-900 border-blue-900 hover:bg-blue-800 shadow-sm w-full sm:w-auto premium-locked" (click)="openNew()">
             </button>
         </div>
     </div>

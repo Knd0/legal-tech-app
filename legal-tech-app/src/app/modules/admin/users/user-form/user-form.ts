@@ -73,7 +73,12 @@ export class UserForm implements OnChanges {
   onSubmit() {
     if (this.userForm.valid) {
       this.loading = true;
-      const formData = this.userForm.value;
+      const formData = { ...this.userForm.value };
+
+      // Ensure empty date is passed as null
+      if (formData.subscriptionExpiresAt === '') {
+          formData.subscriptionExpiresAt = null;
+      }
 
       // Remove empty password if editing
       if (this.userToEdit && !formData.password) {

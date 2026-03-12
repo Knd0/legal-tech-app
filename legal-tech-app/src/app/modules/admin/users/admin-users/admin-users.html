@@ -20,7 +20,7 @@
         </div>
     </div>
 
-    <p-table [value]="users" [tableStyle]="{ 'min-width': '50rem' }" styleClass="p-datatable-striped">
+    <p-table [value]="users" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '50rem' }" styleClass="p-datatable-striped">
         <ng-template pTemplate="header">
             <tr>
                 <th>Nombre</th>

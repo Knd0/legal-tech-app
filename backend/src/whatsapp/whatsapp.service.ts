@@ -31,6 +31,8 @@ export class WhatsappService implements OnModuleInit {
   constructor() {
     this.client = new Client({
       authStrategy: new LocalAuth({ dataPath: './whatsapp-auth' }),
+      authTimeoutMs: 0, // Disable auth timeout to prevent unhandled rejection "auth timeout"
+      qrMaxRetries: 10,
       puppeteer: {
         headless: true,
         args: [

@@ -48,61 +48,8 @@
                         </div>
                     </div>
 
-                    <div class="pt-6">
-                        <h3 class="text-md font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-4">
-                            <i class="pi pi-briefcase text-purple-600"></i> Datos de Facturación (AFIP)
-                        </h3>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">CUIT
-                                    *</label>
-                                <input pInputText formControlName="cuit"
-                                    class="w-full text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                                    placeholder="20-12345678-9" />
-                            </div>
-                            <div>
-                                <label
-                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Condición
-                                    IVA</label>
-                                <select formControlName="condicionIva"
-                                    class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-700 text-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="Resp. Monotributo">Responsable Monotributo</option>
-                                    <option value="Resp. Inscripto">Responsable Inscripto</option>
-                                    <option value="Exento">Exento</option>
-                                    <option value="Consumidor Final">Consumidor Final</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label
-                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ingresos
-                                    Brutos (IIBB)</label>
-                                <input pInputText formControlName="iibb"
-                                    class="w-full text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Inicio
-                                    de Actividades</label>
-                                <input type="date" pInputText formControlName="initActivityUser"
-                                    class="w-full text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Punto
-                                    de Venta (AFIP) *</label>
-                                <input type="number" pInputText formControlName="puntoVenta"
-                                    class="w-full text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                                    placeholder="1" />
-                                <small class="text-slate-400 dark:text-slate-500 text-xs">Número de punto de venta para
-                                    facturar.</small>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label
-                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Domicilio
-                                    Fiscal</label>
-                                <input pInputText formControlName="address"
-                                    class="w-full text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
-                            </div>
-                        </div>
+                    <div class="pt-2">
+                        <!-- Space left empty since AFIP moved to Integrations -->
                     </div>
 
                     <div class="flex justify-end pt-4">
@@ -231,6 +178,81 @@
                                         (click)="logoutWhatsapp()"></button>
                                 </div>
                             </ng-template>
+                        </div>
+                    </div>
+
+                    <!-- AFIP / ARCA Integration -->
+                    <div class="border-t border-slate-100 dark:border-slate-700 pt-6 mt-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                <i class="pi pi-briefcase text-purple-600"></i> AFIP / ARCA
+                            </h3>
+                            <!-- Status Badge -->
+                            <span *ngIf="isAfipLinked()" class="text-xs font-bold px-2 py-1 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-1 ring-green-500/50">Vinculado</span>
+                            <span *ngIf="!isAfipLinked()" class="text-xs font-bold px-2 py-1 rounded bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400 ring-1 ring-slate-500/30">Sin Vincular</span>
+                        </div>
+
+                        <!-- Active Linked State -->
+                        <div *ngIf="isAfipLinked() && !editAfipMode()" class="mt-4 p-4 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 rounded-lg text-sm transition-all hover:shadow-md">
+                            <div class="flex justify-between items-center mb-4">
+                                <div>
+                                    <span class="block text-slate-500 dark:text-slate-400 text-xs mb-1 uppercase tracking-wide">CUIT Vinculado</span>
+                                    <strong class="text-slate-800 dark:text-slate-200 text-lg font-mono">{{ afipForm.get('cuit')?.value }}</strong>
+                                </div>
+                                <div class="text-right">
+                                    <span class="block text-slate-500 dark:text-slate-400 text-xs mb-1 uppercase tracking-wide">Pto. Venta</span>
+                                    <strong class="text-slate-800 dark:text-slate-200 text-lg">{{ afipForm.get('puntoVenta')?.value }}</strong>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button pButton label="Configuración" icon="pi pi-cog" class="p-button-outlined p-button-secondary p-button-sm flex-1" (click)="editAfipMode.set(true)"></button>
+                                <button pButton icon="pi pi-trash" class="p-button-outlined p-button-danger p-button-sm" (click)="unlinkAfip()" pTooltip="Eliminar"></button>
+                            </div>
+                        </div>
+
+                        <!-- Edit/Setup Form Mode -->
+                        <div *ngIf="editAfipMode()" class="mt-4 p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl animate-fade-in-up shadow-inner">
+                            <form [formGroup]="afipForm" (ngSubmit)="saveAfip()" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">CUIT *</label>
+                                    <input pInputText formControlName="cuit" class="w-full text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" placeholder="20123456789" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Condición IVA</label>
+                                    <select formControlName="condicionIva" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-white focus:ring-purple-500 max-w-full">
+                                        <option value="Resp. Monotributo">Responsable Monotributo</option>
+                                        <option value="Resp. Inscripto">Responsable Inscripto</option>
+                                        <option value="Exento">Exento</option>
+                                        <option value="Consumidor Final">Consumidor Final</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Punto de Venta Web Service *</label>
+                                    <input type="number" pInputText formControlName="puntoVenta" class="w-full text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" placeholder="1" />
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">IIBB</label>
+                                        <input pInputText formControlName="iibb" class="w-full text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Inicio de Act.</label>
+                                        <input type="date" pInputText formControlName="initActivityUser" class="w-full text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" />
+                                    </div>
+                                </div>
+
+                                <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg flex items-start gap-3 border border-blue-100 dark:border-blue-800/50 mt-2">
+                                    <i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
+                                    <p class="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
+                                        Para que el sistema emita facturas en tu nombre, recordá ingresar a la web de AFIP y buscar la opción <strong>"Delegar" el servicio de facturación WebService</strong> al CUIT administrador de la plataforma.
+                                    </p>
+                                </div>
+
+                                <div class="flex gap-2 justify-end pt-3 border-t border-slate-200 dark:border-slate-700 mt-4">
+                                    <button *ngIf="isAfipLinked()" type="button" pButton label="Cancelar" class="p-button-text p-button-sm flex-1" (click)="editAfipMode.set(false)"></button>
+                                    <button type="submit" pButton [label]="isAfipLinked() ? 'Actualizar AFIP' : 'Vincular AFIP'" icon="pi pi-check" class="p-button-primary p-button-sm flex-1 font-bold" [loading]="savingAfip()"></button>
+                                </div>
+                            </form>
                         </div>
                     </div>
 

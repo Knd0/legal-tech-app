@@ -28,11 +28,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
 
   profileForm: FormGroup;
+  afipForm: FormGroup;
   securityForm: FormGroup;
 
   saving = signal<boolean>(false);
+  savingAfip = signal<boolean>(false);
   
   // Integrations State
+  isAfipLinked = signal<boolean>(false);
+  editAfipMode = signal<boolean>(false);
   qrCodeUrl: string | null = null;
   private qrPollInterval: any;
   
@@ -54,8 +58,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
       fullName: ['', Validators.required],
       email: [{ value: '', disabled: true }],
       phoneNumber: [''],
+      address: ['', Validators.required]
+    });
+
+    this.afipForm = this.fb.group({
       cuit: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],
-      address: ['', Validators.required],
       iibb: [''],
       initActivityUser: [''],
       puntoVenta: [null, Validators.required],
@@ -93,13 +100,23 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     fullName: user.fullName,
                     email: user.email,
                     phoneNumber: user.phoneNumber,
+                    address: user.address
+                });
+
+                this.afipForm.patchValue({
                     cuit: user.cuit,
-                    address: user.address,
                     iibb: user.iibb,
                     initActivityUser: dateStr,
                     puntoVenta: user.puntoVenta,
                     condicionIva: user.condicionIva || 'Resp. Monotributo'
                 });
+
+                if (user.cuit && user.puntoVenta) {
+                    this.isAfipLinked.set(true);
+                } else {
+                    this.isAfipLinked.set(false);
+                    this.editAfipMode.set(true); // Open edit mode by default if not linked
+                }
             }
         },
         error: (err: any) => console.error('Error loading profile', err)
@@ -117,12 +134,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const payload = {
         fullName: data.fullName,
         phoneNumber: data.phoneNumber,
-        cuit: data.cuit,
-        address: data.address,
-        iibb: data.iibb,
-        initActivityUser: data.initActivityUser,
-        puntoVenta: data.puntoVenta,
-        condicionIva: data.condicionIva
+        address: data.address
     };
 
     this.http.patch(this.apiUrl, payload).subscribe({
@@ -144,6 +156,77 @@ export class ProfileComponent implements OnInit, OnDestroy {
             Swal.fire('Error', 'No se pudieron guardar los cambios', 'error');
         }
     });
+  }
+
+  saveAfip() {
+      if (this.afipForm.invalid) {
+          this.afipForm.markAllAsTouched();
+          return;
+      }
+
+      this.savingAfip.set(true);
+      const data = this.afipForm.getRawValue();
+      const payload = {
+          cuit: data.cuit,
+          iibb: data.iibb,
+          initActivityUser: data.initActivityUser,
+          puntoVenta: data.puntoVenta,
+          condicionIva: data.condicionIva
+      };
+
+      this.http.patch(this.apiUrl, payload).subscribe({
+          next: () => {
+              this.savingAfip.set(false);
+              this.isAfipLinked.set(true);
+              this.editAfipMode.set(false);
+              Swal.fire({
+                  icon: 'success',
+                  title: 'AFIP Vinculado',
+                  text: 'Tus datos fiscales se han guardado correctamente.',
+                  timer: 2000,
+                  showConfirmButton: false
+              });
+              const currentUser = this.authService.currentUser();
+              this.authService.currentUser.set({ ...currentUser, ...payload });
+          },
+          error: (err: any) => {
+              this.savingAfip.set(false);
+              console.error('Error updating AFIP', err);
+              Swal.fire('Error', 'No se pudieron guardar los datos fiscales', 'error');
+          }
+      });
+  }
+  
+  unlinkAfip() {
+      Swal.fire({
+          title: 'Desvincular AFIP',
+          text: '¿Estás seguro? No podrás emitir facturas si eliminas esta configuración.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, desvincular'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              const payload = {
+                  cuit: null,
+                  iibb: null,
+                  initActivityUser: null,
+                  puntoVenta: null,
+                  condicionIva: null
+              };
+              
+              this.http.patch(this.apiUrl, payload).subscribe({
+                  next: () => {
+                      this.afipForm.reset({ condicionIva: 'Resp. Monotributo' });
+                      this.isAfipLinked.set(false);
+                      this.editAfipMode.set(true);
+                      Swal.fire('Desvinculado', 'Se han eliminado tus datos fiscales.', 'success');
+                      const currentUser = this.authService.currentUser();
+                      this.authService.currentUser.set({ ...currentUser, ...payload });
+                  },
+                  error: () => Swal.fire('Error', 'No se pudo desvincular AFIP.', 'error')
+              });
+          }
+      });
   }
 
   // --- INTEGRATIONS ---

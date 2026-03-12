@@ -1,15 +1,46 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
-export class UsersService {
+export class UsersService implements OnModuleInit {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
   ) {}
+
+  async onModuleInit() {
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (adminPassword) {
+      // Check if admin already exists
+      const existingAdmin = await this.findOneByEmail('admin@lexsaas.com');
+      if (!existingAdmin) {
+        const salt = await bcrypt.genSalt();
+        const passwordHash = await bcrypt.hash(adminPassword, salt);
+        const adminUser = this.usersRepository.create({
+          fullName: 'Super Admin',
+          email: 'admin@lexsaas.com',
+          passwordHash,
+          role: 'ADMIN',
+          isActive: true,
+          subscriptionStatus: 'active'
+        } as any);
+        await this.usersRepository.save(adminUser);
+        console.log('Seeded default Super Admin account (admin@lexsaas.com).');
+      } else {
+        // Option: we could also force update the password here, but usually seeder only creates it
+        // If we want to strictly allow overriding the password via env, we can uncomment below:
+        /*
+        const salt = await bcrypt.genSalt();
+        existingAdmin.passwordHash = await bcrypt.hash(adminPassword, salt);
+        await this.usersRepository.save(existingAdmin);
+        console.log('Updated Super Admin password from env.');
+        */
+      }
+    }
+  }
 
   async findOneByEmail(email: string): Promise<User | undefined> {
     return this.usersRepository.findOne({ where: { email } });

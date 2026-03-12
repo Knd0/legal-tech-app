@@ -13,7 +13,7 @@ export class MercadopagoController {
     try {
       const user = req.user; // from JWT
       // Provide a link for the user to subscribe
-      const result = await this.mpService.createSubscriptionForUser(user.userId, user.email);
+      const result = await this.mpService.createSubscriptionForUser(user.userId, user.username);
       return res.status(200).json({ preapprovalLink: result.init_point });
     } catch (error) {
       return res.status(500).json({ message: error.message });

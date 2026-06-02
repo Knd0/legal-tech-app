@@ -99,14 +99,7 @@ Frontend: `environment.ts` → `http://localhost:3000`; `environment.prod.ts` �
 
 ## Known Bugs
 
-Confirmed bugs from codebase audit. Fix before adding features in the affected areas.
-
-| Bug | Location | Description |
-|---|---|---|
-| Dashboard muestra deadlines de todos los usuarios | `backend/src/dashboard/dashboard.service.ts:35` | Falta filtrar por `userId` en la query de vencimientos |
-| Campo `urgency` no existe en el modelo Vencimiento | `legal-tech-app/.../modules/calendario/calendario-view.component.ts` | Los métodos `getUrgencyClass/Border/Dot` referencian un campo inexistente; usar `tipo` y `esPerentorio` |
-| Kanban drag-drop no persiste | `legal-tech-app/.../modules/expedientes/kanban-board/` | El reorder usa signals directamente (read-only views); necesita array local mutable + llamada al servicio |
-| `DocumentsListComponent` vacío | `legal-tech-app/.../shared/components/documents-list/` | Componente importado en detalle de clientes y expedientes pero sin template ni lógica |
+No hay bugs confirmados pendientes.
 
 ---
 

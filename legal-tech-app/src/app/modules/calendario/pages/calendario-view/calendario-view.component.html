@@ -193,9 +193,9 @@
                     <div class="flex-1 flex flex-col gap-1.5 overflow-y-auto max-h-[100px] custom-scrollbar pr-1">
                         <div *ngFor="let v of day.deadlines" (click)="editDeadline(v); $event.stopPropagation()"
                             class="flex items-center gap-2 pl-2 pr-2 py-1.5 rounded border-l-[3px] cursor-pointer border-slate-100 dark:border-slate-600 shadow-sm hover:shadow transition-all bg-white dark:bg-slate-700 hover:-translate-y-0.5 group/card"
-                            [ngClass]="getUrgencyBorder(v.urgencia)">
+                            [ngClass]="getUrgencyBorder(v)">
 
-                            <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" [ngClass]="getUrgencyDot(v.urgencia)">
+                            <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" [ngClass]="getUrgencyDot(v)">
                             </div>
                             <span
                                 class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate leading-tight group-hover/card:text-blue-900 dark:group-hover/card:text-blue-300">{{

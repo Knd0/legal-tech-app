@@ -157,26 +157,33 @@ export class CalendarioViewComponent {
       return this.currentMonth().toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
   }
 
-  getUrgencyClass(urgency: string | undefined): string {
-      switch (urgency) {
+  private urgencyLevel(v: Vencimiento): 'URGENTE' | 'ALTA' | 'MEDIA' | 'BAJA' {
+      if (v.esPerentorio) return 'URGENTE';
+      if (v.tipo === 'AUDIENCIA') return 'ALTA';
+      if (v.tipo === 'VENCIMIENTO_PLAZO') return 'MEDIA';
+      return 'BAJA';
+  }
+
+  getUrgencyClass(v: Vencimiento): string {
+      switch (this.urgencyLevel(v)) {
           case 'URGENTE': return 'bg-red-100 text-red-700 border-red-200';
           case 'ALTA': return 'bg-orange-100 text-orange-700 border-orange-200';
           case 'MEDIA': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-          default: return 'bg-blue-50 text-blue-700 border-blue-200'; // ORDINARIO / BAJA
+          default: return 'bg-blue-50 text-blue-700 border-blue-200';
       }
   }
 
-  getUrgencyBorder(urgency: string | undefined): string {
-      switch (urgency) {
+  getUrgencyBorder(v: Vencimiento): string {
+      switch (this.urgencyLevel(v)) {
           case 'URGENTE': return 'border-red-200 hover:border-red-300 bg-red-50';
           case 'ALTA': return 'border-orange-200 hover:border-orange-300 bg-orange-50';
           case 'MEDIA': return 'border-yellow-200 hover:border-yellow-300 bg-yellow-50';
-          default: return 'border-slate-200 hover:border-slate-300 bg-white'; 
+          default: return 'border-slate-200 hover:border-slate-300 bg-white';
       }
   }
 
-  getUrgencyDot(urgency: string | undefined): string {
-      switch (urgency) {
+  getUrgencyDot(v: Vencimiento): string {
+      switch (this.urgencyLevel(v)) {
           case 'URGENTE': return 'bg-red-500';
           case 'ALTA': return 'bg-orange-500';
           case 'MEDIA': return 'bg-yellow-500';

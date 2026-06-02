@@ -30,11 +30,11 @@ export class DashboardService {
     const today = new Date();
     today.setHours(0,0,0,0);
     
-    const deadlinesCount = await this.deadlineRepo.count({ 
-        where: { 
-            // userId, // Temporarily commented to match DeadlinesService which returns all
+    const deadlinesCount = await this.deadlineRepo.count({
+        where: {
+            userId,
             estado: 'PENDIENTE',
-        } 
+        }
     });
 
     const financialData = await this.getFinancialHistory(userId);

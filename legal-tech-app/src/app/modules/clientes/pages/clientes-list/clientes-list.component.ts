@@ -47,6 +47,21 @@ export class ClientesListComponent {
     }
   }
 
+  async deleteCliente(cliente: Cliente) {
+    const result = await Swal.fire({
+      title: `¿Eliminar a ${cliente.nombre} ${cliente.apellido}?`,
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (result.isConfirmed) {
+      this.clientService.deleteClient(cliente.id);
+    }
+  }
+
   exportList() {
     this.excelService.exportAsExcelFile(this.clientes(), 'clientes_lista'); // Unwrap signal
   }

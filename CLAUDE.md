@@ -119,13 +119,13 @@ Estos endpoints no tienen autenticación. Al tocar estos módulos, agregar `@Use
 | Área | Estado | Próximo paso |
 |---|---|---|
 | Auth (BE+FE) | 85% | Sin forgot-password flow completo |
-| Clientes | 80% | Sin confirm en delete, mismatch `createdAt` vs `fechaAlta` |
+| Clientes | 85% | Sin paginación server-side |
 | Expedientes | 75% | Kanban roto, sin dropdown de juzgado/fuero |
 | Calendario | 70% | Bug urgency, notificaciones solo simuladas |
 | Profile | 70% | QR polling no para, `cdr.detectChanges()` manual |
 | **Subscription UI** | **40%** | **Gap mayor**: no muestra plan activo, no permite cancelar, sin historial |
 | Dashboard | 80% | Barras CSS manuales en lugar de chart library |
-| Admin/Users | 75% | Sin search, usa `confirm()` nativo en lugar de SweetAlert2 |
+| Admin/Users | 80% | Sin search/filtro de usuarios |
 | Documents UI | 20% | `DocumentsListComponent` vacío, sin upload form en detail pages |
 | Calendar (BE) | 10% | Módulo vacío, Google Calendar removido |
 

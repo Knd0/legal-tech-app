@@ -27,7 +27,7 @@
             <div cdkDropList [id]="col.id" [cdkDropListData]="col.items" (cdkDropListDropped)="drop($event)"
                 class="flex-1 overflow-y-auto p-3 space-y-3 min-h-[100px]">
                 <!-- Card -->
-                <div *ngFor="let item of col.items" cdkDrag [cdkDragData]="item" (cdkDragStarted)="onDragStarted()"
+                <div *ngFor="let item of col.items; trackBy: trackByExpedienteId" cdkDrag [cdkDragData]="item" (cdkDragStarted)="onDragStarted()"
                     class="bg-white p-4 rounded-md shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow group relative">
                     <!-- Drag Handle / Placeholder -->
                     <div class="custom-placeholder" *cdkDragPlaceholder></div>

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -25,7 +25,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   http = inject(HttpClient);
   authService = inject(AuthService);
   notificationService = inject(NotificationService);
-  cdr = inject(ChangeDetectorRef);
+
 
 
   profileForm: FormGroup;
@@ -38,7 +38,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   // Integrations State
   isAfipLinked = signal<boolean>(false);
   editAfipMode = signal<boolean>(false);
-  qrCodeUrl: string | null = null;
+  qrCodeUrl = signal<string | null>(null);
   private qrPollInterval: any;
   
   configDays: number = 3;
@@ -50,7 +50,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   showSecurityModal = false;
   otpSent = false;
   
-  whatsappError: string | null = null;
+  whatsappError = signal<string | null>(null);
 
   private apiUrl = `${environment.apiUrl}/users/profile`;
 
@@ -241,7 +241,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           showConfirmButton: false
       });
 
-      if (this.configWhatsapp && !this.qrCodeUrl && !this.qrPollInterval) {
+      if (this.configWhatsapp && !this.qrCodeUrl() && !this.qrPollInterval) {
           this.startQrPolling();
       }
   }
@@ -271,7 +271,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
               this.notificationService.logoutWhatsapp().subscribe({
                   next: () => {
                       Swal.fire('Desconectado', 'Sesión cerrada.', 'success');
-                      this.qrCodeUrl = null;
+                      this.qrCodeUrl.set(null);
                       this.configWhatsappNumber = '';
                       // Update settings to clear the number
                       this.notificationService.updateAlertSettings(this.configDays, this.configHours, this.configWhatsapp, '');
@@ -285,16 +285,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   loadingQr = signal<boolean>(false);
-  pairingCode: string | null = null;
+  pairingCode = signal<string | null>(null);
   loadingPairingCode = signal<boolean>(false);
 
   restartWhatsapp() {
       this.loadingQr.set(true);
       this.notificationService.restartWhatsapp().subscribe({
           next: () => {
-              this.qrCodeUrl = null;
-              this.pairingCode = null;
-              this.whatsappError = null;
+              this.qrCodeUrl.set(null);
+              this.pairingCode.set(null);
+              this.whatsappError.set(null);
               this.startQrPolling();
               setTimeout(() => this.loadingQr.set(false), 3000); 
           },
@@ -317,10 +317,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
           next: (res) => {
               this.loadingPairingCode.set(false);
               if (res.success && res.code) {
-                  this.pairingCode = res.code;
-                  this.qrCodeUrl = null; // Hide QR if showing code
-                  this.stopQrPolling(); // Stop polling while showing code? Or keep polling to detect connection? 
-                  // Better keep polling but maybe slower
+                  this.pairingCode.set(res.code);
+                  this.qrCodeUrl.set(null);
                   this.startQrPolling(5000);
               }
           },
@@ -334,23 +332,30 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   startQrPolling(intervalMs = 3000) {
       this.stopQrPolling();
-      let errorCount = 0;
-      
+      let consecutiveErrors = 0;
+      // Límite de ~2 minutos: 40 polls a 3s, 24 a 5s, 12 a 10s
+      const maxPolls = Math.ceil(120_000 / intervalMs);
+      let pollCount = 0;
+
       this.qrPollInterval = setInterval(() => {
+          if (++pollCount > maxPolls) {
+              this.stopQrPolling();
+              this.whatsappError.set('Tiempo de espera agotado. Intentá de nuevo.');
+              return;
+          }
+
           this.notificationService.getWhatsappStatus().subscribe({
             next: (status: any) => {
-              errorCount = 0; // Reset error count on success
-              
+              consecutiveErrors = 0;
+
               if (status.qr) {
-                  this.qrCodeUrl = status.qr;
-                  // If we have a QR, we probably don't have a pairing code active anymore, or maybe we do.
-                  // Let's not clear pairingCode automatically unless it conflicts.
-                  this.cdr.detectChanges(); 
+                  this.qrCodeUrl.set(status.qr);
               } else if (status.ready) {
-                  this.qrCodeUrl = null;
-                  this.pairingCode = null;
+                  this.qrCodeUrl.set(null);
+                  this.pairingCode.set(null);
+                  this.whatsappError.set(null);
                   this.stopQrPolling();
-                  
+
                   if (status.number && !this.configWhatsappNumber) {
                       this.configWhatsappNumber = status.number;
                   }
@@ -363,20 +368,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     showConfirmButton: false
                   });
               } else if (status.error) {
-                  // status.error indicates backend caught an error (e.g. auth failure)
-                  // We can display it but keep polling?
+                  this.whatsappError.set(status.error);
+                  this.stopQrPolling();
               }
             },
             error: (err: any) => {
-                console.warn('Polling error:', err);
-                errorCount++;
-                if (err.status === 504 || err.status === 500) {
-                    // Server overloaded or down. Back off.
-                    if (errorCount > 2) {
-                        console.warn('High error rate, slowing down polling...');
-                        this.stopQrPolling();
-                        this.startQrPolling(10000); // Slow down to 10s
-                    }
+                consecutiveErrors++;
+                console.warn(`Polling error (${consecutiveErrors}):`, err);
+
+                if (consecutiveErrors >= 5) {
+                    this.stopQrPolling();
+                    this.whatsappError.set('No se pudo conectar con el servidor. Intentá de nuevo.');
+                } else if (consecutiveErrors >= 3 && intervalMs < 10_000) {
+                    // Back off a 10s tras 3 errores seguidos
+                    this.startQrPolling(10_000);
                 }
             }
           });

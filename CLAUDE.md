@@ -105,12 +105,14 @@ No hay bugs confirmados pendientes.
 
 ## Security Gaps
 
-Estos endpoints no tienen autenticación. Al tocar estos módulos, agregar `@UseGuards(JwtAuthGuard)` y extraer `userId` de `@Request() req`.
+Todos los gaps conocidos han sido corregidos:
 
-- `backend/src/deadlines/deadlines.controller.ts` — todos los endpoints públicos
-- `backend/src/documents/documents.controller.ts` — upload, list, download, delete sin auth
-- `backend/src/whatsapp/whatsapp.controller.ts` — send, status, logout, restart sin auth
-- `backend/src/mercadopago/mercadopago.controller.ts` — webhook sin verificación de firma MP
+- ~~`deadlines.controller.ts`~~ — **ARREGLADO**: `@UseGuards(JwtAuthGuard)` + filtro por `userId` en service
+- ~~`documents.controller.ts`~~ — **ARREGLADO**: guard + `userId` en entidad `Documento` + filtro en service
+- ~~`whatsapp.controller.ts`~~ — **ARREGLADO**: `@UseGuards(JwtAuthGuard)` en todos los endpoints
+- ~~`mercadopago.controller.ts` webhook~~ — **ARREGLADO**: verificación HMAC-SHA256 con `MP_WEBHOOK_SECRET` env var (si no está configurada, loguea warning y permite — degradación grácil)
+
+**Pendiente**: Agregar `MP_WEBHOOK_SECRET` en las env vars de Render (Environment → Add Variable). El valor se obtiene en mercadopago.com.ar → Tu negocio → Configuración → Notificaciones → Webhooks → Clave secreta del webhook apuntando a `https://legal-tech-app-gdme.onrender.com/mercadopago/webhook`. Sin esta variable, el webhook acepta todas las requests sin verificar firma (loguea warning pero no rompe).
 
 ---
 
@@ -120,14 +122,23 @@ Estos endpoints no tienen autenticación. Al tocar estos módulos, agregar `@Use
 |---|---|---|
 | Auth (BE+FE) | 85% | Sin forgot-password flow completo |
 | Clientes | 85% | Sin paginación server-side |
-| Expedientes | 75% | Kanban roto, sin dropdown de juzgado/fuero |
+| Expedientes | 80% | Sin dropdown de juzgado/fuero |
 | Calendario | 70% | Bug urgency, notificaciones solo simuladas |
-| Profile | 70% | QR polling no para, `cdr.detectChanges()` manual |
+| Profile | 85% | — |
 | **Subscription UI** | **40%** | **Gap mayor**: no muestra plan activo, no permite cancelar, sin historial |
 | Dashboard | 80% | Barras CSS manuales en lugar de chart library |
 | Admin/Users | 80% | Sin search/filtro de usuarios |
 | Documents UI | 20% | `DocumentsListComponent` vacío, sin upload form en detail pages |
 | Calendar (BE) | 10% | Módulo vacío, Google Calendar removido |
+
+---
+
+## Regla de mantenimiento
+
+**Actualizar este archivo después de cada fix.** Cuando se resuelve un bug o se completa una mejora:
+- Borrar o tachar el ítem de Known Bugs / Security Gaps
+- Actualizar el porcentaje y próximo paso en Module Completeness
+- Nunca dejar referencias a problemas ya resueltos sin aclarar su estado
 
 ---
 

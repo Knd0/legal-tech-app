@@ -72,7 +72,7 @@
                         </div>
                     </td>
                     <td class="py-3 px-6 text-slate-500 dark:text-slate-400 text-sm">
-                        {{ cliente.createdAt | date:'dd/MM/yyyy' }}
+                        {{ cliente.fechaAlta | date:'dd/MM/yyyy' }}
                     </td>
                     <td class="py-3 px-6 text-right" (click)="$event.stopPropagation()">
                         <button pButton icon="pi pi-whatsapp"
@@ -83,7 +83,7 @@
                             [routerLink]="['edit', cliente.id]"></button>
                         <button pButton icon="pi pi-trash"
                             class="p-button-rounded p-button-text p-button-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            (click)="clientService.deleteClient(cliente.id)"></button>
+                            (click)="deleteCliente(cliente)"></button>
                     </td>
                 </tr>
             </ng-template>

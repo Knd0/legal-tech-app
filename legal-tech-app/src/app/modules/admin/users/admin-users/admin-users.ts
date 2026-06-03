@@ -8,6 +8,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { UsersService, User } from '../../../../core/services/users';
 import { UserForm } from '../user-form/user-form';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-admin-users',
@@ -61,15 +62,25 @@ export class AdminUsers implements OnInit {
   }
 
   deleteUser(user: User) {
-    if (confirm(`¿Estás seguro de eliminar a ${user.fullName}? esta acción no se puede deshacer.`)) {
+    Swal.fire({
+      title: `¿Eliminar a ${user.fullName}?`,
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then(result => {
+      if (result.isConfirmed) {
         this.usersService.deleteUser(user.id).subscribe({
-            next: () => {
-                this.messageService.add({severity:'success', summary:'Eliminado', detail:'Usuario eliminado permanentemente'});
-                this.loadUsers();
-            },
-            error: () => this.messageService.add({severity:'error', summary:'Error', detail:'No se pudo eliminar el usuario'})
+          next: () => {
+            this.messageService.add({severity:'success', summary:'Eliminado', detail:'Usuario eliminado permanentemente'});
+            this.loadUsers();
+          },
+          error: () => this.messageService.add({severity:'error', summary:'Error', detail:'No se pudo eliminar el usuario'})
         });
-    }
+      }
+    });
   }
 
   onUserCreated() {

@@ -19,15 +19,15 @@
                 class="p-3 border-b border-slate-200 bg-white rounded-t-lg flex justify-between items-center sticky top-0 z-10">
                 <h3 class="font-semibold text-slate-700">{{ col.title }}</h3>
                 <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                    {{ col.items().length }}
+                    {{ col.items.length }}
                 </span>
             </div>
 
             <!-- Drop List -->
-            <div cdkDropList [id]="col.id" [cdkDropListData]="col.items()" (cdkDropListDropped)="drop($event)"
+            <div cdkDropList [id]="col.id" [cdkDropListData]="col.items" (cdkDropListDropped)="drop($event)"
                 class="flex-1 overflow-y-auto p-3 space-y-3 min-h-[100px]">
                 <!-- Card -->
-                <div *ngFor="let item of col.items()" cdkDrag [cdkDragData]="item"
+                <div *ngFor="let item of col.items" cdkDrag [cdkDragData]="item" (cdkDragStarted)="onDragStarted()"
                     class="bg-white p-4 rounded-md shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow group relative">
                     <!-- Drag Handle / Placeholder -->
                     <div class="custom-placeholder" *cdkDragPlaceholder></div>

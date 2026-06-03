@@ -26,6 +26,9 @@ export class Documento {
   createdAt: Date;
 
   @Column({ nullable: true })
+  userId: string;
+
+  @Column({ nullable: true })
   clientId: string;
 
   @ManyToOne(() => Client, { onDelete: 'CASCADE', nullable: true })

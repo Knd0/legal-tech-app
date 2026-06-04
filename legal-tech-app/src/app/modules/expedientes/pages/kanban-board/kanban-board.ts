@@ -30,8 +30,9 @@ export class KanbanBoard implements OnInit {
     });
   }
 
-  // Fix 2: service ya llama loadExpedientes() en su constructor, no llamar de nuevo
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.expedienteService.loadExpedientes();
+  }
 
   distributeExpedientes(expedientes: Expediente[]) {
     this.columns.forEach(col => {
@@ -40,42 +41,27 @@ export class KanbanBoard implements OnInit {
   }
 
   drop(event: CdkDragDrop<Expediente[]>) {
+    this.isDragging = false;
+
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
-      this.isDragging = false;
-      return;
+    } else {
+      const item = event.previousContainer.data[event.previousIndex];
+      const newStatus = event.container.id as Expediente['estado'];
+
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex,
+      );
+
+      item.estado = newStatus;
+      this.expedienteService.updateExpediente(item.id, { estado: newStatus });
     }
-
-    // Fix 3: identificar columna destino por referencia al array, no por event.container.id
-    // (event.container.id puede retornar el ID interno de CDK en vez del estado)
-    const targetColumn = this.columns.find(c => c.items === event.container.data);
-    if (!targetColumn) {
-      this.isDragging = false;
-      return;
-    }
-
-    const item = event.previousContainer.data[event.previousIndex];
-    const newStatus = targetColumn.id as Expediente['estado'];
-
-    transferArrayItem(
-      event.previousContainer.data,
-      event.container.data,
-      event.previousIndex,
-      event.currentIndex,
-    );
-
-    // Fix 1: isDragging = false DESPUÉS del transferArrayItem pero ANTES de updateExpediente,
-    // así el effect que se dispara cuando responde el HTTP ve el estado ya correcto
-    item.estado = newStatus;
-    this.isDragging = false;
-    this.expedienteService.updateExpediente(item.id, { estado: newStatus });
   }
 
   onDragStarted() {
     this.isDragging = true;
-  }
-
-  trackByExpedienteId(_: number, item: Expediente): string {
-    return item.id;
   }
 }

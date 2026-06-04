@@ -127,16 +127,16 @@ Todos los gaps conocidos han sido corregidos:
 
 | Área                | Estado  | Próximo paso                                                              |
 | ------------------- | ------- | ------------------------------------------------------------------------- |
-| Auth (BE+FE)        | 85%     | Sin forgot-password flow completo                                         |
+| Auth (BE+FE)        | 95%     | Forgot-password falla si el bot de WhatsApp está caído; sin fallback a email |
 | Clientes            | 85%     | Sin paginación server-side                                                |
-| Expedientes         | 80%     | Sin dropdown de juzgado/fuero                                             |
-| Calendario          | 70%     | Bug urgency, notificaciones solo simuladas                                |
-| Profile             | 85%     | —                                                                         |
-| **Subscription UI** | **40%** | **Gap mayor**: no muestra plan activo, no permite cancelar, sin historial |
-| Dashboard           | 80%     | Barras CSS manuales en lugar de chart library                             |
-| Admin/Users         | 80%     | Sin search/filtro de usuarios                                             |
-| Documents UI        | 20%     | `DocumentsListComponent` vacío, sin upload form en detail pages           |
-| Calendar (BE)       | 10%     | Módulo vacío, Google Calendar removido                                    |
+| Expedientes         | 90%     | Sin filtro/búsqueda en la lista; juzgado sin dropdown (texto libre intencional) |
+| Calendario          | 90%     | Sin vinculación de vencimiento a expediente desde el formulario del calendario |
+| Profile             | 95%     | QR polling usa `setInterval` fuera de NgZone — si falla el bot, el intervalo no se autodestruye ante error 401 |
+| Subscription UI     | 80%     | Sin historial de pagos; sin manejo del estado `paused` desde MercadoPago  |
+| Dashboard           | 95%     | Gráfico no tiene modo oscuro (colores hardcodeados)                       |
+| Admin/Users         | 92%     | Sin paginación server-side; sin exportar usuarios a CSV                   |
+| Documents UI        | 78%     | Sin preview de archivos (PDF/imagen); archivos en disco efímero en Render — necesita S3 |
+| Calendar (BE)       | 10%     | Módulo vacío; definir si reemplazar Google Calendar con eventos propios o eliminar |
 
 ---
 
@@ -164,3 +164,9 @@ Todos los gaps conocidos han sido corregidos:
   - CORS: origins hardcodeados en `backend/src/main.ts`
 - **Tests**: Solo `core/services/plazos.service.spec.ts` tiene tests reales. El resto son scaffolds vacíos. No confiar en el test suite para verificar comportamiento.
 - **OpenAI SDK**: Instalado en el backend pero no implementado. `core/services/ai.service.ts` en frontend es un stub que llama a `/ai/analyze`.
+- **whatsapp-auth/ no está en .gitignore**: `backend/whatsapp-auth/` contiene sesión de Chromium que cambia sola. Antes de commitear, hacer `git restore --staged backend/whatsapp-auth/`. Pendiente: agregar al `.gitignore`.
+- **OTP con crypto.randomInt**: Los OTPs usan `import { randomInt } from 'crypto'` (no `Math.random()`). Límite de 5 intentos fallidos antes de invalidar — aplica a ambos flujos (autenticado y forgot-password).
+- **Documents service usa userId**: `findAll`, `findOne`, `remove`, `create` reciben `userId` para ownership. El controller extrae `req.user.userId` del JWT.
+- **Kanban: detectar columna por referencia**: `this.columns.find(c => c.items === event.container.data)` es más robusto que `event.container.id` (CDK puede devolver ID interno).
+- **chart.js instalado**: `legal-tech-app` tiene `chart.js ^4.5.1` + `ChartModule` de PrimeNG para el dashboard.
+- **Auth endpoints públicos**: `/auth/forgot-password` y `/auth/reset-password` no requieren JWT. OTPs keyed por `forgot_<email>` para no colisionar con los del perfil.

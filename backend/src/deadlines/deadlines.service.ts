@@ -13,24 +13,32 @@ export class DeadlinesService {
     private calendarService: CalendarService
   ) {}
 
-  findAll(userId: string): Promise<Deadline[]> {
-    return this.deadlinesRepository.find({ where: { userId }, relations: ['expediente'] });
+  findAll(): Promise<Deadline[]> {
+    return this.deadlinesRepository.find({ relations: ['expediente'] });
   }
 
-  findOne(id: string, userId: string): Promise<Deadline | null> {
-    return this.deadlinesRepository.findOne({ where: { id, userId }, relations: ['expediente'] });
+  findOne(id: string): Promise<Deadline | null> {
+    return this.deadlinesRepository.findOne({ where: { id }, relations: ['expediente'] });
   }
 
-  async create(deadline: Partial<Deadline>, userId: string): Promise<Deadline> {
-    const newDeadline = this.deadlinesRepository.create({ ...deadline, userId });
-    return this.deadlinesRepository.save(newDeadline);
+  async create(deadline: Partial<Deadline>): Promise<Deadline> {
+    const newDeadline = this.deadlinesRepository.create(deadline);
+    const savedDeadline = await this.deadlinesRepository.save(newDeadline);
+
+    if (savedDeadline.userId && savedDeadline.fechaVencimiento) {
+        // Calendar Sync removed
+        // this.calendarService.createEvent(savedDeadline.userId, eventData).catch(err => console.error('Calendar Sync Error', err));
+    }
+
+    return savedDeadline;
   }
 
-  async update(id: string, deadline: Partial<Deadline>, userId: string): Promise<void> {
-    await this.deadlinesRepository.update({ id, userId }, deadline);
+  async update(id: string, deadline: Partial<Deadline>): Promise<void> {
+    await this.deadlinesRepository.update(id, deadline);
+    // TODO: Implement update logic for Google Calendar if needed (requires storing Google Event ID)
   }
 
-  async remove(id: string, userId: string): Promise<void> {
-    await this.deadlinesRepository.delete({ id, userId });
+  async remove(id: string): Promise<void> {
+    await this.deadlinesRepository.delete(id);
   }
 }

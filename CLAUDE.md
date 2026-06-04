@@ -16,6 +16,7 @@ legal-tech-app/   # Angular 21 frontend (port 4200)
 ## Commands
 
 ### Backend (from `backend/`)
+
 ```bash
 npm run start:dev     # Dev server with hot reload
 npm run build         # Compile TypeScript via tsc
@@ -25,6 +26,7 @@ npm run test:e2e      # End-to-end tests
 ```
 
 ### Frontend (from `legal-tech-app/`)
+
 ```bash
 npm start             # ng serve (dev)
 npm run build         # Production build
@@ -32,11 +34,13 @@ npm test              # Vitest tests
 ```
 
 ### Run a single backend test
+
 ```bash
 cd backend && npx jest src/path/to/file.spec.ts
 ```
 
 ### Local database (Docker)
+
 ```bash
 cd backend && docker-compose up -d
 ```
@@ -66,6 +70,7 @@ Backend deployed on Render: `https://legal-tech-app-gdme.onrender.com`
 ### Frontend (Angular 21)
 
 State management uses **Angular Signals** — no NgRx. The `AuthService` (`core/services/auth.service.ts`) holds `currentUser` as a writable signal with computed signals:
+
 - `isSubscriptionExpired` — true if `subscriptionExpiresAt` is past
 - `isGracePeriod` — 7-day window after expiry; read allowed, creation blocked
 - `isCreationBlocked` — gates all create/edit actions in components
@@ -79,6 +84,7 @@ Frontend deployed on Vercel: `https://legal-tech-app-woad.vercel.app`
 ### Subscription Logic
 
 7-day grace period enforced in two places:
+
 1. `subscriptionGuard` (`core/guards/subscription.guard.ts`) — controls route access
 2. `authService.isCreationBlocked()` — component-level gate on create/edit actions
 
@@ -87,6 +93,7 @@ Frontend deployed on Vercel: `https://legal-tech-app-woad.vercel.app`
 ### Environment Variables
 
 Backend (`.env`):
+
 - `DATABASE_URL` or (`DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`)
 - `JWT_SECRET`
 - `MP_ACCESS_TOKEN` — MercadoPago
@@ -118,24 +125,25 @@ Todos los gaps conocidos han sido corregidos:
 
 ## Module Completeness
 
-| Área | Estado | Próximo paso |
-|---|---|---|
-| Auth (BE+FE) | 85% | Sin forgot-password flow completo |
-| Clientes | 85% | Sin paginación server-side |
-| Expedientes | 80% | Sin dropdown de juzgado/fuero |
-| Calendario | 70% | Bug urgency, notificaciones solo simuladas |
-| Profile | 85% | — |
+| Área                | Estado  | Próximo paso                                                              |
+| ------------------- | ------- | ------------------------------------------------------------------------- |
+| Auth (BE+FE)        | 85%     | Sin forgot-password flow completo                                         |
+| Clientes            | 85%     | Sin paginación server-side                                                |
+| Expedientes         | 80%     | Sin dropdown de juzgado/fuero                                             |
+| Calendario          | 70%     | Bug urgency, notificaciones solo simuladas                                |
+| Profile             | 85%     | —                                                                         |
 | **Subscription UI** | **40%** | **Gap mayor**: no muestra plan activo, no permite cancelar, sin historial |
-| Dashboard | 80% | Barras CSS manuales en lugar de chart library |
-| Admin/Users | 80% | Sin search/filtro de usuarios |
-| Documents UI | 20% | `DocumentsListComponent` vacío, sin upload form en detail pages |
-| Calendar (BE) | 10% | Módulo vacío, Google Calendar removido |
+| Dashboard           | 80%     | Barras CSS manuales en lugar de chart library                             |
+| Admin/Users         | 80%     | Sin search/filtro de usuarios                                             |
+| Documents UI        | 20%     | `DocumentsListComponent` vacío, sin upload form en detail pages           |
+| Calendar (BE)       | 10%     | Módulo vacío, Google Calendar removido                                    |
 
 ---
 
-## Regla de mantenimiento
+## Regla de mantenimiento.
 
 **Actualizar este archivo después de cada fix.** Cuando se resuelve un bug o se completa una mejora:
+
 - Borrar o tachar el ítem de Known Bugs / Security Gaps
 - Actualizar el porcentaje y próximo paso en Module Completeness
 - Nunca dejar referencias a problemas ya resueltos sin aclarar su estado

@@ -78,6 +78,36 @@ export class MercadopagoService {
       return result;
   }
 
+  async getSubscriptionStatus(userId: string) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
+    return {
+      status: user.subscriptionStatus,
+      expiresAt: user.subscriptionExpiresAt,
+      mpSubscriptionId: user.mpSubscriptionId,
+    };
+  }
+
+  async cancelSubscription(userId: string) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
+
+    if (user.mpSubscriptionId && this.client) {
+      try {
+        const preApproval = new PreApproval(this.client);
+        await preApproval.update({
+          id: user.mpSubscriptionId,
+          body: { status: 'cancelled' },
+        });
+      } catch (error) {
+        this.logger.error(`Error cancelling MP subscription: ${error}`);
+      }
+    }
+
+    await this.usersRepository.update(userId, { subscriptionStatus: 'cancelled' });
+    return { success: true };
+  }
+
   async handleWebhook(data: any): Promise<void> {
     this.logger.log(`Received Webhook: ${JSON.stringify(data)}`);
     

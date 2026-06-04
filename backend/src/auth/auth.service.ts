@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/co
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { randomInt } from 'crypto';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 
 @Injectable()
@@ -43,7 +44,49 @@ export class AuthService {
   }
 
   // OTP functionalities
-  private otps = new Map<string, { code: string, expires: number }>();
+  private otps = new Map<string, { code: string; expires: number; attempts: number }>();
+  private readonly MAX_OTP_ATTEMPTS = 5;
+
+  async requestForgotPasswordOtp(email: string): Promise<void> {
+    const user = await this.usersService.findOneByEmail(email);
+    if (!user || !user.phoneNumber) {
+      throw new UnauthorizedException('No se encontró una cuenta con ese email o no tiene teléfono vinculado.');
+    }
+    const code = randomInt(100000, 1000000).toString();
+    this.otps.set(`forgot_${email}`, { code, expires: Date.now() + 5 * 60 * 1000, attempts: 0 });
+    try {
+      await this.whatsappService.sendMessage(
+        user.phoneNumber,
+        `Tu código para restablecer la contraseña es: *${code}*. Expira en 5 minutos.`
+      );
+    } catch (error: any) {
+      this.otps.delete(`forgot_${email}`);
+      throw new UnauthorizedException('No se pudo enviar el código por WhatsApp.');
+    }
+  }
+
+  async resetPassword(email: string, otp: string, newPass: string): Promise<void> {
+    const key = `forgot_${email}`;
+    const stored = this.otps.get(key);
+    if (!stored) throw new UnauthorizedException('No hay un código activo. Solicitá uno nuevo.');
+    if (Date.now() > stored.expires) {
+      this.otps.delete(key);
+      throw new UnauthorizedException('El código expiró. Solicitá uno nuevo.');
+    }
+    if (stored.attempts >= this.MAX_OTP_ATTEMPTS) {
+      this.otps.delete(key);
+      throw new UnauthorizedException('Demasiados intentos fallidos. Solicitá un nuevo código.');
+    }
+    if (stored.code !== otp) {
+      stored.attempts++;
+      throw new UnauthorizedException(`Código incorrecto. Intentos restantes: ${this.MAX_OTP_ATTEMPTS - stored.attempts}`);
+    }
+    const user = await this.usersService.findOneByEmail(email);
+    if (!user) throw new UnauthorizedException('Usuario no encontrado.');
+    const passwordHash = await bcrypt.hash(newPass, 10);
+    await this.usersService.updatePassword(user.id, passwordHash);
+    this.otps.delete(key);
+  }
 
   async requestPasswordChangeOtp(userId: string): Promise<void> {
       const user = await this.usersService.findOneById(userId);
@@ -51,11 +94,8 @@ export class AuthService {
           throw new UnauthorizedException('User has no phone number linked');
       }
 
-      // Generate 6 digit OTP
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      
-      // Store OTP (Expires in 5 minutes)
-      this.otps.set(userId, { code, expires: Date.now() + 5 * 60 * 1000 });
+      const code = randomInt(100000, 1000000).toString();
+      this.otps.set(userId, { code, expires: Date.now() + 5 * 60 * 1000, attempts: 0 });
 
       // Send via WhatsApp
       try {
@@ -81,7 +121,12 @@ export class AuthService {
           throw new UnauthorizedException('OTP expired');
       }
 
+      if (storedOtp.attempts >= this.MAX_OTP_ATTEMPTS) {
+          this.otps.delete(userId);
+          throw new UnauthorizedException('Demasiados intentos fallidos. Solicitá un nuevo código.');
+      }
       if (storedOtp.code !== otp) {
+          storedOtp.attempts++;
           throw new UnauthorizedException('Invalid OTP');
       }
 

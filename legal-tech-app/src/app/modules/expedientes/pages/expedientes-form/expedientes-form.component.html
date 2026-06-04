@@ -75,14 +75,17 @@
                     <div class="flex flex-col gap-1.5">
                         <label for="fuero"
                             class="text-sm font-semibold text-slate-700 dark:text-slate-300">Fuero</label>
-                        <input pInputText id="fuero" formControlName="fuero" placeholder="Ej: Civil y Comercial"
-                            class="w-full p-inputtext-sm" />
+                        <p-select [options]="fueros" formControlName="fuero"
+                            placeholder="Seleccionar fuero..." styleClass="w-full p-inputtext-sm"
+                            appendTo="body" [editable]="true"></p-select>
+                        <small class="text-red-500" *ngIf="form.get('fuero')?.invalid && form.get('fuero')?.touched">Requerido</small>
                     </div>
                     <div class="flex flex-col gap-1.5">
                         <label for="juzgado"
                             class="text-sm font-semibold text-slate-700 dark:text-slate-300">Juzgado</label>
                         <input pInputText id="juzgado" formControlName="juzgado" placeholder="Ej: N° 5"
                             class="w-full p-inputtext-sm" />
+                        <small class="text-red-500" *ngIf="form.get('juzgado')?.invalid && form.get('juzgado')?.touched">Requerido</small>
                     </div>
                     <div class="flex flex-col gap-1.5">
                         <label for="secretaria"

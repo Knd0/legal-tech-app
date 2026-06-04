@@ -28,20 +28,18 @@
                 class="flex-1 overflow-y-auto p-3 space-y-3 min-h-[100px]">
                 <!-- Card -->
                 <div *ngFor="let item of col.items; trackBy: trackByExpedienteId" cdkDrag [cdkDragData]="item" (cdkDragStarted)="onDragStarted()"
-                    class="bg-white p-4 rounded-md shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow group relative">
+                    [class.opacity-60]="saving() === item.id"
+                    [class.pointer-events-none]="saving() === item.id"
+                    class="bg-white p-4 rounded-md shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing hover:shadow-md transition-all group relative">
                     <!-- Drag Handle / Placeholder -->
                     <div class="custom-placeholder" *cdkDragPlaceholder></div>
 
                     <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-mediun text-slate-500 uppercase tracking-wider">{{ item.nroExpediente
-                            }}</span>
-                        <div class="w-2 h-2 rounded-full" [ngClass]="{
-                'bg-green-500': item.estado === 'INICIADO',
-                'bg-blue-500': item.estado === 'PRUEBA',
-                'bg-purple-500': item.estado === 'ALEGATOS',
-                'bg-orange-500': item.estado === 'SENTENCIA',
-                'bg-gray-500': item.estado === 'ARCHIVADO'
-            }"></div>
+                        <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">{{ item.nroExpediente }}</span>
+                        <div class="flex items-center gap-1">
+                            <i *ngIf="saving() === item.id" class="pi pi-spin pi-spinner text-slate-400 text-xs"></i>
+                            <div class="w-2 h-2 rounded-full" [ngClass]="col.color"></div>
+                        </div>
                     </div>
 
                     <h4 class="text-sm font-semibold text-slate-800 mb-1 leading-snug hover:text-indigo-600">

@@ -157,7 +157,7 @@ export class CalendarioViewComponent {
       return this.currentMonth().toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
   }
 
-  private urgencyLevel(v: Vencimiento): 'URGENTE' | 'ALTA' | 'MEDIA' | 'BAJA' {
+  urgencyLevel(v: Vencimiento): 'URGENTE' | 'ALTA' | 'MEDIA' | 'BAJA' {
       if (v.esPerentorio) return 'URGENTE';
       if (v.tipo === 'AUDIENCIA') return 'ALTA';
       if (v.tipo === 'VENCIMIENTO_PLAZO') return 'MEDIA';
@@ -290,31 +290,23 @@ export class CalendarioViewComponent {
   }
 
   simulateNotification(deadline: Vencimiento) {
-    const alertDays = this.notificationService.daysBeforeAlert();
-    const alertHours = this.notificationService.checkFrequencyHours();
     const whatsappEnabled = this.notificationService.enableWhatsapp();
     const waNumber = this.notificationService.whatsappNumber();
-    
-    let waText = '';
-    if (whatsappEnabled && waNumber) {
-        waText = ' y WhatsApp';
-        // Simulating the actual message sending for the demo
-        const daysRemaining = Math.ceil((new Date(deadline.fechaVencimiento).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-        const template = this.notificationService.getNotificationTemplate(deadline, daysRemaining);
-        
-        // Send real message via service
-        this.notificationService.sendWhatsappMessage(waNumber, template);
+
+    if (!whatsappEnabled || !waNumber) {
+      Swal.fire({
+        title: 'WhatsApp no configurado',
+        text: 'Activá el Bot de WhatsApp en tu perfil para poder enviar alertas.',
+        icon: 'warning',
+      });
+      return;
     }
 
-    Swal.fire({
-      title: 'Simulación de Alerta',
-      text: `Configuración: ${alertDays} días antes, cada ${alertHours}hs.\nEnviando a App${waText}.\n\nNotificación: "Vence ${deadline.titulo}"`,
-      icon: 'info',
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 5000
-    });
+    const daysRemaining = Math.ceil(
+      (new Date(deadline.fechaVencimiento).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const template = this.notificationService.getNotificationTemplate(deadline, daysRemaining);
+    this.notificationService.sendWhatsappMessage(waNumber, template);
   }
 
 

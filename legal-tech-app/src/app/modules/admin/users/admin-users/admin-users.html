@@ -20,7 +20,31 @@
         </div>
     </div>
 
-    <p-table [value]="users()" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '50rem' }" styleClass="p-datatable-striped">
+    <!-- Search & Filter Bar -->
+    <div class="flex flex-col sm:flex-row gap-3 mb-4">
+        <div class="relative flex-1">
+            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input pInputText
+                [ngModel]="searchTerm()"
+                (ngModelChange)="searchTerm.set($event)"
+                placeholder="Buscar por nombre, email o rol..."
+                class="w-full pl-9 text-sm" />
+        </div>
+        <p-select
+            [options]="statusOptions"
+            [ngModel]="filterStatus()"
+            (ngModelChange)="filterStatus.set($event)"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Suscripción"
+            styleClass="text-sm w-full sm:w-48">
+        </p-select>
+        <span *ngIf="searchTerm() || filterStatus()" class="text-xs text-slate-400 self-center whitespace-nowrap">
+            {{ filteredUsers().length }} de {{ users().length }} usuarios
+        </span>
+    </div>
+
+    <p-table [value]="filteredUsers()" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '50rem' }" styleClass="p-datatable-striped">
         <ng-template pTemplate="header">
             <tr>
                 <th>Nombre</th>

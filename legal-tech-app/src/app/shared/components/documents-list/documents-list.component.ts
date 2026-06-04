@@ -3,6 +3,17 @@ import { CommonModule } from '@angular/common';
 import { DocumentsService, Documento } from '../../../core/services/documents.service';
 import Swal from 'sweetalert2';
 
+const ALLOWED_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+  'text/plain',
+];
+const MAX_SIZE_BYTES = 10 * 1024 * 1024;
+
 @Component({
   selector: 'app-documents-list',
   standalone: true,
@@ -17,6 +28,7 @@ export class DocumentsListComponent implements OnInit {
   documentsService = inject(DocumentsService);
   documents = signal<Documento[]>([]);
   isUploading = signal<boolean>(false);
+  isDragging = signal<boolean>(false);
 
   ngOnInit() {
     this.loadDocuments();
@@ -31,9 +43,36 @@ export class DocumentsListComponent implements OnInit {
 
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
-    if (file) {
-      this.uploadFile(file);
+    if (file) this.validateAndUpload(file);
+  }
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    this.isDragging.set(true);
+  }
+
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    this.isDragging.set(false);
+  }
+
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    this.isDragging.set(false);
+    const file = event.dataTransfer?.files[0];
+    if (file) this.validateAndUpload(file);
+  }
+
+  validateAndUpload(file: File) {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      Swal.fire('Tipo no permitido', 'Solo se aceptan PDF, Word, Excel, imágenes y texto plano.', 'warning');
+      return;
     }
+    if (file.size > MAX_SIZE_BYTES) {
+      Swal.fire('Archivo muy grande', 'El tamaño máximo permitido es 10 MB.', 'warning');
+      return;
+    }
+    this.uploadFile(file);
   }
 
   uploadFile(file: File) {
@@ -53,8 +92,8 @@ export class DocumentsListComponent implements OnInit {
       },
       error: (err) => {
         this.isUploading.set(false);
-        console.error('Upload error', err);
-        Swal.fire('Error', 'No se pudo subir el archivo', 'error');
+        const msg = err?.error?.message || 'No se pudo subir el archivo';
+        Swal.fire('Error', msg, 'error');
       }
     });
   }
@@ -73,9 +112,9 @@ export class DocumentsListComponent implements OnInit {
             this.documentsService.delete(id).subscribe({
                 next: () => {
                     this.loadDocuments();
-                    Swal.fire('Eliminado', 'El archivo ha sido eliminado.', 'success');
+                    Swal.fire({ icon: 'success', title: 'Eliminado', timer: 1500, showConfirmButton: false });
                 },
-                error: (err) => Swal.fire('Error', 'No se pudo eliminar', 'error')
+                error: () => Swal.fire('Error', 'No se pudo eliminar', 'error')
             });
         }
     });
@@ -83,7 +122,7 @@ export class DocumentsListComponent implements OnInit {
 
   getIconClass(mimeType: string): string {
       if (mimeType.includes('pdf')) return 'pi-file-pdf text-red-500';
-      if (mimeType.includes('word') || mimeType.includes('officedocument')) return 'pi-file-word text-blue-500';
+      if (mimeType.includes('word') || mimeType.includes('officedocument.wordprocessing')) return 'pi-file-word text-blue-500';
       if (mimeType.includes('image')) return 'pi-image text-purple-500';
       if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'pi-file-excel text-green-500';
       return 'pi-file text-slate-400';

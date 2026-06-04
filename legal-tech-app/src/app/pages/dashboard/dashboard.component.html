@@ -81,38 +81,15 @@
         <!-- Financial Chart -->
         <div
             class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 lg:col-span-2 flex flex-col">
-            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-6">Balance Financiero (Últimos 6 meses)</h3>
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4">Balance Financiero (Últimos 6 meses)</h3>
 
-            <div class="flex-grow flex items-end justify-between gap-4 h-64 mt-4 px-2"
-                *ngIf="stats() && stats().financials?.length">
-                <div *ngFor="let m of stats().financials" class="flex flex-col items-center gap-2 group w-full">
-                    <div class="w-full flex justify-center gap-1 items-end h-full relative">
-                        <!-- Expense Bar -->
-                        <div class="w-3 md:w-6 bg-red-400 dark:bg-red-500 rounded-t-sm transition-all duration-500 relative group-hover:bg-red-500 dark:group-hover:bg-red-400"
-                            [style.height]="getBarHeight(m.expense)">
-                            <!-- Tooltip -->
-                            <div
-                                class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-slate-800 dark:bg-slate-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                Expenses: {{ m.expense | currency }}
-                            </div>
-                        </div>
-                        <!-- Income Bar -->
-                        <div class="w-3 md:w-6 bg-green-500 dark:bg-green-600 rounded-t-sm transition-all duration-500 relative group-hover:bg-green-600 dark:group-hover:bg-green-500"
-                            [style.height]="getBarHeight(m.income)">
-                            <!-- Tooltip -->
-                            <div
-                                class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-slate-800 dark:bg-slate-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                                Income: {{ m.income | currency }}
-                            </div>
-                        </div>
-                    </div>
-                    <span class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">{{ m.month }}</span>
-                </div>
+            <div class="flex-grow" style="height: 280px;" *ngIf="chartData">
+                <p-chart type="bar" [data]="chartData" [options]="chartOptions" height="280px"></p-chart>
             </div>
 
-            <div *ngIf="!stats()?.financials?.length"
-                class="flex items-center justify-center h-64 text-slate-400 dark:text-slate-500">
-                No hay datos financieros suficientes.
+            <div *ngIf="!chartData"
+                class="flex items-center justify-center h-64 text-slate-400 dark:text-slate-500 text-sm">
+                <span>No hay datos financieros suficientes.</span>
             </div>
         </div>
 

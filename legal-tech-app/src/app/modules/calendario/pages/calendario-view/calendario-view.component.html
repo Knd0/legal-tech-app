@@ -84,14 +84,16 @@
                         </span>
                     </td>
                     <td class="py-3 px-6">
-                        <span *ngIf="deadline.estado === 'PENDIENTE'">
-                            <span *ngIf="deadline.esPerentorio"
-                                class="bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide">PERENTORIO</span>
-                            <span *ngIf="!deadline.esPerentorio"
-                                class="bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide">ORDINARIO</span>
-                        </span>
-                        <span *ngIf="deadline.estado !== 'PENDIENTE'"
-                            class="text-xs text-slate-400 dark:text-slate-600">-</span>
+                        <ng-container *ngIf="deadline.estado === 'PENDIENTE'; else noUrgency">
+                            <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide border"
+                                [ngClass]="getUrgencyClass(deadline)">
+                                <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" [ngClass]="getUrgencyDot(deadline)"></span>
+                                {{ urgencyLevel(deadline) }}
+                            </span>
+                        </ng-container>
+                        <ng-template #noUrgency>
+                            <span class="text-xs text-slate-400 dark:text-slate-600">—</span>
+                        </ng-template>
                     </td>
                     <td class="py-3 px-6 text-right">
                         <button pButton icon="pi pi-check"
@@ -102,7 +104,7 @@
 
                         <button pButton icon="pi pi-bell"
                             class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-                            pTooltip="Simular Alerta" tooltipPosition="top"
+                            pTooltip="Enviar Alerta" tooltipPosition="top"
                             (click)="simulateNotification(deadline)"></button>
                         <button pButton icon="pi pi-pencil"
                             class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
@@ -152,7 +154,10 @@
                     <div class="w-2 h-2 rounded-full bg-orange-500"></div> Alta
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <div class="w-2 h-2 rounded-full bg-blue-500"></div> Normal
+                    <div class="w-2 h-2 rounded-full bg-yellow-500"></div> Media
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="w-2 h-2 rounded-full bg-blue-500"></div> Baja
                 </div>
             </div>
         </div>

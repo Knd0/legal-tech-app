@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ButtonModule } from 'primeng/button';
@@ -17,7 +17,7 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, ButtonModule, InputTextModule, DialogModule, CheckboxModule, TooltipModule, RouterModule],
+  imports: [CommonModule, DatePipe, ReactiveFormsModule, FormsModule, ButtonModule, InputTextModule, DialogModule, CheckboxModule, TooltipModule, RouterModule],
   templateUrl: './profile.component.html'
 })
 export class ProfileComponent implements OnInit, OnDestroy {
@@ -26,15 +26,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
   notificationService = inject(NotificationService);
 
-
-
   profileForm: FormGroup;
   afipForm: FormGroup;
   securityForm: FormGroup;
 
   saving = signal<boolean>(false);
   savingAfip = signal<boolean>(false);
-  
+  cancellingSubscription = signal<boolean>(false);
+  subscriptionData = signal<{ status: string; expiresAt: string | null; mpSubscriptionId: string | null } | null>(null);
+
   // Integrations State
   isAfipLinked = signal<boolean>(false);
   editAfipMode = signal<boolean>(false);
@@ -79,13 +79,53 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadProfile();
-    this.notificationService.loadSettings(); // Load fresh settings
-    
-    // Load Integration Settings
+    this.loadSubscription();
+    this.notificationService.loadSettings();
     this.configDays = this.notificationService.daysBeforeAlert();
     this.configHours = this.notificationService.checkFrequencyHours();
     this.configWhatsapp = this.notificationService.enableWhatsapp();
     this.configWhatsappNumber = this.notificationService.whatsappNumber();
+  }
+
+  loadSubscription() {
+    this.http.get<any>(`${environment.apiUrl}/mercadopago/subscription`).subscribe({
+      next: (data) => this.subscriptionData.set(data),
+      error: (err) => console.error('Error loading subscription', err)
+    });
+  }
+
+  cancelSubscription() {
+    Swal.fire({
+      title: 'Cancelar Suscripción',
+      text: '¿Estás seguro? Perderás acceso a las funciones Pro al finalizar el período actual.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cancelar',
+      cancelButtonText: 'Volver',
+      confirmButtonColor: '#dc2626',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+      this.cancellingSubscription.set(true);
+      this.http.post(`${environment.apiUrl}/mercadopago/cancel-subscription`, {}).subscribe({
+        next: () => {
+          this.cancellingSubscription.set(false);
+          const currentUser = this.authService.currentUser();
+          this.authService.currentUser.set({ ...currentUser, subscriptionStatus: 'cancelled' });
+          this.subscriptionData.set({ ...this.subscriptionData()!, status: 'cancelled' });
+          Swal.fire({
+            icon: 'success',
+            title: 'Suscripción Cancelada',
+            text: 'Tu suscripción ha sido cancelada correctamente.',
+            timer: 2500,
+            showConfirmButton: false,
+          });
+        },
+        error: () => {
+          this.cancellingSubscription.set(false);
+          Swal.fire('Error', 'No se pudo cancelar la suscripción.', 'error');
+        }
+      });
+    });
   }
 
   loadProfile() {
@@ -243,6 +283,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
       if (this.configWhatsapp && !this.qrCodeUrl() && !this.qrPollInterval) {
           this.startQrPolling();
+      } else if (!this.configWhatsapp) {
+          this.stopQrPolling();
       }
   }
 
@@ -273,9 +315,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                       Swal.fire('Desconectado', 'Sesión cerrada.', 'success');
                       this.qrCodeUrl.set(null);
                       this.configWhatsappNumber = '';
-                      // Update settings to clear the number
                       this.notificationService.updateAlertSettings(this.configDays, this.configHours, this.configWhatsapp, '');
-                      
                       if (this.configWhatsapp) this.startQrPolling();
                   },
                   error: () => Swal.fire('Error', 'No se pudo cerrar la sesión.', 'error')

@@ -37,6 +37,18 @@ export class AuthController {
     return req.user;
   }
 
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: { email: string }) {
+    await this.authService.requestForgotPasswordOtp(body.email);
+    return { message: 'OTP sent' };
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: { email: string; otp: string; newPassword: string }) {
+    await this.authService.resetPassword(body.email, body.otp, body.newPassword);
+    return { message: 'Password reset successfully' };
+  }
+
   @Post('request-password-otp')
   @UseGuards(AuthGuard('jwt'))
   async requestPasswordOtp(@Request() req) {

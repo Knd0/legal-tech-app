@@ -1,7 +1,8 @@
-import { Component, OnInit, effect } from '@angular/core';
+import { Component, OnInit, effect, signal, inject } from '@angular/core';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { ExpedienteService } from '../../../../core/services/expediente.service';
-import { Expediente } from '../../../../core/models/expediente.model';
+import { Expediente, EstadoExpediente } from '../../../../core/models/expediente.model';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-kanban-board',
@@ -12,25 +13,27 @@ import { Expediente } from '../../../../core/models/expediente.model';
 export class KanbanBoard implements OnInit {
 
   columns = [
-    { id: 'INICIADO', title: 'Iniciado', items: [] as Expediente[] },
-    { id: 'PRUEBA', title: 'Prueba', items: [] as Expediente[] },
-    { id: 'ALEGATOS', title: 'Alegatos', items: [] as Expediente[] },
-    { id: 'SENTENCIA', title: 'Sentencia', items: [] as Expediente[] },
-    { id: 'ARCHIVADO', title: 'Archivado', items: [] as Expediente[] }
+    { id: 'INICIADO' as EstadoExpediente, title: 'Iniciado', color: 'bg-green-500', items: [] as Expediente[] },
+    { id: 'PRUEBA' as EstadoExpediente, title: 'Prueba', color: 'bg-blue-500', items: [] as Expediente[] },
+    { id: 'ALEGATOS' as EstadoExpediente, title: 'Alegatos', color: 'bg-purple-500', items: [] as Expediente[] },
+    { id: 'SENTENCIA' as EstadoExpediente, title: 'Sentencia', color: 'bg-orange-500', items: [] as Expediente[] },
+    { id: 'ARCHIVADO' as EstadoExpediente, title: 'Archivado', color: 'bg-gray-500', items: [] as Expediente[] }
   ];
 
-  private isDragging = false;
+  private dragging = false;
+  saving = signal<string | null>(null);
 
-  constructor(private expedienteService: ExpedienteService) {
+  private expedienteService = inject(ExpedienteService);
+
+  constructor() {
     effect(() => {
-      const allExpedientes = this.expedienteService.expedientes();
-      if (!this.isDragging) {
-        this.distributeExpedientes(allExpedientes);
+      const all = this.expedienteService.expedientes();
+      if (!this.dragging) {
+        this.distributeExpedientes(all);
       }
     });
   }
 
-  // Fix 2: service ya llama loadExpedientes() en su constructor, no llamar de nuevo
   ngOnInit(): void {}
 
   distributeExpedientes(expedientes: Expediente[]) {
@@ -39,43 +42,64 @@ export class KanbanBoard implements OnInit {
     });
   }
 
+  onDragStarted() {
+    this.dragging = true;
+  }
+
+  trackByExpedienteId(_: number, item: Expediente): string {
+    return item.id;
+  }
+
   drop(event: CdkDragDrop<Expediente[]>) {
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
-      this.isDragging = false;
+      this.dragging = false;
       return;
     }
 
-    // Fix 3: identificar columna destino por referencia al array, no por event.container.id
-    // (event.container.id puede retornar el ID interno de CDK en vez del estado)
+    // Detectar columna destino por referencia al array (más robusto que event.container.id)
     const targetColumn = this.columns.find(c => c.items === event.container.data);
     if (!targetColumn) {
-      this.isDragging = false;
+      this.dragging = false;
       return;
     }
 
     const item = event.previousContainer.data[event.previousIndex];
-    const newStatus = targetColumn.id as Expediente['estado'];
+    const previousStatus = item.estado;
+    const newStatus = targetColumn.id;
 
+    // Actualización optimista
     transferArrayItem(
       event.previousContainer.data,
       event.container.data,
       event.previousIndex,
       event.currentIndex,
     );
-
-    // Fix 1: isDragging = false DESPUÉS del transferArrayItem pero ANTES de updateExpediente,
-    // así el effect que se dispara cuando responde el HTTP ve el estado ya correcto
     item.estado = newStatus;
-    this.isDragging = false;
-    this.expedienteService.updateExpediente(item.id, { estado: newStatus });
-  }
+    this.dragging = false;
+    this.saving.set(item.id);
 
-  onDragStarted() {
-    this.isDragging = true;
-  }
-
-  trackByExpedienteId(_: number, item: Expediente): string {
-    return item.id;
+    this.expedienteService.updateExpedienteKanban(item.id, newStatus, () => {
+      // Rollback si falla
+      this.saving.set(null);
+      item.estado = previousStatus;
+      transferArrayItem(
+        event.container.data,
+        event.previousContainer.data,
+        event.container.data.indexOf(item),
+        event.previousIndex,
+      );
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo actualizar el estado. Intenta de nuevo.',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+      });
+    }, () => {
+      this.saving.set(null);
+    });
   }
 }

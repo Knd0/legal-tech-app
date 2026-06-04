@@ -22,6 +22,28 @@ export class MercadopagoController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('subscription')
+  async getSubscription(@Req() req, @Res() res: Response) {
+    try {
+      const result = await this.mpService.getSubscriptionStatus(req.user.userId);
+      return res.status(200).json(result);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('cancel-subscription')
+  async cancelSubscription(@Req() req, @Res() res: Response) {
+    try {
+      await this.mpService.cancelSubscription(req.user.userId);
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
   @Post('webhook')
   async handleWebhook(@Req() req: Request, @Body() body: any, @Res() res: Response) {
     const secret = process.env.MP_WEBHOOK_SECRET;
@@ -35,7 +57,6 @@ export class MercadopagoController {
         return res.status(401).send('Missing signature');
       }
 
-      // Extraer ts y v1 del header x-signature: "ts=<timestamp>,v1=<hash>"
       const parts = Object.fromEntries(xSignature.split(',').map(p => p.split('=')));
       const ts = parts['ts'];
       const v1 = parts['v1'];

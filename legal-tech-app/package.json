@@ -34,6 +34,7 @@
     "@angular/service-worker": "^21.1.0",
     "@primeng/themes": "^21.0.4",
     "@types/uuid": "^10.0.0",
+    "chart.js": "^4.5.1",
     "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.7",
     "jwt-decode": "^4.0.0",

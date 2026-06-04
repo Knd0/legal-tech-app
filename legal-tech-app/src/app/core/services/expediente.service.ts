@@ -46,11 +46,25 @@ export class ExpedienteService {
   updateExpediente(id: string, updatedData: Partial<Expediente>): void {
     this.http.put<void>(`${this.API_URL}/${id}`, updatedData).subscribe({
       next: () => {
-        this.expedientesSignal.update(list => 
+        this.expedientesSignal.update(list =>
           list.map(e => e.id === id ? { ...e, ...updatedData } : e)
         );
       },
       error: (err) => console.error('Failed to update expediente', err)
+    });
+  }
+
+  updateExpedienteKanban(id: string, estado: string, onError: () => void, onComplete: () => void): void {
+    this.http.put<void>(`${this.API_URL}/${id}`, { estado }).subscribe({
+      next: () => {
+        this.expedientesSignal.update(list =>
+          list.map(e => e.id === id ? { ...e, estado: estado as any } : e)
+        );
+        onComplete();
+      },
+      error: () => {
+        onError();
+      }
     });
   }
 

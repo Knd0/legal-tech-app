@@ -81,6 +81,9 @@ export class CalendarioViewComponent {
   isEventEditMode: boolean = false;
   currentEventId: string | null = null;
 
+  // PDF Upload & Extraction State
+  analyzingPdf = signal<boolean>(false);
+
   // Options
   tipos = [
     { label: 'Audiencia', value: 'AUDIENCIA' },
@@ -317,6 +320,74 @@ export class CalendarioViewComponent {
     }
 
     this.deadlineDialog = false;
+  }
+
+  triggerPdfUpload() {
+    const fileInput = document.getElementById('pdfFileInput');
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
+  onPdfFileSelected(event: any) {
+    const file = event.target?.files?.[0];
+    if (!file) return;
+
+    this.analyzingPdf.set(true);
+    
+    Swal.fire({
+      title: 'Analizando PDF...',
+      text: 'Gemini está leyendo el escrito y extrayendo los plazos judiciales.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    this.deadlineService.analyzePdf(file).subscribe({
+      next: (data) => {
+        Swal.close();
+        this.analyzingPdf.set(false);
+        
+        // Open the review/confirm dialog with a prefilled form
+        this.isEditMode = false;
+        this.currentId = null;
+        
+        this.form.patchValue({
+          titulo: data.titulo,
+          descripcion: data.descripcion,
+          fechaVencimiento: data.fechaVencimiento ? new Date(data.fechaVencimiento) : new Date(),
+          tipo: 'VENCIMIENTO_PLAZO',
+          estado: 'PENDIENTE',
+          esPerentorio: true,
+          expedienteId: null
+        });
+        
+        this.deadlineDialog = true;
+        
+        Swal.fire({
+          icon: 'info',
+          title: 'Datos Extraídos',
+          text: 'Completamos el formulario con los datos del PDF. Selecciona el expediente y confirma.',
+          timer: 5000,
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false
+        });
+      },
+      error: (err) => {
+        Swal.close();
+        this.analyzingPdf.set(false);
+        console.error(err);
+        Swal.fire(
+          'Error de Análisis', 
+          err.error?.message || 'No se pudo analizar el PDF con Gemini. Verifica que GEMINI_API_KEY esté configurada en el servidor.', 
+          'error'
+        );
+      }
+    });
+    
+    event.target.value = '';
   }
 
   deleteDeadline(id: string) {

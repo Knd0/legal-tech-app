@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AiService } from './ai.service';
 import { ConfigService } from '@nestjs/config';
+import { ExpedientesService } from '../expedientes/expedientes.service';
+import { of } from 'rxjs';
 import OpenAI from 'openai';
 
 jest.mock('openai', () => {
@@ -39,6 +41,21 @@ describe('AiService', () => {
           provide: ConfigService,
           useValue: configServiceMock,
         },
+        {
+          provide: ExpedientesService,
+          useValue: {
+            findOne: jest.fn().mockResolvedValue({
+              id: 'exp-1',
+              caratula: 'Perez c/ Gomez',
+              nroExpediente: '123/2026',
+              juzgado: 'Civ. 5',
+              fuero: 'Civil',
+              cliente: { nombre: 'Juan Perez', cuitDni: '20-12345678-9' },
+              contraparte: 'Maria Gomez',
+              estado: 'INICIADO',
+            }),
+          },
+        },
       ],
     }).compile();
 
@@ -50,7 +67,7 @@ describe('AiService', () => {
     const result = await service.analyze('Texto de prueba', 'Análisis');
 
     expect(result.analysis).toContain('[MÓDULO IA DESACTIVADO]');
-    expect(result.analysis).toContain('El Copiloto Legal de Inteligencia Artificial no está configurado');
+    expect(result.analysis).toContain('El Copiloto Legal de IA no está configurado');
   });
 
   it('should return mock info message when OPENAI_API_KEY is not set', async () => {

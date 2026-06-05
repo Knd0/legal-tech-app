@@ -1,9 +1,11 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, effect, inject } from '@angular/core';
 import { SwPush } from '@angular/service-worker';
 import { environment } from '../../../environments/environment';
 import { catchError, of, tap } from 'rxjs';
-
 import { HttpClient } from '@angular/common/http';
+import { AuthService } from './auth.service';
+import { DeadlineService } from './deadline.service';
+import { CalendarEventService } from './calendar-event.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,19 +20,60 @@ export class NotificationService {
   readonly checkFrequencyHours = signal<number>(24); // Default 24 hours
   readonly enableWhatsapp = signal<boolean>(false); // Default false
   readonly whatsappNumber = signal<string>(''); // Default empty
+  readonly enableDesktop = signal<boolean>(true); // Default true
 
-  constructor(private swPush: SwPush, private http: HttpClient) {
-    this.checkSubscription();
-  }
-
+  private schedulerInterval: any = null;
+  private notifiedEventIds = new Set<string>();
+  private notifiedDeadlineIds = new Set<string>();
   private readonly SETTINGS_API = `${environment.apiUrl}/settings`;
 
-  updateAlertSettings(days: number, hours: number, whatsapp: boolean, number: string) {
+  constructor(
+    private swPush: SwPush,
+    private http: HttpClient,
+    private authService?: AuthService,
+    private deadlineService?: DeadlineService,
+    private calendarEventService?: CalendarEventService
+  ) {
+    this.checkSubscription();
+
+    // Only run scheduler logic if dependencies are injected (allows unit testing with partial mocks)
+    if (this.authService && this.deadlineService && this.calendarEventService) {
+      this.loadNotifiedEvents();
+      this.loadNotifiedDeadlines();
+
+      try {
+        effect(() => {
+          const isAuth = this.authService?.isAuthenticated();
+          if (isAuth) {
+            // Add reactive dependencies on signals so that when events or deadlines are updated,
+            // we instantly check for notifications
+            this.calendarEventService?.events();
+            this.deadlineService?.deadlines();
+            
+            this.checkAllNotifications();
+
+            if (!this.schedulerInterval) {
+              this.startScheduler();
+            }
+          } else {
+            this.stopScheduler();
+            this.notifiedEventIds.clear();
+            this.notifiedDeadlineIds.clear();
+          }
+        });
+      } catch (e) {
+        console.warn('NotificationService: no se pudo crear el effect (probable contexto sin inyección de dependencias en test unitario)');
+      }
+    }
+  }
+
+  updateAlertSettings(days: number, hours: number, whatsapp: boolean, number: string, desktop: boolean) {
     const settings = {
         daysBeforeAlert: days,
         checkFrequencyHours: hours,
         enableWhatsapp: whatsapp,
-        whatsappNumber: number
+        whatsappNumber: number,
+        enableDesktop: desktop
     };
 
     this.http.post(this.SETTINGS_API, settings).subscribe({
@@ -39,6 +82,7 @@ export class NotificationService {
              this.checkFrequencyHours.set(hours);
              this.enableWhatsapp.set(whatsapp);
              this.whatsappNumber.set(number);
+             this.enableDesktop.set(desktop);
         },
         error: (err) => console.error('Failed to save settings', err)
     });
@@ -52,11 +96,13 @@ export class NotificationService {
                 const hours = settings.find(s => s.key === 'CHECK_FREQUENCY_HOURS')?.value;
                 const enable = settings.find(s => s.key === 'ENABLE_WHATSAPP')?.value;
                 const number = settings.find(s => s.key === 'WHATSAPP_NUMBER')?.value;
+                const desktop = settings.find(s => s.key === 'ENABLE_DESKTOP_NOTIFICATIONS')?.value;
 
                 if (days) this.daysBeforeAlert.set(Number(days));
                 if (hours) this.checkFrequencyHours.set(Number(hours));
                 if (enable) this.enableWhatsapp.set(enable === '1');
                 if (number) this.whatsappNumber.set(number);
+                if (desktop) this.enableDesktop.set(desktop === '1');
             }
         },
         error: (err) => console.error('Failed to load settings', err)
@@ -88,7 +134,6 @@ export class NotificationService {
       this.http.post<{success: boolean, message: string}>(`${environment.apiUrl}/whatsapp/send`, body).subscribe({
         next: (res) => {
             console.log('WhatsApp sent via backend', res);
-            // SweetAlert for success (optional, or just toast)
             import('sweetalert2').then((Swal) => {
                 Swal.default.fire({
                     title: 'Enviado',
@@ -139,8 +184,6 @@ export class NotificationService {
     .then(sub => {
       console.log('Usuario suscrito a notificaciones:', sub);
       this.isSubscribed.set(true);
-      // AQUÍ SE DEBERÍA ENVIAR 'sub' AL BACKEND PARA GUARDARLO
-      // this.http.post('/api/notifications/subscribe', sub).subscribe(...)
     })
     .catch(err => {
       console.error('No se pudo suscribir a notificaciones', err);
@@ -156,7 +199,6 @@ export class NotificationService {
     this.swPush.messages.subscribe((message: any) => {
       console.log('Notificación recibida en foreground:', message);
       
-      // Lógica específica para alertas de vencimientos
       if (message.notification && message.notification.title === 'Vencimiento de plazo en 24hs') {
         this.handleVencimientoAlert(message.notification);
       }
@@ -169,13 +211,10 @@ export class NotificationService {
   listenForNotificationClicks() {
     this.swPush.notificationClicks.subscribe(({ action, notification }) => {
       console.log('Click en notificación:', { action, notification });
-      // Navegar a la pantalla del expediente, abrir modal, etc.
-      // this.router.navigate(['/expedientes', notification.data.expedienteId]);
     });
   }
 
   private handleVencimientoAlert(notification: any) {
-    // Aquí podrías mostrar un Toast/Snackbar de PrimeNG, actualizar un contador, etc.
     alert(`URGENTE: ${notification.body}`); 
   }
 
@@ -203,5 +242,219 @@ export class NotificationService {
         this.isSubscribed.set(!!sub);
       });
     }
+  }
+
+  // --- LOCAL DESKTOP SCHEDULER & NOTIFICATIONS ---
+
+  private loadNotifiedEvents() {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      const stored = localStorage.getItem('legal_tech_notified_events');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const todayStr = new Date().toDateString();
+        const filtered = Object.keys(parsed).reduce((acc, key) => {
+          const dateStr = parsed[key];
+          if (new Date(dateStr).toDateString() === todayStr) {
+            acc[key] = dateStr;
+          }
+          return acc;
+        }, {} as Record<string, string>);
+        localStorage.setItem('legal_tech_notified_events', JSON.stringify(filtered));
+        this.notifiedEventIds = new Set(Object.keys(filtered));
+      }
+    } catch (e) {
+      console.error('Error loading notified events', e);
+    }
+  }
+
+  private saveNotifiedEventsToStorage() {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      const todayStr = new Date().toDateString();
+      const currentStored = localStorage.getItem('legal_tech_notified_events');
+      const parsed = currentStored ? JSON.parse(currentStored) : {};
+      this.notifiedEventIds.forEach(id => {
+        if (!parsed[id]) parsed[id] = todayStr;
+      });
+      localStorage.setItem('legal_tech_notified_events', JSON.stringify(parsed));
+    } catch (e) {
+      console.error('Error saving notified events', e);
+    }
+  }
+
+  private loadNotifiedDeadlines() {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      const stored = localStorage.getItem('legal_tech_notified_deadlines');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const todayStr = new Date().toDateString();
+        const filtered = Object.keys(parsed).reduce((acc, key) => {
+          const dateStr = parsed[key];
+          if (new Date(dateStr).toDateString() === todayStr) {
+            acc[key] = dateStr;
+          }
+          return acc;
+        }, {} as Record<string, string>);
+        localStorage.setItem('legal_tech_notified_deadlines', JSON.stringify(filtered));
+        this.notifiedDeadlineIds = new Set(Object.keys(filtered));
+      }
+    } catch (e) {
+      console.error('Error loading notified deadlines', e);
+    }
+  }
+
+  private saveNotifiedDeadlinesToStorage() {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      const todayStr = new Date().toDateString();
+      const currentStored = localStorage.getItem('legal_tech_notified_deadlines');
+      const parsed = currentStored ? JSON.parse(currentStored) : {};
+      this.notifiedDeadlineIds.forEach(id => {
+        if (!parsed[id]) parsed[id] = todayStr;
+      });
+      localStorage.setItem('legal_tech_notified_deadlines', JSON.stringify(parsed));
+    } catch (e) {
+      console.error('Error saving notified deadlines', e);
+    }
+  }
+
+  requestNativePermission(): Promise<boolean> {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      console.warn('Este navegador no soporta notificaciones de escritorio o no hay ventana activa.');
+      return Promise.resolve(false);
+    }
+    return Notification.requestPermission().then(permission => {
+      return permission === 'granted';
+    });
+  }
+
+  startScheduler() {
+    this.stopScheduler();
+    
+    // Run initial check after 3s to let the app load the services data
+    setTimeout(() => {
+      this.checkAllNotifications();
+    }, 3000);
+    
+    this.schedulerInterval = setInterval(() => {
+      this.checkAllNotifications();
+    }, 60000);
+  }
+
+  stopScheduler() {
+    if (this.schedulerInterval) {
+      clearInterval(this.schedulerInterval);
+      this.schedulerInterval = null;
+    }
+  }
+
+  checkAllNotifications() {
+    this.checkCalendarEvents();
+    this.checkDeadlines();
+  }
+
+  checkCalendarEvents() {
+    if (!this.calendarEventService) return;
+    const events = this.calendarEventService.events();
+    const now = new Date();
+    
+    events.forEach(event => {
+      if (!event.id) return;
+      const eventDate = new Date(event.fecha);
+      const diffMs = eventDate.getTime() - now.getTime();
+      const diffMins = diffMs / (1000 * 60);
+
+      // Starts in the next 15 minutes or started up to 5 minutes ago
+      if (diffMins >= -5 && diffMins <= 15) {
+        if (!this.notifiedEventIds.has(event.id)) {
+          this.notifiedEventIds.add(event.id);
+          this.saveNotifiedEventsToStorage();
+          
+          const timeStr = eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          this.triggerPopup(
+            'Próximo Evento en Calendario',
+            `El evento "${event.titulo}" comienza en breve (a las ${timeStr}).`,
+            false
+          );
+        }
+      }
+    });
+  }
+
+  checkDeadlines() {
+    if (!this.deadlineService) return;
+    const deadlines = this.deadlineService.deadlines();
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    deadlines.forEach(d => {
+      if (d.estado !== 'PENDIENTE' || !d.id) return;
+      const deadlineDate = new Date(d.fechaVencimiento);
+      deadlineDate.setHours(0,0,0,0);
+      const diffTime = deadlineDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const daysAlert = this.daysBeforeAlert();
+
+      if (diffDays <= daysAlert && diffDays >= 0) {
+        const key = `${d.id}_${diffDays}`;
+        if (!this.notifiedDeadlineIds.has(key)) {
+          this.notifiedDeadlineIds.add(key);
+          this.saveNotifiedDeadlinesToStorage();
+
+          let title = 'Vencimiento Próximo';
+          let body = `El vencimiento "${d.titulo}" expira en ${diffDays} días.`;
+          if (diffDays === 0) {
+            title = '⚠️ Vencimiento HOY';
+            body = `¡ATENCIÓN! El vencimiento "${d.titulo}" expira HOY.`;
+          } else if (diffDays === 1) {
+            title = '⚠️ Vencimiento Mañana';
+            body = `El vencimiento "${d.titulo}" expira mañana.`;
+          }
+          this.triggerPopup(title, body, d.esPerentorio || diffDays === 0);
+        }
+      }
+    });
+  }
+
+  triggerPopup(title: string, bodyText: string, isUrgent: boolean = false) {
+    // 1. Native Browser Notification
+    if (this.enableDesktop() && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(title, {
+          body: bodyText,
+          icon: '/favicon.ico'
+        });
+      } catch (err) {
+        console.error('Error triggering native notification:', err);
+      }
+    }
+
+    // 2. In-App SweetAlert2 Popup
+    import('sweetalert2').then((Swal) => {
+      if (isUrgent) {
+        Swal.default.fire({
+          title: `🔔 ${title}`,
+          text: bodyText,
+          icon: 'warning',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#3b82f6',
+          timer: 20000,
+          timerProgressBar: true
+        });
+      } else {
+        Swal.default.fire({
+          title: title,
+          text: bodyText,
+          icon: 'info',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 5000,
+          timerProgressBar: true
+        });
+      }
+    });
   }
 }

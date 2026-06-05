@@ -2,6 +2,7 @@ import { NotificationService } from './notification.service';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SwPush } from '@angular/service-worker';
 import { of, Subject } from 'rxjs';
+import { signal } from '@angular/core';
 
 // Mock de SwPush
 class MockSwPush {
@@ -22,7 +23,7 @@ describe('NotificationService', () => {
   beforeEach(() => {
     // Inyección de dependencias manual para test unitario puro con Vitest
     swPush = new MockSwPush() as unknown as SwPush;
-    service = new NotificationService(swPush);
+    service = new NotificationService(swPush, {} as any);
   });
 
   it('should be created', () => {
@@ -47,5 +48,78 @@ describe('NotificationService', () => {
     
     expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('no está habilitado'));
     expect(service.isSubscribed()).toBe(false); // Should remain false (default) or whatever mock state was
+  });
+
+  it('should request notification permission', async () => {
+    // Mock window and Notification
+    const originalWindow = (globalThis as any).window;
+    const originalNotification = (globalThis as any).Notification;
+    
+    (globalThis as any).window = globalThis;
+    (globalThis as any).Notification = {
+      permission: 'default',
+      requestPermission: () => Promise.resolve('granted')
+    };
+    
+    const granted = await service.requestNativePermission();
+    expect(granted).toBe(true);
+    
+    (globalThis as any).window = originalWindow;
+    (globalThis as any).Notification = originalNotification;
+  });
+
+  it('should trigger popup for calendar events starting soon', () => {
+    const mockHttp = { get: () => of([]), post: () => of({}) } as any;
+    const mockAuth = { isAuthenticated: () => true } as any;
+    
+    // An event starting in 5 minutes
+    const futureDate = new Date();
+    futureDate.setMinutes(futureDate.getMinutes() + 5);
+    
+    const mockEvents = [
+      { id: 'event-1', titulo: 'Reunión de Prueba', fecha: futureDate, tipo: 'REUNION' }
+    ];
+    const mockCalendar = { events: () => mockEvents } as any;
+    const mockDeadline = { deadlines: () => [] } as any;
+    
+    const customService = new NotificationService(swPush, mockHttp, mockAuth, mockDeadline, mockCalendar);
+    
+    // Spy on triggerPopup
+    const spy = vi.spyOn(customService, 'triggerPopup').mockImplementation(() => {});
+    
+    customService.checkCalendarEvents();
+    
+    expect(spy).toHaveBeenCalledWith(
+      'Próximo Evento en Calendario',
+      expect.stringContaining('Reunión de Prueba'),
+      false
+    );
+  });
+
+  it('should trigger warning popup for perentorio/today deadlines', () => {
+    const mockHttp = { get: () => of([]), post: () => of({}) } as any;
+    const mockAuth = { isAuthenticated: () => true } as any;
+    
+    // A deadline due today
+    const todayDate = new Date();
+    
+    const mockDeadlines = [
+      { id: 'deadline-1', titulo: 'Presentar Escrito', fechaVencimiento: todayDate, estado: 'PENDIENTE', esPerentorio: true }
+    ];
+    const mockCalendar = { events: () => [] } as any;
+    const mockDeadline = { deadlines: () => mockDeadlines } as any;
+    
+    const customService = new NotificationService(swPush, mockHttp, mockAuth, mockDeadline, mockCalendar);
+    
+    // Spy on triggerPopup
+    const spy = vi.spyOn(customService, 'triggerPopup').mockImplementation(() => {});
+    
+    customService.checkDeadlines();
+    
+    expect(spy).toHaveBeenCalledWith(
+      '⚠️ Vencimiento HOY',
+      expect.stringContaining('Presentar Escrito'),
+      true
+    );
   });
 });

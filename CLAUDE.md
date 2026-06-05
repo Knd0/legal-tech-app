@@ -67,7 +67,7 @@ Each feature is a NestJS module under `backend/src/`. Key modules:
 - **whatsapp** — `whatsapp-web.js` session with RemoteAuth. Session stored in PostgreSQL (`whatsapp_sessions` table) to prevent Render ephemeral restarts from wiping authentication. Initializes 8 seconds after app start.
 - **facturas** — AFIP/ARCA e-invoicing. Uses `os.tmpdir()` for cross-platform (Windows dev / Linux prod) temp certificate writing, and reads `AFIP_PRODUCTION` env variable dynamically to switch between homologation (false/default) and production. Falls back to simulation mode if `AFIP_CERT`/`AFIP_KEY` env vars are missing.
 - **movimientos** — Financial movements per client (honorarios, gastos, pagos) with JUS/UMA unit support.
-- **settings** — Key-value config store. Seeded with `VALOR_JUS_ENTRE_RIOS`, `VALOR_UMA_NACION`, `ENABLE_WHATSAPP`, `DAYS_BEFORE_ALERT`.
+- **settings** — Key-value config store. Seeded with `VALOR_JUS_ENTRE_RIOS`, `VALOR_UMA_NACION`, `ENABLE_WHATSAPP`, `DAYS_BEFORE_ALERT`, `ENABLE_DESKTOP_NOTIFICATIONS`.
 - **ai** — **Copiloto IA module**. Exposes `POST /ai/analyze` protected by `JwtAuthGuard`. Leverages `openai` SDK (`gpt-4o-mini`). Behaves as an interactive fallback warning if `AI_ENABLED=true` and `OPENAI_API_KEY` are not set.
 
 Database: PostgreSQL via TypeORM. `synchronize: true` in both dev and prod — schema changes apply on boot. No migration files exist.
@@ -148,7 +148,7 @@ Todos los gaps conocidos han sido corregidos:
 | Auth (BE+FE)        | 100%    | OTPs persisted in PostgreSQL.                                             |
 | Clientes            | 99%     | Server-side pagination fully integrated.                                  |
 | Expedientes         | 99%     | Server-side pagination and state filter fully integrated.                 |
-| Calendario          | 97%     | — |
+| Calendario          | 99%     | Integrated client-side Native Browser notifications and in-app SweetAlert2 scheduler for calendar events and deadlines. |
 | Profile             | 100%    | WhatsApp session persisted in DB using RemoteAuth; AFIP dynamic env configuration. |
 | Subscription UI     | 95%     | — |
 | Dashboard           | 99%     | — |

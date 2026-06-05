@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, OnDestroy, NgZone } from '@angular/core';
+import { Component, OnInit, inject, signal, OnDestroy, NgZone, effect } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -48,6 +48,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   configHours: number = 24;
   configWhatsapp: boolean = false;
   configWhatsappNumber: string = '';
+  configDesktop: boolean = true;
 
   // Security Modal
   showSecurityModal = false;
@@ -60,9 +61,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
   constructor() {
     this.profileForm = this.fb.group({
       fullName: ['', Validators.required],
-      email: [{ value: '', disabled: true }],
+      email: [{ value: '', disabled: true }, [Validators.required, Validators.email]],
       phoneNumber: [''],
-      address: ['', Validators.required]
+      cuit: [''],
+      address: [''],
+      role: [{ value: '', disabled: true }],
+      
+      // AFIP Fields
+      iibb: [''],
+      initActivityUser: [''],
+      puntoVenta: [null, Validators.required],
+      condicionIva: ['Resp. Monotributo']
     });
 
     this.afipForm = this.fb.group({
@@ -78,16 +87,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
         newPassword: ['', [Validators.required, Validators.minLength(8), Validators.pattern(/^(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z]).{8,}$/)]],
         confirmPassword: ['', Validators.required]
     });
+
+    // Reactively update local form fields when notification settings change in the service
+    effect(() => {
+      this.configDays = this.notificationService.daysBeforeAlert();
+      this.configHours = this.notificationService.checkFrequencyHours();
+      this.configWhatsapp = this.notificationService.enableWhatsapp();
+      this.configWhatsappNumber = this.notificationService.whatsappNumber();
+      this.configDesktop = this.notificationService.enableDesktop();
+    });
   }
 
   ngOnInit() {
     this.loadProfile();
     this.loadSubscription();
     this.notificationService.loadSettings();
-    this.configDays = this.notificationService.daysBeforeAlert();
-    this.configHours = this.notificationService.checkFrequencyHours();
-    this.configWhatsapp = this.notificationService.enableWhatsapp();
-    this.configWhatsappNumber = this.notificationService.whatsappNumber();
   }
 
   loadSubscription() {
@@ -173,7 +187,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     fullName: user.fullName,
                     email: user.email,
                     phoneNumber: user.phoneNumber,
-                    address: user.address
+                    address: user.address,
+                    cuit: user.cuit,
+                    role: user.role
                 });
 
                 this.afipForm.patchValue({
@@ -304,8 +320,29 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   // --- INTEGRATIONS ---
 
+  async onDesktopToggle(event: any) {
+      if (this.configDesktop) {
+          const granted = await this.notificationService.requestNativePermission();
+          if (!granted) {
+              this.configDesktop = false;
+              Swal.fire({
+                  icon: 'warning',
+                  title: 'Permiso Denegado',
+                  text: 'Para activar las notificaciones pop-up, debes habilitar los permisos de notificación en tu navegador.',
+                  confirmButtonText: 'Entendido'
+              });
+          }
+      }
+  }
+
   saveIntegrations() {
-      this.notificationService.updateAlertSettings(this.configDays, this.configHours, this.configWhatsapp, this.configWhatsappNumber);
+      this.notificationService.updateAlertSettings(
+          this.configDays,
+          this.configHours,
+          this.configWhatsapp,
+          this.configWhatsappNumber,
+          this.configDesktop
+      );
       Swal.fire({
           icon: 'success',
           title: 'Configuración Guardada',
@@ -342,12 +379,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
           confirmButtonText: 'Sí, desconectar'
       }).then((result) => {
           if (result.isConfirmed) {
-              this.notificationService.logoutWhatsapp().subscribe({
+               this.notificationService.logoutWhatsapp().subscribe({
                   next: () => {
                       Swal.fire('Desconectado', 'Sesión cerrada.', 'success');
                       this.qrCodeUrl.set(null);
                       this.configWhatsappNumber = '';
-                      this.notificationService.updateAlertSettings(this.configDays, this.configHours, this.configWhatsapp, '');
+                      this.notificationService.updateAlertSettings(this.configDays, this.configHours, this.configWhatsapp, '', this.configDesktop);
                       if (this.configWhatsapp) this.startQrPolling();
                   },
                   error: () => Swal.fire('Error', 'No se pudo cerrar la sesión.', 'error')

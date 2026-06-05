@@ -17,7 +17,10 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { DeadlineService } from '../../../../core/services/deadline.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ExpedienteService } from '../../../../core/services/expediente.service';
+import { CalendarEventService } from '../../../../core/services/calendar-event.service';
 import { Vencimiento } from '../../../../core/models/vencimiento.model';
+import { CalendarEvent } from '../../../../core/models/calendar-event.model';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -45,21 +48,38 @@ export class CalendarioViewComponent {
   deadlineService = inject(DeadlineService);
   notificationService = inject(NotificationService);
   authService = inject(AuthService);
+  expedienteService = inject(ExpedienteService);
+  calendarEventService = inject(CalendarEventService);
 
   fb = inject(FormBuilder);
 
+  expedienteOptions = computed(() =>
+    this.expedienteService.expedientes().map(e => ({
+      label: `${e.nroExpediente} — ${e.caratula}`,
+      value: e.id
+    }))
+  );
+
   // Properties
-  deadlines = this.deadlineService.deadlines; 
-  
+  deadlines = this.deadlineService.deadlines;
+  calendarEvents = this.calendarEventService.events;
+
   // View State
   viewMode = signal<'LIST' | 'MONTH'>('LIST');
+  listTab = signal<'VENCIMIENTOS' | 'EVENTOS'>('VENCIMIENTOS');
   currentMonth = signal<Date>(new Date());
-  
-  // Dialog & Form
+
+  // Deadline Dialog & Form
   deadlineDialog: boolean = false;
   form: FormGroup;
   isEditMode: boolean = false;
   currentId: string | null = null;
+
+  // Event Dialog & Form
+  eventDialog: boolean = false;
+  eventForm: FormGroup;
+  isEventEditMode: boolean = false;
+  currentEventId: string | null = null;
 
   // Options
   tipos = [
@@ -74,6 +94,21 @@ export class CalendarioViewComponent {
       { label: 'CUMPLIDO', value: 'CUMPLIDO' },
       { label: 'CANCELADO', value: 'CANCELADO' },
       { label: 'EXPIRADO', value: 'EXPIRADO' }
+  ];
+
+  tiposEvento = [
+    { label: 'Reunión', value: 'REUNION' },
+    { label: 'Llamada', value: 'LLAMADA' },
+    { label: 'Recordatorio', value: 'RECORDATORIO' },
+    { label: 'Otro', value: 'OTRO' },
+  ];
+
+  coloresEvento = [
+    { label: 'Azul',    value: '#3b82f6' },
+    { label: 'Verde',   value: '#22c55e' },
+    { label: 'Violeta', value: '#a855f7' },
+    { label: 'Naranja', value: '#f97316' },
+    { label: 'Rosa',    value: '#ec4899' },
   ];
 
   // Calendar Grid Generation
@@ -101,18 +136,22 @@ export class CalendarioViewComponent {
     // Current month days
     for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
       const date = new Date(year, month, day);
-      // Filter deadlines for this day
       const dayDeadlines = this.deadlines().filter(v => {
           if (!v.fechaVencimiento) return false;
           const vDate = new Date(v.fechaVencimiento);
           return vDate.getDate() === day && vDate.getMonth() === month && vDate.getFullYear() === year;
       });
-      
-      days.push({ 
-          date, 
-          isCurrentMonth: true, 
-          isToday: date.toDateString() === today.toDateString(), 
-          deadlines: dayDeadlines 
+      const dayEvents = this.calendarEvents().filter(e => {
+          if (!e.fecha) return false;
+          const eDate = new Date(e.fecha);
+          return eDate.getDate() === day && eDate.getMonth() === month && eDate.getFullYear() === year;
+      });
+      days.push({
+          date,
+          isCurrentMonth: true,
+          isToday: date.toDateString() === today.toDateString(),
+          deadlines: dayDeadlines,
+          events: dayEvents
       });
     }
     
@@ -134,7 +173,16 @@ export class CalendarioViewComponent {
       tipo: ['VENCIMIENTO_PLAZO', Validators.required],
       estado: ['PENDIENTE', Validators.required],
       esPerentorio: [false],
-      expedienteId: [null] // Keep track of relation
+      expedienteId: [null]
+    });
+
+    this.eventForm = this.fb.group({
+      titulo: ['', Validators.required],
+      descripcion: [''],
+      fecha: [null, Validators.required],
+      fechaFin: [null],
+      tipo: ['REUNION', Validators.required],
+      color: ['#3b82f6'],
     });
   }
 
@@ -287,6 +335,40 @@ export class CalendarioViewComponent {
         Swal.fire('Eliminado', 'El vencimiento ha sido eliminado.', 'success');
       }
     });
+  }
+
+  // --- EVENT CRUD ---
+
+  openNewEvent() {
+    this.isEventEditMode = false;
+    this.currentEventId = null;
+    this.eventForm.reset({ tipo: 'REUNION', color: '#3b82f6' });
+    this.eventDialog = true;
+  }
+
+  editEvent(ev: CalendarEvent) {
+    this.isEventEditMode = true;
+    this.currentEventId = ev.id;
+    this.eventForm.patchValue({ ...ev, fecha: new Date(ev.fecha), fechaFin: ev.fechaFin ? new Date(ev.fechaFin) : null });
+    this.eventDialog = true;
+  }
+
+  saveEvent() {
+    if (this.eventForm.invalid) { this.eventForm.markAllAsTouched(); return; }
+    const val = this.eventForm.value;
+    if (this.isEventEditMode && this.currentEventId) {
+      this.calendarEventService.updateEvent(this.currentEventId, val);
+      Swal.fire({ title: 'Actualizado', icon: 'success', timer: 1500, showConfirmButton: false });
+    } else {
+      this.calendarEventService.addEvent(val);
+      Swal.fire({ title: 'Evento creado', icon: 'success', timer: 1500, showConfirmButton: false });
+    }
+    this.eventDialog = false;
+  }
+
+  deleteEvent(id: string) {
+    Swal.fire({ title: '¿Eliminar evento?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar' })
+      .then(r => { if (r.isConfirmed) this.calendarEventService.deleteEvent(id); });
   }
 
   simulateNotification(deadline: Vencimiento) {

@@ -1,5 +1,7 @@
-import { Component, Input, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DialogModule } from 'primeng/dialog';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { DocumentsService, Documento } from '../../../core/services/documents.service';
 import Swal from 'sweetalert2';
 
@@ -17,18 +19,29 @@ const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 @Component({
   selector: 'app-documents-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DialogModule],
   templateUrl: './documents-list.component.html',
   styleUrls: ['./documents-list.component.scss']
 })
-export class DocumentsListComponent implements OnInit {
+export class DocumentsListComponent implements OnInit, OnDestroy {
   @Input() clientId?: string;
   @Input() expedienteId?: string;
 
   documentsService = inject(DocumentsService);
+  private sanitizer = inject(DomSanitizer);
   documents = signal<Documento[]>([]);
   isUploading = signal<boolean>(false);
   isDragging = signal<boolean>(false);
+
+  previewDoc = signal<Documento | null>(null);
+  private _previewUrl = signal<string | null>(null);
+  previewLoading = signal<boolean>(false);
+  private objectUrls: string[] = [];
+
+  safePreviewUrl = computed<SafeResourceUrl | null>(() => {
+    const url = this._previewUrl();
+    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
+  });
 
   ngOnInit() {
     this.loadDocuments();
@@ -118,6 +131,49 @@ export class DocumentsListComponent implements OnInit {
             });
         }
     });
+  }
+
+  downloadDoc(doc: Documento) {
+    this.documentsService.getBlob(doc.id).subscribe(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = doc.originalName;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+    });
+  }
+
+  canPreview(mimeType: string): boolean {
+    return mimeType.startsWith('image/') || mimeType === 'application/pdf';
+  }
+
+  openPreview(doc: Documento) {
+    this.previewDoc.set(doc);
+    this.previewLoading.set(true);
+    this.previewUrl.set(null);
+
+    this.documentsService.getBlob(doc.id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        this.objectUrls.push(url);
+        this._previewUrl.set(url);
+        this.previewLoading.set(false);
+      },
+      error: () => {
+        this.previewLoading.set(false);
+        Swal.fire('Error', 'No se pudo cargar la previsualización.', 'error');
+        this.previewDoc.set(null);
+      }
+    });
+  }
+
+  closePreview() {
+    this.previewDoc.set(null);
+    this._previewUrl.set(null);
+  }
+
+  ngOnDestroy() {
+    this.objectUrls.forEach(url => URL.revokeObjectURL(url));
   }
 
   getIconClass(mimeType: string): string {

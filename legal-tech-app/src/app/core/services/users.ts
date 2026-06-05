@@ -15,6 +15,13 @@ export interface User {
   createdAt?: string;
 }
 
+export interface UserPage {
+  data: User[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -25,6 +32,13 @@ export class UsersService {
 
   getUsers(): Observable<User[]> {
       return this.http.get<User[]>(this.apiUrl);
+  }
+
+  getUsersPaginated(page: number, limit: number, search?: string, status?: string): Observable<UserPage> {
+    const params: any = { page, limit };
+    if (search) params['search'] = search;
+    if (status) params['status'] = status;
+    return this.http.get<UserPage>(this.apiUrl, { params });
   }
 
   createUser(user: any): Observable<User> {

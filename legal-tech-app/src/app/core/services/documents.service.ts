@@ -48,4 +48,8 @@ export class DocumentsService {
   downloadUrl(id: string): string {
       return `${this.apiUrl}/${id}/download`;
   }
+
+  getBlob(id: string): Observable<Blob> {
+      return this.http.get(`${this.apiUrl}/${id}/view`, { responseType: 'blob' });
+  }
 }

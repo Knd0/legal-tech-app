@@ -1,4 +1,4 @@
-import { Component, effect, inject } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ClientService } from '../../../../core/services/client.service';
 import { Cliente } from '../../../../core/models/cliente.model';
@@ -14,15 +14,25 @@ import Swal from 'sweetalert2';
   styleUrl: './clientes-list.component.scss'
 })
 export class ClientesListComponent {
-  clientService = inject(ClientService); // Inject first
-  clientes = this.clientService.clients; // Then use
-
+  clientService = inject(ClientService);
   excelService = inject(ExcelService);
   notificationService = inject(NotificationService);
   loadingService = inject(LoadingService);
   authService = inject(AuthService);
 
-  // constructor(public clientService: ClientService) {} // Removed constructor injection
+  searchTerm = signal<string>('');
+
+  clientes = computed(() => {
+    const term = this.searchTerm().toLowerCase().trim();
+    if (!term) return this.clientService.clients();
+    return this.clientService.clients().filter(c =>
+      c.nombre?.toLowerCase().includes(term) ||
+      c.apellido?.toLowerCase().includes(term) ||
+      c.dni?.toLowerCase().includes(term) ||
+      c.email?.toLowerCase().includes(term) ||
+      c.telefono?.toLowerCase().includes(term)
+    );
+  });
 
   async sendWhatsapp(cliente: Cliente) {
     if (!cliente.telefono) {
@@ -63,7 +73,7 @@ export class ClientesListComponent {
   }
 
   exportList() {
-    this.excelService.exportAsExcelFile(this.clientes(), 'clientes_lista'); // Unwrap signal
+    this.excelService.exportAsExcelFile(this.clientService.clients(), 'clientes_lista');
   }
 
   triggerImport() {

@@ -4,10 +4,12 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomInt } from 'crypto';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { Resend } from 'resend';
 
 @Injectable()
 export class AuthService {
 
+  private resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
   constructor(
     private usersService: UsersService,
@@ -47,22 +49,42 @@ export class AuthService {
   private otps = new Map<string, { code: string; expires: number; attempts: number }>();
   private readonly MAX_OTP_ATTEMPTS = 5;
 
-  async requestForgotPasswordOtp(email: string): Promise<void> {
+  async requestForgotPasswordOtp(email: string): Promise<{ channel: 'whatsapp' | 'email' }> {
     const user = await this.usersService.findOneByEmail(email);
-    if (!user || !user.phoneNumber) {
-      throw new UnauthorizedException('No se encontró una cuenta con ese email o no tiene teléfono vinculado.');
+    if (!user) {
+      throw new UnauthorizedException('No se encontró una cuenta con ese email.');
     }
     const code = randomInt(100000, 1000000).toString();
     this.otps.set(`forgot_${email}`, { code, expires: Date.now() + 5 * 60 * 1000, attempts: 0 });
-    try {
-      await this.whatsappService.sendMessage(
-        user.phoneNumber,
-        `Tu código para restablecer la contraseña es: *${code}*. Expira en 5 minutos.`
-      );
-    } catch (error: any) {
-      this.otps.delete(`forgot_${email}`);
-      throw new UnauthorizedException('No se pudo enviar el código por WhatsApp.');
+
+    if (user.phoneNumber) {
+      try {
+        await this.whatsappService.sendMessage(
+          user.phoneNumber,
+          `Tu código para restablecer la contraseña es: *${code}*. Expira en 5 minutos.`
+        );
+        return { channel: 'whatsapp' };
+      } catch {
+        // WhatsApp falló — intentar fallback por email
+      }
     }
+
+    if (this.resend) {
+      try {
+        await this.resend.emails.send({
+          from: 'LegalTech <no-reply@legaltech.com.ar>',
+          to: email,
+          subject: 'Código para restablecer tu contraseña',
+          html: `<p>Tu código para restablecer la contraseña es: <strong>${code}</strong></p><p>Expira en 5 minutos.</p>`,
+        });
+        return { channel: 'email' };
+      } catch (emailError: any) {
+        console.error('Resend email error:', emailError);
+      }
+    }
+
+    this.otps.delete(`forgot_${email}`);
+    throw new UnauthorizedException('No se pudo enviar el código. Intentá más tarde.');
   }
 
   async resetPassword(email: string, otp: string, newPass: string): Promise<void> {

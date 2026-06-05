@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MercadoPagoConfig, PreApprovalPlan, PreApproval } from 'mercadopago';
+import { MercadoPagoConfig, PreApprovalPlan, PreApproval, Payment } from 'mercadopago';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
@@ -105,6 +105,40 @@ export class MercadopagoService {
     }
 
     await this.usersRepository.update(userId, { subscriptionStatus: 'cancelled' });
+    return { success: true };
+  }
+
+  async getPaymentHistory(userId: string): Promise<{ payments: any[] }> {
+    if (!this.client) return { payments: [] };
+    try {
+      const payment = new Payment(this.client);
+      const result = await payment.search({
+        options: { external_reference: userId, sort: 'date_created', criteria: 'desc', limit: 10 } as any,
+      });
+      return {
+        payments: (result.results ?? []).map((p: any) => ({
+          id: p.id,
+          date: p.date_created,
+          amount: p.transaction_amount,
+          currency: p.currency_id,
+          status: p.status,
+          description: p.description || 'Suscripción LexSaaS',
+        })),
+      };
+    } catch (error) {
+      this.logger.error('Error fetching payment history', error);
+      return { payments: [] };
+    }
+  }
+
+  async reactivateSubscription(userId: string): Promise<{ success: boolean }> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
+    if (!user.mpSubscriptionId || !this.client) throw new Error('No hay suscripción para reactivar');
+
+    const preApproval = new PreApproval(this.client);
+    await preApproval.update({ id: user.mpSubscriptionId, body: { status: 'authorized' } as any });
+    await this.usersRepository.update(userId, { subscriptionStatus: 'active' });
     return { success: true };
   }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Req, Patch, Body, Post, Param, Delete } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Patch, Body, Post, Param, Delete, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -33,7 +33,24 @@ export class UsersController {
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  async findAll() {
+  async findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+  ) {
+    if (page || limit) {
+      const result = await this.usersService.findAllPaginated(
+        page ? +page : 1,
+        limit ? +limit : 10,
+        search,
+        status,
+      );
+      return {
+        ...result,
+        data: result.data.map(u => { const { passwordHash, ...rest } = u; return rest; }),
+      };
+    }
     const users = await this.usersService.findAll();
     return users.map(u => {
       const { passwordHash, ...result } = u;

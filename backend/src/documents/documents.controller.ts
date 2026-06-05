@@ -64,6 +64,39 @@ export class DocumentsController {
       }
   }
 
+  @Get(':id/view')
+  async view(@Param('id') id: string, @Request() req, @Res() res: any) {
+      // Content-Type always comes from this hardcoded map, never from DB/user data
+      const INLINE_TYPES: Record<string, string> = {
+        'image/jpeg': 'image/jpeg',
+        'image/png': 'image/png',
+        'image/gif': 'image/gif',
+        'image/webp': 'image/webp',
+        'application/pdf': 'application/pdf',
+        // image/svg+xml intentionally excluded — SVG can carry JavaScript
+      };
+
+      const doc = await this.documentsService.findOne(id, req.user.userId);
+      if (!fs.existsSync(doc.path)) {
+          throw new InternalServerErrorException('El archivo físico no existe en el servidor');
+      }
+
+      // Strip CR, LF and quotes from filename to prevent header injection
+      const safeFilename = (doc.originalName ?? 'file').replace(/[\r\n"]/g, '_');
+
+      const safeContentType = INLINE_TYPES[doc.mimeType];
+      if (safeContentType) {
+          res.setHeader('Content-Type', safeContentType);
+          res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
+          res.setHeader('X-Content-Type-Options', 'nosniff');
+          res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox; frame-ancestors 'self'");
+          return res.sendFile(doc.path, { root: '.' });
+      } else {
+          // Outside the allowlist → force download, never render inline
+          return res.download(doc.path, safeFilename);
+      }
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string, @Request() req) {
     return this.documentsService.remove(id, req.user.userId);

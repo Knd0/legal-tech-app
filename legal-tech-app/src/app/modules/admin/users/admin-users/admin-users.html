@@ -1,14 +1,17 @@
 <div class="card p-6">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h2 class="text-2xl font-bold text-slate-800">Panel Super Administrador</h2>
-        <p-button label="Nuevo Usuario" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
+        <div class="flex gap-2">
+            <p-button label="Exportar CSV" icon="pi pi-download" severity="secondary" (onClick)="exportCsv()"></p-button>
+            <p-button label="Nuevo Usuario" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
+        </div>
     </div>
 
     <!-- Metricas de Negocio -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white border text-center border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
             <h3 class="text-slate-500 font-medium mb-2">Total Usuarios</h3>
-            <p class="text-3xl font-bold text-slate-800">{{ users().length }}</p>
+            <p class="text-3xl font-bold text-slate-800">{{ totalRecords() }}</p>
         </div>
         <div class="bg-blue-50 border text-center border-blue-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
             <h3 class="text-blue-600 font-medium mb-2">Suscripciones Activas</h3>
@@ -26,25 +29,34 @@
             <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
             <input pInputText
                 [ngModel]="searchTerm()"
-                (ngModelChange)="searchTerm.set($event)"
+                (ngModelChange)="onSearchChange($event)"
                 placeholder="Buscar por nombre, email o rol..."
                 class="w-full pl-9 text-sm" />
         </div>
         <p-select
             [options]="statusOptions"
             [ngModel]="filterStatus()"
-            (ngModelChange)="filterStatus.set($event)"
+            (ngModelChange)="onStatusChange($event)"
             optionLabel="label"
             optionValue="value"
             placeholder="Suscripción"
             styleClass="text-sm w-full sm:w-48">
         </p-select>
-        <span *ngIf="searchTerm() || filterStatus()" class="text-xs text-slate-400 self-center whitespace-nowrap">
-            {{ filteredUsers().length }} de {{ users().length }} usuarios
+        <span class="text-xs text-slate-400 self-center whitespace-nowrap">
+            {{ totalRecords() }} usuarios
         </span>
     </div>
 
-    <p-table [value]="filteredUsers()" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '50rem' }" styleClass="p-datatable-striped">
+    <p-table
+        [value]="users()"
+        [lazy]="true"
+        [paginator]="true"
+        [rows]="pageSize"
+        [totalRecords]="totalRecords()"
+        [loading]="loading()"
+        (onLazyLoad)="onLazyLoad($event)"
+        [tableStyle]="{ 'min-width': '50rem' }"
+        styleClass="p-datatable-striped">
         <ng-template pTemplate="header">
             <tr>
                 <th>Nombre</th>

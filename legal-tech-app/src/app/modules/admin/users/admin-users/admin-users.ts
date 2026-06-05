@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
+import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
@@ -26,8 +26,16 @@ export class AdminUsers implements OnInit {
   private messageService = inject(MessageService);
 
   users = signal<User[]>([]);
+  totalRecords = signal<number>(0);
+  pageSize = 10;
+  loading = signal<boolean>(false);
+
   searchTerm = signal<string>('');
   filterStatus = signal<string>('');
+
+  private currentPage = 1;
+  private searchDebounce: any;
+
   displayCreateDialog = false;
   selectedUser: User | null = null;
   headerText = 'Crear Nuevo Usuario';
@@ -40,19 +48,6 @@ export class AdminUsers implements OnInit {
     { label: 'Pausado', value: 'paused' },
   ];
 
-  filteredUsers = computed(() => {
-    const term = this.searchTerm().toLowerCase().trim();
-    const status = this.filterStatus();
-    return this.users().filter(u => {
-      const matchesSearch = !term ||
-        u.fullName?.toLowerCase().includes(term) ||
-        u.email?.toLowerCase().includes(term) ||
-        u.role?.toLowerCase().includes(term);
-      const matchesStatus = !status || u.subscriptionStatus === status;
-      return matchesSearch && matchesStatus;
-    });
-  });
-
   activeSubscriptionsCount = computed(() =>
     this.users().filter(u => u.subscriptionStatus === 'active').length
   );
@@ -61,16 +56,66 @@ export class AdminUsers implements OnInit {
     this.users().filter(u => u.subscriptionStatus === 'cancelled').length
   );
 
-  constructor() {}
-
   ngOnInit() {
-    this.loadUsers();
+    this.loadPage(1);
   }
 
-  loadUsers() {
+  loadPage(page: number) {
+    this.loading.set(true);
+    this.currentPage = page;
+    this.usersService.getUsersPaginated(page, this.pageSize, this.searchTerm() || undefined, this.filterStatus() || undefined).subscribe({
+      next: (res) => {
+        this.users.set(res.data);
+        this.totalRecords.set(res.total);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los usuarios' });
+      }
+    });
+  }
+
+  onLazyLoad(event: TableLazyLoadEvent) {
+    const page = Math.floor((event.first ?? 0) / (event.rows ?? this.pageSize)) + 1;
+    this.loadPage(page);
+  }
+
+  onSearchChange(value: string) {
+    this.searchTerm.set(value);
+    clearTimeout(this.searchDebounce);
+    this.searchDebounce = setTimeout(() => this.loadPage(1), 400);
+  }
+
+  onStatusChange(value: string) {
+    this.filterStatus.set(value);
+    this.loadPage(1);
+  }
+
+  exportCsv() {
     this.usersService.getUsers().subscribe({
-      next: (data) => this.users.set(data),
-      error: (err) => this.messageService.add({severity:'error', summary:'Error', detail:'Failed to load users'})
+      next: (allUsers) => {
+        const headers = ['Nombre', 'Email', 'Teléfono', 'Rol', 'Estado', 'Suscripción', 'Vencimiento', 'Creado'];
+        const rows = allUsers.map(u => [
+          u.fullName ?? '',
+          u.email ?? '',
+          u.phoneNumber ?? '',
+          u.role ?? '',
+          u.isActive ? 'ACTIVO' : 'SUSPENDIDO',
+          u.subscriptionStatus ?? '',
+          u.subscriptionExpiresAt ? new Date(u.subscriptionExpiresAt).toLocaleDateString('es-AR') : '',
+          u.createdAt ? new Date(u.createdAt).toLocaleDateString('es-AR') : '',
+        ]);
+        const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `usuarios_${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo exportar el CSV' })
     });
   }
 
@@ -99,10 +144,10 @@ export class AdminUsers implements OnInit {
       if (result.isConfirmed) {
         this.usersService.deleteUser(user.id).subscribe({
           next: () => {
-            this.messageService.add({severity:'success', summary:'Eliminado', detail:'Usuario eliminado permanentemente'});
-            this.loadUsers();
+            this.messageService.add({ severity: 'success', summary: 'Eliminado', detail: 'Usuario eliminado permanentemente' });
+            this.loadPage(this.currentPage);
           },
-          error: () => this.messageService.add({severity:'error', summary:'Error', detail:'No se pudo eliminar el usuario'})
+          error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo eliminar el usuario' })
         });
       }
     });
@@ -110,14 +155,14 @@ export class AdminUsers implements OnInit {
 
   onUserCreated() {
     this.displayCreateDialog = false;
-    this.loadUsers();
-    this.messageService.add({severity:'success', summary:'Creado', detail:'Usuario creado exitosamente'});
+    this.loadPage(1);
+    this.messageService.add({ severity: 'success', summary: 'Creado', detail: 'Usuario creado exitosamente' });
   }
 
   onUserUpdated() {
     this.displayCreateDialog = false;
-    this.loadUsers();
-    this.messageService.add({severity:'success', summary:'Actualizado', detail:'Usuario actualizado exitosamente'});
+    this.loadPage(this.currentPage);
+    this.messageService.add({ severity: 'success', summary: 'Actualizado', detail: 'Usuario actualizado exitosamente' });
   }
 
   toggleSuspension(user: User) {
@@ -126,20 +171,20 @@ export class AdminUsers implements OnInit {
         this.users.update(prev => {
           const index = prev.findIndex(u => u.id === updatedUser.id);
           if (index !== -1) {
-            const newUsers = [...prev];
-            newUsers[index] = updatedUser;
-            return newUsers;
+            const next = [...prev];
+            next[index] = updatedUser;
+            return next;
           }
           return prev;
         });
         const msg = updatedUser.isActive ? 'Usuario Activado' : 'Usuario Suspendido';
-        this.messageService.add({severity:'info', summary:'Estado Actualizado', detail: msg});
+        this.messageService.add({ severity: 'info', summary: 'Estado Actualizado', detail: msg });
       },
-      error: (err) => this.messageService.add({severity:'error', summary:'Error', detail:'Falló al actualizar estado'})
+      error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Falló al actualizar estado' })
     });
   }
 
   getSeverity(isActive: boolean): any {
-      return isActive ? 'warning' : 'success';
+    return isActive ? 'warning' : 'success';
   }
 }

@@ -30,6 +30,7 @@ export class ForgotPasswordComponent {
   step = signal<1 | 2>(1);
   loading = signal(false);
   email = signal('');
+  channel = signal<'whatsapp' | 'email'>('whatsapp');
 
   emailForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -45,10 +46,11 @@ export class ForgotPasswordComponent {
     if (this.emailForm.invalid) { this.emailForm.markAllAsTouched(); return; }
     this.loading.set(true);
     const email = this.emailForm.value.email;
-    this.http.post(`${environment.apiUrl}/auth/forgot-password`, { email }).subscribe({
-      next: () => {
+    this.http.post<{ message: string; channel: 'whatsapp' | 'email' }>(`${environment.apiUrl}/auth/forgot-password`, { email }).subscribe({
+      next: (res) => {
         this.loading.set(false);
         this.email.set(email);
+        this.channel.set(res.channel);
         this.step.set(2);
       },
       error: (err) => {

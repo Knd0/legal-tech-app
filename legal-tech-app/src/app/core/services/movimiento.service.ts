@@ -60,4 +60,8 @@ export class MovimientoService {
   getFacturasByClient(clientId: string) {
       return this.http.get<any[]>(`${environment.apiUrl}/facturas/client/${clientId}`);
   }
+
+  getFacturasByClientPaginated(clientId: string, page: number, limit: number) {
+      return this.http.get<any>(`${environment.apiUrl}/facturas/client/${clientId}?page=${page}&limit=${limit}`);
+  }
 }

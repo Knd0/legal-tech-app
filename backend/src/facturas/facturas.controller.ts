@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, UseGuards, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Req, UseGuards, Get, Param, Query } from '@nestjs/common';
 import { FacturasService } from './facturas.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -14,15 +14,24 @@ export class FacturasController {
 
   @Get('client/:clientId')
   @UseGuards(JwtAuthGuard)
-  findByClient(@Param('clientId') clientId: string) {
-    return this.facturasService.findByClient(clientId);
+  findByClient(
+    @Param('clientId') clientId: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : undefined;
+    const limitNum = limit ? parseInt(limit, 10) : undefined;
+    return this.facturasService.findByClient(clientId, pageNum, limitNum);
   }
-
-
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  findAll() {
-    return this.facturasService.findAll();
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : undefined;
+    const limitNum = limit ? parseInt(limit, 10) : undefined;
+    return this.facturasService.findAll(pageNum, limitNum);
   }
 }

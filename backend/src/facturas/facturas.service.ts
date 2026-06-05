@@ -145,11 +145,52 @@ export class FacturasService {
     }
   }
 
-  findAll() {
-    return this.facturasRepository.find();
+  async findAll(page?: number, limit?: number): Promise<any> {
+    if (page !== undefined && limit !== undefined) {
+      const skip = (page - 1) * limit;
+      const take = limit;
+
+      const [data, total] = await this.facturasRepository.findAndCount({
+        order: { createdAt: 'DESC' },
+        skip,
+        take,
+      });
+
+      return {
+        data,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    }
+
+    return this.facturasRepository.find({
+      order: { createdAt: 'DESC' },
+    });
   }
 
-  findByClient(clientId: string) {
+  async findByClient(clientId: string, page?: number, limit?: number): Promise<any> {
+    if (page !== undefined && limit !== undefined) {
+      const skip = (page - 1) * limit;
+      const take = limit;
+
+      const [data, total] = await this.facturasRepository.findAndCount({
+        where: { clientId },
+        order: { createdAt: 'DESC' },
+        skip,
+        take,
+      });
+
+      return {
+        data,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    }
+
     return this.facturasRepository.find({
         where: { clientId },
         order: { createdAt: 'DESC' }

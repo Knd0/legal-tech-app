@@ -156,6 +156,7 @@ Todos los gaps conocidos han sido corregidos:
 | Documents UI        | 99%     | Cloudinary integration completed; preview modal resolved.                 |
 | Copiloto IA         | 95%     | Created and integrated; pending environment variable activation on Render.|
 | Calendar (BE)       | 95%     | — |
+| Facturas y Audits   | 99%     | Server-side pagination implemented for invoices (Facturas) and system logs (AuditLogs). |
 
 ---
 

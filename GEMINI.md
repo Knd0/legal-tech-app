@@ -39,6 +39,7 @@ Actualmente la aplicación se encuentra en un estado muy avanzado (~98% global):
 | **Admin/Users** | **99%** | Listado de usuarios, suspensión y borrado estilizado con SweetAlert2. |
 | **Documents UI** | **99%** | Carga de archivos integrada con **persistencia real en la nube usando Cloudinary** (eliminando el almacenamiento temporal efímero en disco de Render). Streaming seguro (view/download) y preview interactivo de imágenes y PDFs corregido. |
 | **Copiloto IA** | **95%** | Estructura completa creada en backend (`POST /ai/analyze`) y frontend (`/ai`). Interfaz premium interactiva (selección de tipo de análisis, cargador y copia al portapapeles con SweetAlert2). **Listo para ser habilitado** mediante variables de entorno. |
+| **Facturas y Auditorías**| **99%** | Incorporada **paginación server-side con carga lazy** en el listado de comprobantes del cliente y adaptados los servicios de auditoría y facturación en el backend con soporte completo de `page` y `limit` y pruebas unitarias asociadas. |
 
 ---
 
@@ -77,7 +78,7 @@ Se han cerrado todas las brechas de seguridad críticas del backend:
 
 1. **Activar el Copiloto IA en Producción:**
    El módulo ya está completamente desarrollado y probado. Para dejarlo 100% funcional, solo se deben añadir las variables de entorno `AI_ENABLED=true` y `OPENAI_API_KEY` (con una clave de API válida de OpenAI) en el panel de configuración de Render.
-2. **Paginación Server-Side en otras vistas masivas:**
-   Aplicar la misma arquitectura lazy-load de PrimeNG a los listados de Facturas o Auditorías en caso de que su volumen de datos crezca significativamente.
-3. **Soporte para múltiples Puntos de Venta en AFIP:**
+2. **Soporte para múltiples Puntos de Venta en AFIP:**
    Permitir a los usuarios configurar diferentes números de Punto de Venta directamente en su perfil de configuración para mayor flexibilidad en la emisión de facturas.
+3. **Paginación Server-Side en listados de Movimientos (Cuenta Corriente):**
+   Si la cantidad de transacciones por cliente se incrementa fuertemente, se puede aplicar paginación diferida en la lista principal de movimientos del cliente.

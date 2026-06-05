@@ -5,6 +5,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import * as fs from 'fs';
+import * as https from 'https';
 
 const ALLOWED_MIME_TYPES = [
   'application/pdf',
@@ -57,44 +58,61 @@ export class DocumentsController {
   @Get(':id/download')
   async download(@Param('id') id: string, @Request() req, @Res() res: any) {
       const doc = await this.documentsService.findOne(id, req.user.userId);
-      if (fs.existsSync(doc.path)) {
-          return res.download(doc.path, doc.originalName);
-      } else {
-          throw new InternalServerErrorException('El archivo físico no existe en el servidor');
+      if (!doc.path) {
+          throw new InternalServerErrorException('La URL del archivo no existe');
       }
+
+      const safeFilename = (doc.originalName ?? 'file').replace(/[\r\n"]/g, '_');
+
+      https.get(doc.path, (cloudinaryResponse) => {
+          if (cloudinaryResponse.statusCode !== 200) {
+              return res.status(500).json({ message: 'Error al descargar el archivo desde el almacenamiento' });
+          }
+
+          res.setHeader('Content-Type', doc.mimeType);
+          res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+          cloudinaryResponse.pipe(res);
+      }).on('error', (err) => {
+          res.status(500).json({ message: 'Error de red al descargar el archivo: ' + err.message });
+      });
   }
 
   @Get(':id/view')
   async view(@Param('id') id: string, @Request() req, @Res() res: any) {
-      // Content-Type always comes from this hardcoded map, never from DB/user data
       const INLINE_TYPES: Record<string, string> = {
         'image/jpeg': 'image/jpeg',
         'image/png': 'image/png',
         'image/gif': 'image/gif',
         'image/webp': 'image/webp',
         'application/pdf': 'application/pdf',
-        // image/svg+xml intentionally excluded — SVG can carry JavaScript
       };
 
       const doc = await this.documentsService.findOne(id, req.user.userId);
-      if (!fs.existsSync(doc.path)) {
-          throw new InternalServerErrorException('El archivo físico no existe en el servidor');
+      if (!doc.path) {
+          throw new InternalServerErrorException('La URL del archivo no existe');
       }
 
-      // Strip CR, LF and quotes from filename to prevent header injection
       const safeFilename = (doc.originalName ?? 'file').replace(/[\r\n"]/g, '_');
-
       const safeContentType = INLINE_TYPES[doc.mimeType];
-      if (safeContentType) {
-          res.setHeader('Content-Type', safeContentType);
-          res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
-          res.setHeader('X-Content-Type-Options', 'nosniff');
-          res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox; frame-ancestors 'self'");
-          return res.sendFile(doc.path, { root: '.' });
-      } else {
-          // Outside the allowlist → force download, never render inline
-          return res.download(doc.path, safeFilename);
-      }
+
+      https.get(doc.path, (cloudinaryResponse) => {
+          if (cloudinaryResponse.statusCode !== 200) {
+              return res.status(500).json({ message: 'Error al obtener el archivo desde el almacenamiento' });
+          }
+
+          if (safeContentType) {
+              res.setHeader('Content-Type', safeContentType);
+              res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
+              res.setHeader('X-Content-Type-Options', 'nosniff');
+              res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox; frame-ancestors 'self'");
+          } else {
+              res.setHeader('Content-Type', doc.mimeType);
+              res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+          }
+          cloudinaryResponse.pipe(res);
+      }).on('error', (err) => {
+          res.status(500).json({ message: 'Error de red al visualizar el archivo: ' + err.message });
+      });
   }
 
   @Delete(':id')

@@ -131,11 +131,11 @@ Todos los gaps conocidos han sido corregidos:
 | Área                | Estado  | Próximo paso                                                              |
 | ------------------- | ------- | ------------------------------------------------------------------------- |
 | Auth (BE+FE)        | 99%     | — |
-| Clientes            | 85%     | Sin paginación server-side                                                |
+| Clientes            | 95%     | — |
 | Expedientes         | 97%     | — |
 | Calendario          | 97%     | — |
 | Profile             | 99%     | — |
-| Subscription UI     | 80%     | Sin historial de pagos; sin manejo del estado `paused` desde MercadoPago  |
+| Subscription UI     | 95%     | — |
 | Dashboard           | 99%     | — |
 | Admin/Users         | 99%     | — |
 | Documents UI        | 78%     | Sin preview de archivos (PDF/imagen); archivos en disco efímero en Render — necesita S3 |

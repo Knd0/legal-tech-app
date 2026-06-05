@@ -112,6 +112,23 @@
                     </div>
                 </div>
 
+                <!-- Historial de pagos -->
+                <div *ngIf="authService.currentUser()?.role !== 'ADMIN' && paymentHistory().length > 0" class="mt-3">
+                    <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Historial de pagos</p>
+                    <div class="space-y-1.5">
+                        <div *ngFor="let p of paymentHistory()" class="flex items-center justify-between bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-700 text-xs">
+                            <div class="flex items-center gap-2">
+                                <span [class]="p.status === 'approved' ? 'w-2 h-2 rounded-full bg-green-500' : 'w-2 h-2 rounded-full bg-red-400'"></span>
+                                <span class="text-slate-600 dark:text-slate-300 font-medium">{{ p.description }}</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-right">
+                                <span class="text-slate-500 dark:text-slate-400">{{ p.date | date:'dd/MM/yyyy' }}</span>
+                                <span class="font-bold text-slate-700 dark:text-slate-200">${{ p.amount | number:'1.0-0' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Active but EXPIRED (Grace Period) -->
                 <div *ngIf="authService.currentUser()?.role !== 'ADMIN' && authService.currentUser()?.subscriptionStatus === 'active' && authService.isSubscriptionExpired()" class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-100 dark:border-red-800/50 text-center shadow-sm animate-pulse">
                     <i class="pi pi-exclamation-circle text-red-500 text-3xl mb-2"></i>
@@ -129,11 +146,14 @@
                 </div>
 
                 <!-- Paused -->
-                <div *ngIf="authService.currentUser()?.role !== 'ADMIN' && authService.currentUser()?.subscriptionStatus === 'paused'" class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700 text-center shadow-sm">
+                <div *ngIf="authService.currentUser()?.role !== 'ADMIN' && authService.currentUser()?.subscriptionStatus === 'paused'" class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700 text-center shadow-sm space-y-2">
                     <i class="pi pi-pause-circle text-yellow-500 text-3xl mb-2"></i>
                     <p class="text-yellow-800 dark:text-yellow-300 font-extrabold text-base tracking-tight">Plan Pausado</p>
-                    <p class="text-xs font-medium text-yellow-600 dark:text-yellow-400 mt-1 mb-4">Tu suscripción está pausada. Reactivala desde MercadoPago.</p>
-                    <a routerLink="/subscription/pricing" class="inline-flex justify-center w-full text-center px-4 py-2 text-sm font-bold rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 transition-all shadow-md">Ver Opciones</a>
+                    <p class="text-xs font-medium text-yellow-600 dark:text-yellow-400 mt-1 mb-4">MercadoPago pausó tu suscripción (generalmente por un pago fallido).</p>
+                    <button pButton label="Reactivar Suscripción" icon="pi pi-play"
+                        class="p-button-warning p-button-sm w-full"
+                        [loading]="reactivating()"
+                        (click)="reactivateSubscription()"></button>
                 </div>
 
                 <!-- Trial / No active subscription -->

@@ -1,44 +1,74 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { RouterModule } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
+import { AuthService } from '../../../../core/services/auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-pricing',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './pricing.html'
 })
-export class Pricing {
-  loading = false;
+export class Pricing implements OnInit {
+  private http = inject(HttpClient);
+  authService = inject(AuthService);
 
-  constructor(private http: HttpClient) {}
+  loading = signal<'basic' | 'pro' | 'reactivate' | null>(null);
 
-  subscribeBasic() {
-    this.createSubscription('basic');
+  get status() {
+    return this.authService.currentUser()?.subscriptionStatus ?? 'trial';
   }
 
-  subscribePro() {
-    this.createSubscription('pro');
-  }
+  ngOnInit() {}
+
+  subscribeBasic() { this.createSubscription('basic'); }
+  subscribePro()   { this.createSubscription('pro'); }
 
   private createSubscription(planType: string) {
-    this.loading = true;
-    this.http.post<{preapprovalLink: string}>(`${environment.apiUrl}/mercadopago/create-subscription`, { plan: planType })
+    this.loading.set(planType as 'basic' | 'pro');
+    this.http.post<{ preapprovalLink: string }>(`${environment.apiUrl}/mercadopago/create-subscription`, { plan: planType })
       .subscribe({
         next: (res) => {
           if (res.preapprovalLink) {
-             window.location.href = res.preapprovalLink;
+            window.location.href = res.preapprovalLink;
           } else {
-             this.loading = false;
-             alert('Error al generar el link de pago.');
+            this.loading.set(null);
+            Swal.fire('Error', 'No se pudo generar el link de pago.', 'error');
           }
         },
-        error: (err) => {
-          console.error(err);
-          this.loading = false;
-          alert('Error de conexión con MercadoPago.');
+        error: () => {
+          this.loading.set(null);
+          Swal.fire('Error', 'Error de conexión con MercadoPago. Intentá de nuevo.', 'error');
         }
       });
+  }
+
+  reactivate() {
+    Swal.fire({
+      title: 'Reactivar suscripción',
+      text: '¿Querés reactivar tu suscripción? Se reanudará el cobro automático.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, reactivar',
+      cancelButtonText: 'Cancelar',
+    }).then(result => {
+      if (!result.isConfirmed) return;
+      this.loading.set('reactivate');
+      this.http.post<{ success: boolean }>(`${environment.apiUrl}/mercadopago/reactivate-subscription`, {}).subscribe({
+        next: () => {
+          this.loading.set(null);
+          const user = this.authService.currentUser();
+          this.authService.currentUser.set({ ...user, subscriptionStatus: 'active' });
+          Swal.fire('¡Reactivada!', 'Tu suscripción está activa nuevamente.', 'success');
+        },
+        error: (err) => {
+          this.loading.set(null);
+          Swal.fire('Error', err.error?.message || 'No se pudo reactivar la suscripción.', 'error');
+        }
+      });
+    });
   }
 }

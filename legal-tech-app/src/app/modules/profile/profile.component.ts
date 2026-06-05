@@ -34,7 +34,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   saving = signal<boolean>(false);
   savingAfip = signal<boolean>(false);
   cancellingSubscription = signal<boolean>(false);
+  reactivating = signal<boolean>(false);
   subscriptionData = signal<{ status: string; expiresAt: string | null; mpSubscriptionId: string | null } | null>(null);
+  paymentHistory = signal<any[]>([]);
 
   // Integrations State
   isAfipLinked = signal<boolean>(false);
@@ -90,8 +92,37 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   loadSubscription() {
     this.http.get<any>(`${environment.apiUrl}/mercadopago/subscription`).subscribe({
-      next: (data) => this.subscriptionData.set(data),
+      next: (data) => {
+        this.subscriptionData.set(data);
+        if (data.status === 'active' || data.status === 'paused') {
+          this.loadPaymentHistory();
+        }
+      },
       error: (err) => console.error('Error loading subscription', err)
+    });
+  }
+
+  loadPaymentHistory() {
+    this.http.get<{ payments: any[] }>(`${environment.apiUrl}/mercadopago/payment-history`).subscribe({
+      next: (res) => this.paymentHistory.set(res.payments),
+      error: (err) => console.error('Error loading payment history', err)
+    });
+  }
+
+  reactivateSubscription() {
+    this.reactivating.set(true);
+    this.http.post<{ success: boolean }>(`${environment.apiUrl}/mercadopago/reactivate-subscription`, {}).subscribe({
+      next: () => {
+        this.reactivating.set(false);
+        const user = this.authService.currentUser();
+        this.authService.currentUser.set({ ...user, subscriptionStatus: 'active' });
+        this.subscriptionData.set({ ...this.subscriptionData()!, status: 'active' });
+        Swal.fire({ icon: 'success', title: '¡Reactivada!', text: 'Tu suscripción está activa nuevamente.', timer: 2000, showConfirmButton: false });
+      },
+      error: (err) => {
+        this.reactivating.set(false);
+        Swal.fire('Error', err.error?.message || 'No se pudo reactivar la suscripción.', 'error');
+      }
     });
   }
 

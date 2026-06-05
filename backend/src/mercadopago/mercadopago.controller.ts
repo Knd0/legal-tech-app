@@ -44,6 +44,28 @@ export class MercadopagoController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('payment-history')
+  async getPaymentHistory(@Req() req, @Res() res: Response) {
+    try {
+      const result = await this.mpService.getPaymentHistory(req.user.userId);
+      return res.status(200).json(result);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('reactivate-subscription')
+  async reactivateSubscription(@Req() req, @Res() res: Response) {
+    try {
+      const result = await this.mpService.reactivateSubscription(req.user.userId);
+      return res.status(200).json(result);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
   @Post('webhook')
   async handleWebhook(@Req() req: Request, @Body() body: any, @Res() res: Response) {
     const secret = process.env.MP_WEBHOOK_SECRET;

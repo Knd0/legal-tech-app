@@ -66,13 +66,28 @@ export class DocumentsController {
 
   @Get(':id/view')
   async view(@Param('id') id: string, @Request() req, @Res() res: any) {
+      const INLINE_ALLOWLIST = new Set([
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf',
+      ]);
+
       const doc = await this.documentsService.findOne(id, req.user.userId);
-      if (fs.existsSync(doc.path)) {
+      if (!fs.existsSync(doc.path)) {
+          throw new InternalServerErrorException('El archivo físico no existe en el servidor');
+      }
+
+      // Sanitize filename: strip CR, LF and quotes to prevent header injection
+      const safeFilename = (doc.originalName ?? 'file').replace(/[\r\n"]/g, '_');
+
+      if (INLINE_ALLOWLIST.has(doc.mimeType)) {
           res.setHeader('Content-Type', doc.mimeType);
-          res.setHeader('Content-Disposition', `inline; filename="${doc.originalName}"`);
+          res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
+          res.setHeader('X-Content-Type-Options', 'nosniff');
+          res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox; frame-ancestors 'self'");
           return res.sendFile(doc.path, { root: '.' });
       } else {
-          throw new InternalServerErrorException('El archivo físico no existe en el servidor');
+          // Anything outside the allowlist is forced to download, never rendered inline
+          return res.download(doc.path, safeFilename);
       }
   }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, signal, OnDestroy, NgZone } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -25,6 +25,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   http = inject(HttpClient);
   authService = inject(AuthService);
   notificationService = inject(NotificationService);
+  private ngZone = inject(NgZone);
 
   profileForm: FormGroup;
   afipForm: FormGroup;
@@ -373,31 +374,34 @@ export class ProfileComponent implements OnInit, OnDestroy {
   startQrPolling(intervalMs = 3000) {
       this.stopQrPolling();
       let consecutiveErrors = 0;
-      // Límite de ~2 minutos: 40 polls a 3s, 24 a 5s, 12 a 10s
       const maxPolls = Math.ceil(120_000 / intervalMs);
       let pollCount = 0;
 
-      this.qrPollInterval = setInterval(() => {
+      this.ngZone.runOutsideAngular(() => {
+        this.qrPollInterval = setInterval(() => {
           if (++pollCount > maxPolls) {
+            this.ngZone.run(() => {
               this.stopQrPolling();
               this.whatsappError.set('Tiempo de espera agotado. Intentá de nuevo.');
-              return;
+            });
+            return;
           }
 
           this.notificationService.getWhatsappStatus().subscribe({
             next: (status: any) => {
-              consecutiveErrors = 0;
+              this.ngZone.run(() => {
+                consecutiveErrors = 0;
 
-              if (status.qr) {
+                if (status.qr) {
                   this.qrCodeUrl.set(status.qr);
-              } else if (status.ready) {
+                } else if (status.ready) {
                   this.qrCodeUrl.set(null);
                   this.pairingCode.set(null);
                   this.whatsappError.set(null);
                   this.stopQrPolling();
 
                   if (status.number && !this.configWhatsappNumber) {
-                      this.configWhatsappNumber = status.number;
+                    this.configWhatsappNumber = status.number;
                   }
 
                   Swal.fire({
@@ -407,25 +411,34 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     timer: 2000,
                     showConfirmButton: false
                   });
-              } else if (status.error) {
+                } else if (status.error) {
                   this.whatsappError.set(status.error);
                   this.stopQrPolling();
-              }
+                }
+              });
             },
             error: (err: any) => {
+              this.ngZone.run(() => {
+                if (err.status === 401) {
+                  this.stopQrPolling();
+                  this.whatsappError.set('Sesión expirada. Volvé a iniciar sesión.');
+                  return;
+                }
+
                 consecutiveErrors++;
                 console.warn(`Polling error (${consecutiveErrors}):`, err);
 
                 if (consecutiveErrors >= 5) {
-                    this.stopQrPolling();
-                    this.whatsappError.set('No se pudo conectar con el servidor. Intentá de nuevo.');
+                  this.stopQrPolling();
+                  this.whatsappError.set('No se pudo conectar con el servidor. Intentá de nuevo.');
                 } else if (consecutiveErrors >= 3 && intervalMs < 10_000) {
-                    // Back off a 10s tras 3 errores seguidos
-                    this.startQrPolling(10_000);
+                  this.startQrPolling(10_000);
                 }
+              });
             }
           });
-      }, intervalMs);
+        }, intervalMs);
+      });
   }
 
   sendTestMessage() {

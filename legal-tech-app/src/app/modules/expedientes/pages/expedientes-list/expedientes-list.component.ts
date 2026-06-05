@@ -1,4 +1,4 @@
-import { Component, effect, inject } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { ExpedienteService } from '../../../../core/services/expediente.service';
 import { Expediente } from '../../../../core/models/expediente.model';
 import { ExcelService } from '../../../../core/services/excel.service';
@@ -14,16 +14,38 @@ import Swal from 'sweetalert2';
 })
 export class ExpedientesListComponent {
   authService = inject(AuthService);
-  expedienteService = inject(ExpedienteService); // Inject first
-  expedientes = this.expedienteService.expedientes; // Then use
-
+  expedienteService = inject(ExpedienteService);
   excelService = inject(ExcelService);
   loadingService = inject(LoadingService);
 
-  // constructor(public expedienteService: ExpedienteService) {} // Removed constructor injection
+  searchTerm = signal<string>('');
+  filterEstado = signal<string>('');
+
+  estadoOptions = [
+    { label: 'Todos', value: '' },
+    { label: 'Iniciado', value: 'INICIADO' },
+    { label: 'Prueba', value: 'PRUEBA' },
+    { label: 'Alegatos', value: 'ALEGATOS' },
+    { label: 'Sentencia', value: 'SENTENCIA' },
+    { label: 'Archivado', value: 'ARCHIVADO' },
+  ];
+
+  expedientes = computed(() => {
+    const term = this.searchTerm().toLowerCase().trim();
+    const estado = this.filterEstado();
+    return this.expedienteService.expedientes().filter(e => {
+      const matchesSearch = !term ||
+        e.nroExpediente?.toLowerCase().includes(term) ||
+        e.caratula?.toLowerCase().includes(term) ||
+        e.fuero?.toLowerCase().includes(term) ||
+        e.juzgado?.toLowerCase().includes(term);
+      const matchesEstado = !estado || e.estado === estado;
+      return matchesSearch && matchesEstado;
+    });
+  });
 
   exportList() {
-    this.excelService.exportAsExcelFile(this.expedientes(), 'expedientes_lista'); // Unwrap signal
+    this.excelService.exportAsExcelFile(this.expedienteService.expedientes(), 'expedientes_lista');
   }
 
   triggerImport() {

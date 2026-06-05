@@ -80,6 +80,26 @@ export class UsersService implements OnModuleInit {
     });
   }
 
+  async findAllPaginated(page: number, limit: number, search?: string, status?: string): Promise<{ data: User[]; total: number; page: number; limit: number }> {
+    const query = this.usersRepository.createQueryBuilder('user');
+
+    if (search) {
+      query.where(
+        '(LOWER(user.fullName) LIKE :search OR LOWER(user.email) LIKE :search OR LOWER(user.role) LIKE :search)',
+        { search: `%${search.toLowerCase()}%` }
+      );
+    }
+
+    if (status) {
+      query.andWhere('user.subscriptionStatus = :status', { status });
+    }
+
+    query.orderBy('user.createdAt', 'DESC').skip((page - 1) * limit).take(limit);
+
+    const [data, total] = await query.getManyAndCount();
+    return { data, total, page, limit };
+  }
+
   async createUser(userData: any): Promise<User> {
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(userData.password, salt);

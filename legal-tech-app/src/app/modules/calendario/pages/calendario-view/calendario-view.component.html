@@ -66,10 +66,13 @@
                     <td class="py-3 px-6">
                         <div class="font-semibold text-slate-800 dark:text-slate-200"
                             [ngClass]="{'line-through text-slate-400 dark:text-slate-500': deadline.estado === 'CUMPLIDO'}">
-                            {{
-                            deadline.titulo }}</div>
-                        <div class="text-xs text-slate-500 dark:text-slate-400 truncate max-w-xs mt-0.5">{{
-                            deadline.descripcion }}
+                            {{ deadline.titulo }}</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 truncate max-w-xs mt-0.5">
+                            {{ deadline.descripcion }}
+                        </div>
+                        <div *ngIf="deadline.expedienteId" class="text-xs text-blue-600 dark:text-blue-400 mt-0.5 flex items-center gap-1">
+                            <i class="pi pi-folder text-[10px]"></i>
+                            {{ expedienteService.getExpedienteById(deadline.expedienteId)?.nroExpediente || 'Exp. vinculado' }}
                         </div>
                     </td>
                     <td class="py-3 px-6 text-slate-600 dark:text-slate-300 text-sm">{{ deadline.tipo }}</td>
@@ -249,6 +252,22 @@
                         class="font-bold text-sm text-slate-700 dark:text-slate-300">Descripción</label>
                     <textarea id="descripcion" pInputTextarea formControlName="descripcion" required rows="3" cols="20"
                         class="w-full"></textarea>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="font-bold text-sm text-slate-700 dark:text-slate-300">Expediente vinculado
+                        <span class="font-normal text-slate-400">(opcional)</span>
+                    </label>
+                    <p-select
+                        [options]="expedienteOptions()"
+                        formControlName="expedienteId"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Sin expediente"
+                        [showClear]="true"
+                        appendTo="body"
+                        styleClass="w-full">
+                    </p-select>
                 </div>
 
                 <div class="flex items-center gap-2 mt-2">

@@ -3,6 +3,7 @@ import { DashboardService } from '../../core/services/dashboard.service';
 import { AuditService } from '../../core/services/audit.service';
 import { DeadlineService } from '../../core/services/deadline.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TooltipModule } from 'primeng/tooltip';
@@ -21,6 +22,7 @@ export class DashboardComponent implements OnInit {
   auditService = inject(AuditService);
   deadlineService = inject(DeadlineService);
   authService = inject(AuthService);
+  themeService = inject(ThemeService);
 
   stats = signal<any>(null);
   recentActivity = this.auditService.recentLogs;
@@ -28,29 +30,48 @@ export class DashboardComponent implements OnInit {
   currentDate = new Date();
 
   chartData: any = null;
-  chartOptions: any = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
-      tooltip: {
-        callbacks: {
-          label: (ctx: any) => ` $${ctx.parsed.y.toLocaleString('es-AR')}`
+  chartOptions: any = null;
+
+  private buildChartOptions(dark: boolean): any {
+    const textColor = dark ? '#cbd5e1' : '#475569';
+    const gridColor = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { usePointStyle: true, padding: 20, color: textColor }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx: any) => ` $${ctx.parsed.y.toLocaleString('es-AR')}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          border: { display: false },
+          ticks: { color: textColor }
+        },
+        y: {
+          border: { display: false },
+          grid: { color: gridColor },
+          ticks: {
+            color: textColor,
+            callback: (v: number) => `$${(v / 1000).toFixed(0)}k`
+          }
         }
       }
-    },
-    scales: {
-      x: { grid: { display: false }, border: { display: false } },
-      y: {
-        border: { display: false },
-        ticks: {
-          callback: (v: number) => `$${(v / 1000).toFixed(0)}k`
-        }
-      }
-    }
-  };
+    };
+  }
 
   constructor() {
+    effect(() => {
+      this.chartOptions = this.buildChartOptions(this.themeService.darkMode());
+    });
+
     effect(() => {
       const financials = this.stats()?.financials;
       if (!financials?.length) return;

@@ -39,8 +39,8 @@ export class AuthController {
 
   @Post('forgot-password')
   async forgotPassword(@Body() body: { email: string }) {
-    await this.authService.requestForgotPasswordOtp(body.email);
-    return { message: 'OTP sent' };
+    const { channel } = await this.authService.requestForgotPasswordOtp(body.email);
+    return { message: 'OTP sent', channel };
   }
 
   @Post('reset-password')

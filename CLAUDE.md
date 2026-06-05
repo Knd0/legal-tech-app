@@ -119,7 +119,10 @@ Todos los gaps conocidos han sido corregidos:
 - ~~`whatsapp.controller.ts`~~ — **ARREGLADO**: `@UseGuards(JwtAuthGuard)` en todos los endpoints
 - ~~`mercadopago.controller.ts` webhook~~ — **ARREGLADO**: verificación HMAC-SHA256 con `MP_WEBHOOK_SECRET` env var (si no está configurada, loguea warning y permite — degradación grácil)
 
-**Pendiente**: Agregar `MP_WEBHOOK_SECRET` en las env vars de Render (Environment → Add Variable). El valor se obtiene en mercadopago.com.ar → Tu negocio → Configuración → Notificaciones → Webhooks → Clave secreta del webhook apuntando a `https://legal-tech-app-gdme.onrender.com/mercadopago/webhook`. Sin esta variable, el webhook acepta todas las requests sin verificar firma (loguea warning pero no rompe).
+**Pendientes de configurar en Render** (Environment → Add Variable):
+
+- `MP_WEBHOOK_SECRET` — valor en mercadopago.com.ar → Tu negocio → Configuración → Notificaciones → Webhooks → Clave secreta del webhook apuntando a `https://legal-tech-app-gdme.onrender.com/mercadopago/webhook`. Sin esta variable, el webhook acepta todas las requests sin verificar firma (loguea warning pero no rompe).
+- `RESEND_API_KEY` — valor en resend.com → API Keys. Sin esta variable, el fallback a email en forgot-password no funciona (WhatsApp sigue andando normalmente).
 
 ---
 
@@ -127,14 +130,14 @@ Todos los gaps conocidos han sido corregidos:
 
 | Área                | Estado  | Próximo paso                                                              |
 | ------------------- | ------- | ------------------------------------------------------------------------- |
-| Auth (BE+FE)        | 95%     | Forgot-password falla si el bot de WhatsApp está caído; sin fallback a email |
+| Auth (BE+FE)        | 99%     | — |
 | Clientes            | 85%     | Sin paginación server-side                                                |
-| Expedientes         | 90%     | Sin filtro/búsqueda en la lista; juzgado sin dropdown (texto libre intencional) |
-| Calendario          | 90%     | Sin vinculación de vencimiento a expediente desde el formulario del calendario |
-| Profile             | 95%     | QR polling usa `setInterval` fuera de NgZone — si falla el bot, el intervalo no se autodestruye ante error 401 |
+| Expedientes         | 97%     | — |
+| Calendario          | 97%     | — |
+| Profile             | 99%     | — |
 | Subscription UI     | 80%     | Sin historial de pagos; sin manejo del estado `paused` desde MercadoPago  |
-| Dashboard           | 95%     | Gráfico no tiene modo oscuro (colores hardcodeados)                       |
-| Admin/Users         | 92%     | Sin paginación server-side; sin exportar usuarios a CSV                   |
+| Dashboard           | 99%     | — |
+| Admin/Users         | 99%     | — |
 | Documents UI        | 78%     | Sin preview de archivos (PDF/imagen); archivos en disco efímero en Render — necesita S3 |
 | Calendar (BE)       | 10%     | Módulo vacío; definir si reemplazar Google Calendar con eventos propios o eliminar |
 

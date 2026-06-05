@@ -26,6 +26,30 @@
         </div>
     </div>
 
+    <!-- Search & Filter -->
+    <div class="flex flex-col sm:flex-row gap-3">
+        <div class="relative flex-1">
+            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+            <input pInputText
+                [ngModel]="searchTerm()"
+                (ngModelChange)="searchTerm.set($event)"
+                placeholder="Buscar por nro., carátula, fuero, juzgado..."
+                class="w-full pl-9 text-sm dark:bg-slate-800 dark:text-white dark:border-slate-600" />
+        </div>
+        <p-select
+            [options]="estadoOptions"
+            [ngModel]="filterEstado()"
+            (ngModelChange)="filterEstado.set($event)"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Estado"
+            styleClass="text-sm w-full sm:w-44">
+        </p-select>
+        <span *ngIf="searchTerm() || filterEstado()" class="text-xs text-slate-400 self-center whitespace-nowrap">
+            {{ expedientes().length }} de {{ expedienteService.expedientes().length }} expedientes
+        </span>
+    </div>
+
     <div
         class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden overflow-x-auto">
         <p-table [value]="expedientes()" [tableStyle]="{ 'min-width': '60rem' }" styleClass="p-datatable-sm"

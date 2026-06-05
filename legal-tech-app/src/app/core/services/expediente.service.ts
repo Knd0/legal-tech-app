@@ -2,6 +2,8 @@ import { Injectable, signal, computed } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Expediente } from '../models/expediente.model';
+import { Observable, tap } from 'rxjs';
+import { PaginatedResponse } from '../models/paginated-response.model';
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +18,17 @@ export class ExpedienteService {
 
   constructor(private http: HttpClient) {
     this.loadExpedientes();
+  }
+
+  getPaginatedExpedientes(page: number, limit: number, search?: string, estado?: string): Observable<PaginatedResponse<Expediente>> {
+    const params: any = { page: page.toString(), limit: limit.toString() };
+    if (search) {
+      params.search = search;
+    }
+    if (estado) {
+      params.estado = estado;
+    }
+    return this.http.get<PaginatedResponse<Expediente>>(this.API_URL, { params });
   }
 
   loadExpedientes() {
@@ -68,12 +81,11 @@ export class ExpedienteService {
     });
   }
 
-  deleteExpediente(id: string): void {
-    this.http.delete<void>(`${this.API_URL}/${id}`).subscribe({
-      next: () => {
+  deleteExpediente(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${id}`).pipe(
+      tap(() => {
         this.expedientesSignal.update(list => list.filter(e => e.id !== id));
-      },
-      error: (err) => console.error('Failed to delete expediente', err)
-    });
+      })
+    );
   }
 }

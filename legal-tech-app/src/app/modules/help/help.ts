@@ -16,6 +16,7 @@ export class Help implements AfterViewInit, OnDestroy {
     { id: 'clientes', label: 'Clientes', icon: 'pi pi-users' },
     { id: 'expedientes', label: 'Expedientes', icon: 'pi pi-briefcase' },
     { id: 'calendario', label: 'Agenda y Vencimientos', icon: 'pi pi-calendar' },
+    { id: 'afip', label: 'Facturación AFIP / ARCA', icon: 'pi pi-receipt' },
     { id: 'configuracion', label: 'Configuración', icon: 'pi pi-cog' }
   ];
 

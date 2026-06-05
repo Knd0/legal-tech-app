@@ -150,7 +150,7 @@ export class DocumentsListComponent implements OnInit, OnDestroy {
   openPreview(doc: Documento) {
     this.previewDoc.set(doc);
     this.previewLoading.set(true);
-    this.previewUrl.set(null);
+    this._previewUrl.set(null);
 
     this.documentsService.getBlob(doc.id).subscribe({
       next: (blob) => {

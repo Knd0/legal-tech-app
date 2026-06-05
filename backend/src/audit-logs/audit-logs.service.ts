@@ -21,7 +21,27 @@ export class AuditLogsService {
     return this.auditLogsRepository.save(log);
   }
 
-  findAll(userId: string) {
+  async findAll(userId: string, page?: number, limit?: number): Promise<any> {
+    if (page !== undefined && limit !== undefined) {
+      const skip = (page - 1) * limit;
+      const take = limit;
+
+      const [data, total] = await this.auditLogsRepository.findAndCount({
+        where: { userId },
+        order: { createdAt: 'DESC' },
+        skip,
+        take,
+      });
+
+      return {
+        data,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    }
+
     return this.auditLogsRepository.find({
       where: { userId },
       order: { createdAt: 'DESC' },

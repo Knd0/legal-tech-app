@@ -362,6 +362,89 @@
                 </div>
             </section>
 
+            <!-- AFIP / ARCA -->
+            <section id="afip"
+                class="scroll-mt-6 pt-6 border-t border-slate-200 dark:border-slate-700 scroll-spy-target">
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-3">
+                    <div
+                        class="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                        <i class="pi pi-receipt text-xl"></i>
+                    </div>
+                    Facturación AFIP / ARCA
+                </h2>
+
+                <div class="bg-purple-50 dark:bg-purple-900/10 border-l-4 border-purple-500 p-5 rounded-r-xl mb-8">
+                    <h4 class="font-bold text-purple-900 dark:text-purple-300 text-sm mb-1">¿Cómo funciona la Facturación Electrónica en LegalTech?</h4>
+                    <p class="text-xs text-purple-800 dark:text-purple-400 leading-relaxed">
+                        Para evitar que tengas que subir claves privadas y certificados complejos, LegalTech utiliza el sistema de <strong>Delegación de Servicios de la AFIP</strong>.
+                        Esto permite que nos autorices a firmar comprobantes digitales en tu nombre de manera segura y transparente utilizando nuestro servidor central.
+                    </p>
+                </div>
+
+                <div class="space-y-8">
+                    <!-- Paso 1 -->
+                    <div class="flex gap-6">
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold shadow-sm">1</div>
+                            <div class="h-full w-0.5 bg-slate-200 dark:bg-slate-700 my-2"></div>
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="font-bold text-slate-800 dark:text-white mb-2">Delegar el Servicio en el Portal de AFIP</h3>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm mb-3 leading-relaxed">
+                                Debes otorgar permiso a nuestra plataforma para interactuar con AFIP en tu representación:
+                            </p>
+                            <ol class="list-decimal list-inside space-y-2 text-sm text-slate-600 dark:text-slate-400 mb-4 bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                                <li>Ingresá al portal de <a href="https://auth.afip.gob.ar/contribuyente_/login.xhtml" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline font-semibold inline-flex items-center gap-1">AFIP / ARCA <i class="pi pi-external-link text-[10px]"></i></a> con tu **CUIT** y **Clave Fiscal** (mínimo nivel 3).</li>
+                                <li>Buscá y abrí la aplicación **"Administrador de Relaciones de Clave Fiscal"**.</li>
+                                <li>Hacé clic en **"Adherir Servicio"** > **"Buscar"** > Seleccioná el logo de **"AFIP"** > **"Webservices"**.</li>
+                                <li>Buscá y seleccioná **"Facturación Electrónica (wsfe)"**.</li>
+                                <li>En el campo "Representante", ingresá el CUIT administrador de la plataforma LegalTech (solicitalo a soporte).</li>
+                                <li>Hacé clic en **"Confirmar"** para autorizar la delegación.</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- Paso 2 -->
+                    <div class="flex gap-6">
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold shadow-sm">2</div>
+                            <div class="h-full w-0.5 bg-slate-200 dark:bg-slate-700 my-2"></div>
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="font-bold text-slate-800 dark:text-white mb-2">Vincular tu CUIT en LegalTech</h3>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm mb-3 leading-relaxed">
+                                Completá los datos fiscales dentro de la aplicación para activar el módulo de emisión:
+                            </p>
+                            <ul class="list-disc list-inside space-y-2 text-sm text-slate-600 dark:text-slate-400 mb-4">
+                                <li>Navegá a la sección <a routerLink="/profile" class="text-blue-600 dark:text-blue-400 hover:underline font-semibold">Mi Perfil</a> y desplazate hasta la tarjeta de **AFIP / ARCA**.</li>
+                                <li>Ingresá tu **CUIT** (11 dígitos, sin guiones ni espacios).</li>
+                                <li>Especificá tu **Punto de Venta** (debe ser del tipo *WebService* o *Factura Electrónica* configurado en AFIP).</li>
+                                <li>Hacé clic en el botón **Vincular AFIP**. Si todo es correcto, el estado cambiará a <span class="text-green-600 dark:text-green-400 font-bold">Vinculado</span>.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Paso 3 -->
+                    <div class="flex gap-6">
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold shadow-sm">3</div>
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="font-bold text-slate-800 dark:text-white mb-2">Emitir Facturas desde la Cuenta Corriente</h3>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm mb-3 leading-relaxed">
+                                Ya podés emitir facturas C oficiales directamente desde el saldo del cliente:
+                            </p>
+                            <ul class="list-disc list-inside space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                                <li>Ingresá al perfil de un Cliente y abrí la pestaña de **Cuenta Corriente**.</li>
+                                <li>Al lado de cualquier Honorario registrado, hacé clic en el botón de recibo <i class="pi pi-receipt text-purple-600"></i> **"Generar Factura AFIP"**.</li>
+                                <li>Confirmá la emisión y el sistema obtendrá de forma automática el **CAE** y su vencimiento oficial, guardando la factura digital.</li>
+                                <li>Haciendo clic en el ícono de impresora <i class="pi pi-print"></i> podrás descargar o imprimir el comprobante PDF oficial con formato profesional para enviárselo a tu cliente.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- CONFIGURACION -->
             <section id="configuracion"
                 class="scroll-mt-6 pt-6 border-t border-slate-200 dark:border-slate-700 pb-20 scroll-spy-target">

@@ -331,7 +331,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   text: 'Para activar las notificaciones pop-up, debes habilitar los permisos de notificación en tu navegador.',
                   confirmButtonText: 'Entendido'
               });
+          } else {
+              this.notificationService.subscribeToNotifications();
           }
+      } else {
+          this.notificationService.unsubscribeFromNotifications();
       }
   }
 

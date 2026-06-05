@@ -19,11 +19,16 @@ class MockSwPush {
 describe('NotificationService', () => {
   let service: NotificationService;
   let swPush: SwPush;
+  let mockHttp: any;
 
   beforeEach(() => {
     // Inyección de dependencias manual para test unitario puro con Vitest
     swPush = new MockSwPush() as unknown as SwPush;
-    service = new NotificationService(swPush, {} as any);
+    mockHttp = {
+      get: vi.fn().mockReturnValue(of({ publicKey: 'test-vapid-public-key' })),
+      post: vi.fn().mockReturnValue(of({ success: true }))
+    };
+    service = new NotificationService(swPush, mockHttp as any);
   });
 
   it('should be created', () => {
@@ -35,6 +40,11 @@ describe('NotificationService', () => {
     
     await service.subscribeToNotifications();
     
+    // Since subscribeToNotifications runs async flow via observables, let's wait a tick
+    await new Promise(resolve => setTimeout(resolve, 0));
+    
+    expect(mockHttp.get).toHaveBeenCalledWith(expect.stringContaining('/notifications/vapid-public-key'));
+    expect(mockHttp.post).toHaveBeenCalledWith(expect.stringContaining('/notifications/subscribe'), { endpoint: 'test-endpoint' });
     expect(service.isSubscribed()).toBe(true);
     expect(consoleSpy).toHaveBeenCalledWith('Usuario suscrito a notificaciones:', { endpoint: 'test-endpoint' });
   });

@@ -27,13 +27,13 @@ Este archivo contiene el registro de contexto de **Gemini** (Antigravity AI) sob
 
 Actualmente la aplicación se encuentra en un estado muy avanzado (~98% global):
 
-| Área | Estado | Detalles de Implementación |
+| Area | Estado | Detalles de Implementation |
 |---|---|---|
 | **Auth (BE+FE)** | **100%** | JWT (60m) + local strategy. Recuperación por OTP vía WhatsApp (y fallback a Email vía Resend) **persistido en base de datos (`Otp` entity)** para resistir reinicios en Render. |
 | **Clientes** | **99%** | Gestión completa. Tabla con **paginación server-side, debouncer de búsqueda (300ms) y carga lazy**. Reemplazado confirm() nativo por SweetAlert2. |
 | **Expedientes** | **99%** | Seguimiento de causas. Tabla con **paginación server-side, filtro de estado, debouncer y borrado con SweetAlert2**. Kanban interactivo funcional. |
 | **Calendario** | **97%** | Vista interactiva en frontend (mensual/semanal/diario). Módulo backend (Calendar BE) implementado con eventos en base de datos. |
-| **Profile** | **99%** | Edición de perfil, configuración de alertas, vinculación de WhatsApp (QR/Código) y AFIP. Señales corregidas en templates. |
+| **Profile** | **99%** | Edición de perfil, configuración de alertas, vinculación de WhatsApp (QR/Código) y AFIP. Señales corregidas en templates. **Persistencia de sesión de WhatsApp Web implementada en base de datos PostgreSQL (`whatsapp_sessions`) usando RemoteAuth para evitar pérdidas al reiniciar el servidor en Render.** |
 | **Subscription UI**| **95%** | Enlace con MercadoPago (`PreApproval`), soporte de periodo de gracia de 7 días, bloqueo de creación (`isCreationBlocked()`). |
 | **Dashboard** | **99%** | Estadísticas y métricas financieras usando PrimeNG Charts y Chart.js (`chart.js ^4.5.1`). |
 | **Admin/Users** | **99%** | Listado de usuarios, suspensión y borrado estilizado con SweetAlert2. |
@@ -47,7 +47,7 @@ Actualmente la aplicación se encuentra en un estado muy avanzado (~98% global):
 Se han cerrado todas las brechas de seguridad críticas del backend:
 - **`deadlines.controller.ts`**: Asegurado con `@UseGuards(JwtAuthGuard)` y filtrado de registros por `userId`.
 - **`documents.controller.ts`**: Protegido por JWT. Modificado para almacenar propiedad `userId` en la entidad `Documento` para evitar accesos cruzados (IDOR).
-- **`whatsapp.controller.ts`**: Protegido integralmente con JWT.
+- **`whatsapp.controller.ts`**: Protegido integralmente con JWT y guardias configurados.
 - **`mercadopago.controller.ts`**: Webhook ahora verifica firma HMAC-SHA256 usando `MP_WEBHOOK_SECRET` (con degradación grácil si la variable no está configurada).
 - **`calendar.service.ts`**: Se previno Mass Assignment e IDOR filtrando estrictamente por `userId` y usando allowlists explícitas al guardar/actualizar eventos de agenda.
 - **Prevención de XSS y Header Injection**: Mejorado el endpoint `/documents/:id/view` usando tipos de contenido mapeados de forma estricta (no dinámicos del input del usuario).
@@ -66,6 +66,10 @@ Se han cerrado todas las brechas de seguridad críticas del backend:
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (Almacenamiento persistente de archivos)
 - `AI_ENABLED` (`true` / `false` — activa o desactiva el Copiloto IA)
 - `OPENAI_API_KEY` (Clave de API de OpenAI para el Copiloto IA)
+- `AFIP_CUIT` (CUIT del contribuyente para vinculación con ARCA/AFIP)
+- `AFIP_CERT` (Contenido del certificado `.crt` de AFIP)
+- `AFIP_KEY` (Contenido de la clave privada `.key` de AFIP)
+- `AFIP_PRODUCTION` (`true` / `false` — define si la facturación de AFIP opera en entorno de producción o de homologación/prueba)
 
 ---
 
@@ -73,7 +77,7 @@ Se han cerrado todas las brechas de seguridad críticas del backend:
 
 1. **Activar el Copiloto IA en Producción:**
    El módulo ya está completamente desarrollado y probado. Para dejarlo 100% funcional, solo se deben añadir las variables de entorno `AI_ENABLED=true` y `OPENAI_API_KEY` (con una clave de API válida de OpenAI) en el panel de configuración de Render.
-2. **Persistencia de la Sesión de WhatsApp Web (`whatsapp-web.js`):**
-   Actualmente, el estado de autenticación QR de WhatsApp se guarda en `./whatsapp-auth/` en el disco local. Como Render tiene almacenamiento efímero, al reiniciar el dyno la sesión se pierde y requiere volver a escanear el QR. Se requiere implementar un storage externo o guardar el payload de la sesión en base de datos.
-3. **Paginación Server-Side en otras vistas masivas:**
+2. **Paginación Server-Side en otras vistas masivas:**
    Aplicar la misma arquitectura lazy-load de PrimeNG a los listados de Facturas o Auditorías en caso de que su volumen de datos crezca significativamente.
+3. **Soporte para múltiples Puntos de Venta en AFIP:**
+   Permitir a los usuarios configurar diferentes números de Punto de Venta directamente en su perfil de configuración para mayor flexibilidad en la emisión de facturas.

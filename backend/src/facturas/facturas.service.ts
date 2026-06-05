@@ -18,6 +18,7 @@ export class FacturasService {
     try {
         const fs = require('fs');
         const path = require('path');
+        const os = require('os');
         const Afip = require('@afipsdk/afip.js');
         
         // Prepare Cert paths
@@ -32,7 +33,7 @@ export class FacturasService {
         console.log(`[DEBUG] AFIP_KEY present: ${!!envKey}, Length: ${envKey ? envKey.length : 0}`);
 
         if (envCert && envKey) {
-            const tmpDir = '/tmp'; // Standard temp dir for Linux/Render
+            const tmpDir = os.tmpdir(); // Cross-platform temp dir (Windows dev/Linux prod)
             // Ensure temp dir exists (it should)
             if (!fs.existsSync(tmpDir)) {
                  try { fs.mkdirSync(tmpDir); } catch(e) {}
@@ -52,12 +53,14 @@ export class FacturasService {
              console.log('AFIP Certs using local files (Dev mode):', certPath);
         }
 
+        const isProduction = this.configService.get('AFIP_PRODUCTION') === 'true';
+
         this.afip = new Afip({
             CUIT: this.configService.get('AFIP_CUIT'),
             cert: certPath,
             key: keyPath,
-            production: true,
-            res_folder: path.dirname(certPath) // Force using the same dir as certs (e.g. /tmp)
+            production: isProduction,
+            res_folder: path.dirname(certPath) // Force using the same dir as certs
         });
         
         console.log('AFIP Service Initialized with res_folder:', path.dirname(certPath));

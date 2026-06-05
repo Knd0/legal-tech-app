@@ -64,8 +64,8 @@ Each feature is a NestJS module under `backend/src/`. Key modules:
 - **calendar** — Empty module. Google Calendar integration was removed. Controller has no endpoints.
 - **documents** — **File uploads are persisted in Cloudinary** (avoiding local ephemeral filesystem issues on Render). Safe streaming view/download endpoints are protected by `JwtAuthGuard` to mask public Cloudinary URLs.
 - **mercadopago** — Recurring subscriptions (`PreApproval`). Webhook at `POST /mercadopago/webhook` updates `subscriptionStatus` and `subscriptionExpiresAt` on the User entity.
-- **whatsapp** — `whatsapp-web.js` session with LocalAuth. Session stored in `./whatsapp-auth/` (ephemeral on Render). Initializes 8 seconds after app start.
-- **facturas** — AFIP/ARCA e-invoicing. Falls back to simulation mode if `AFIP_CERT`/`AFIP_KEY` env vars are missing.
+- **whatsapp** — `whatsapp-web.js` session with RemoteAuth. Session stored in PostgreSQL (`whatsapp_sessions` table) to prevent Render ephemeral restarts from wiping authentication. Initializes 8 seconds after app start.
+- **facturas** — AFIP/ARCA e-invoicing. Uses `os.tmpdir()` for cross-platform (Windows dev / Linux prod) temp certificate writing, and reads `AFIP_PRODUCTION` env variable dynamically to switch between homologation (false/default) and production. Falls back to simulation mode if `AFIP_CERT`/`AFIP_KEY` env vars are missing.
 - **movimientos** — Financial movements per client (honorarios, gastos, pagos) with JUS/UMA unit support.
 - **settings** — Key-value config store. Seeded with `VALOR_JUS_ENTRE_RIOS`, `VALOR_UMA_NACION`, `ENABLE_WHATSAPP`, `DAYS_BEFORE_ALERT`.
 - **ai** — **Copiloto IA module**. Exposes `POST /ai/analyze` protected by `JwtAuthGuard`. Leverages `openai` SDK (`gpt-4o-mini`). Behaves as an interactive fallback warning if `AI_ENABLED=true` and `OPENAI_API_KEY` are not set.
@@ -109,6 +109,11 @@ Backend (`.env`):
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` — Cloudinary uploads
 - `AI_ENABLED` (`true` / `false`) — enables Copiloto IA
 - `OPENAI_API_KEY` — OpenAI API key
+- `AFIP_CUIT` — Taxpayer CUIT for AFIP billing
+- `AFIP_CERT` — Content of AFIP certificate file (.crt)
+- `AFIP_KEY` — Content of AFIP private key file (.key)
+- `AFIP_PRODUCTION` (`true` / `false`) — switches AFIP environment between homologation and production
+- `MP_WEBHOOK_SECRET` — Webhook secret signature key from MercadoPago
 
 Frontend: `environment.ts` → `http://localhost:3000`; `environment.prod.ts` → Render URL.
 
@@ -144,7 +149,7 @@ Todos los gaps conocidos han sido corregidos:
 | Clientes            | 99%     | Server-side pagination fully integrated.                                  |
 | Expedientes         | 99%     | Server-side pagination and state filter fully integrated.                 |
 | Calendario          | 97%     | — |
-| Profile             | 99%     | — |
+| Profile             | 100%    | WhatsApp session persisted in DB using RemoteAuth; AFIP dynamic env configuration. |
 | Subscription UI     | 95%     | — |
 | Dashboard           | 99%     | — |
 | Admin/Users         | 99%     | — |
@@ -169,7 +174,7 @@ Todos los gaps conocidos han sido corregidos:
 - **Signals vs RxJS**: Usar `signal()` y `computed()` para nuevo estado en el frontend. Suscribirse a Observables HTTP con `.subscribe()` está bien, pero no crear `BehaviorSubject` nuevos — convertir a signal en el `tap`/`next`.
 - **Audit logging**: Los módulos clients/expedientes/movimientos hacen audit logging de forma asíncrona sin `await` ni `try/catch` — puede fallar silenciosamente. No agregar awaits sin manejar el error.
 - **SeedService**: Crea `admin@legaltech.com` automáticamente al iniciar el backend si no existe. Password desde env `ADMIN_PASSWORD`.
-- **Storage efímero en Render**: Cloudinary handles document uploads. WhatsApp auth session in `./whatsapp-auth/` is still lost on Render restarts.
+- **Storage efímero en Render**: Cloudinary handles document uploads. WhatsApp auth session is now persisted in PostgreSQL via a custom `WhatsappDbStore` with `RemoteAuth`, solving the Render ephemeral restarts issue.
 - **synchronize:true en prod**: TypeORM crea/altera tablas al iniciar. Cambios de columna pueden perder datos. No usar para eliminar columnas — hacerlo manualmente en la DB.
 - **Hardcoded values a recordar**:
   - MercadoPago: monto `15000 ARS` en `mercadopago.service.ts`
@@ -177,7 +182,7 @@ Todos los gaps conocidos han sido corregidos:
   - Grace period: `7 * 24 * 60 * 60 * 1000` ms en `subscription.guard.ts` y `auth.service.ts` — mantener en sync
   - CORS: origins hardcodeados en `backend/src/main.ts`
 - **Tests**: Jest unit test suite has been added for clients pagination, AI activation/fallback logic, and database OTP persistence. Run `npx jest --verbose` in `backend` folder to execute (all 10 tests passing).
-- **whatsapp-auth/ no está en .gitignore**: `backend/whatsapp-auth/` contiene sesión de Chromium que cambia sola. Antes de commitear, hacer `git restore --staged backend/whatsapp-auth/`. Pendiente: agregar al `.gitignore`.
+- **whatsapp-auth/ in .gitignore**: `backend/whatsapp-auth/` is ignored by `.gitignore` in the repository root to prevent committing chromium session cache.
 - **OTP con crypto.randomInt**: Los OTPs usan `import { randomInt } from 'crypto'` (no `Math.random()`). Límite de 5 intentos fallidos antes de invalidar — y están guardados en la tabla `otps` de PostgreSQL.
 - **Documents service usa userId**: `findAll`, `findOne`, `remove`, `create` reciben `userId` para ownership. El controller extrae `req.user.userId` del JWT.
 - **Kanban: detectar columna por referencia**: `this.columns.find(c => c.items === event.container.data)` es más robusto que `event.container.id` (CDK puede devolver ID interno).

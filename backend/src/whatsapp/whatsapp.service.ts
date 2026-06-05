@@ -1,6 +1,10 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { Client, LocalAuth } from 'whatsapp-web.js';
+import { Client, RemoteAuth } from 'whatsapp-web.js';
 import * as QRCode from 'qrcode';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { WhatsappSession } from './whatsapp-session.entity';
+import { WhatsappDbStore } from './whatsapp-db-store';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const qrcodeTerminal = require('qrcode-terminal');
 
@@ -28,9 +32,18 @@ export class WhatsappService implements OnModuleInit {
     }, delay);
   }
 
-  constructor() {
+  constructor(
+    @InjectRepository(WhatsappSession)
+    private readonly sessionRepository: Repository<WhatsappSession>,
+  ) {
+    const store = new WhatsappDbStore(this.sessionRepository);
     this.client = new Client({
-      authStrategy: new LocalAuth({ dataPath: './whatsapp-auth' }),
+      authStrategy: new RemoteAuth({
+        clientId: 'legaltech-session',
+        dataPath: './whatsapp-auth',
+        store: store,
+        backupSyncIntervalMs: 60000,
+      }),
       authTimeoutMs: 0, // Disable auth timeout to prevent unhandled rejection "auth timeout"
       qrMaxRetries: 10,
       puppeteer: {
@@ -208,6 +221,10 @@ export class WhatsappService implements OnModuleInit {
                       // In Render, ephemeral storage might be weird. failing to delete shouldn't block restart if possible.
                   }
               }
+
+              // Also delete from database for a clean start!
+              await this.sessionRepository.delete({ id: 'RemoteAuth-legaltech-session' });
+              this.logger.log('Session data cleared from DB.');
 
               this.initializationError = null;
               

@@ -23,7 +23,7 @@
   <!-- Content Grid -->
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
     <!-- Input Section -->
-    <div class="lg:col-span-7 flex flex-col gap-4">
+    <div class="lg:col-span-6 flex flex-col gap-4">
       <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-xl p-5 md:p-6 flex flex-col gap-4">
         
         <!-- Controls: Context Selection -->
@@ -42,21 +42,77 @@
           </p-select>
         </div>
 
-        <!-- Escrito Input -->
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex justify-between">
-            <span>Texto o Escrito Legal</span>
-            <span class="text-[10px] lowercase font-normal text-slate-400">
-              {{ queryText().length }} caracteres
-            </span>
-          </label>
-          <textarea pInputTextarea
-            [ngModel]="queryText()"
-            (ngModelChange)="queryText.set($event)"
-            rows="12"
-            placeholder="Escriba o pegue el texto, contrato, cláusula o descripción del expediente aquí..."
-            class="w-full p-4 rounded-xl text-sm font-sans border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 resize-none">
-          </textarea>
+        <!-- Mode: General Text Analysis -->
+        <div *ngIf="selectedContext() === 'ANALISIS_ESCRITO'" class="flex flex-col gap-4">
+          <!-- Escrito Input -->
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex justify-between">
+              <span>Texto o Escrito Legal</span>
+              <span class="text-[10px] lowercase font-normal text-slate-400">
+                {{ queryText().length }} caracteres
+              </span>
+            </label>
+            <textarea pInputTextarea
+              [ngModel]="queryText()"
+              (ngModelChange)="queryText.set($event)"
+              rows="12"
+              placeholder="Escriba o pegue el texto, contrato, cláusula o descripción del expediente aquí..."
+              class="w-full p-4 rounded-xl text-sm font-sans border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 resize-none">
+            </textarea>
+          </div>
+        </div>
+
+        <!-- Mode: Case-based Tasks (Redacción, Resumen, Riesgo) -->
+        <div *ngIf="selectedContext() !== 'ANALISIS_ESCRITO'" class="flex flex-col gap-4">
+          <!-- Case Selector -->
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Seleccionar Expediente / Causa
+            </label>
+            <p-select
+              [options]="expedienteOptions()"
+              [ngModel]="selectedExpedienteId()"
+              (ngModelChange)="selectedExpedienteId.set($event)"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccione un expediente..."
+              [showClear]="true"
+              styleClass="w-full text-sm">
+            </p-select>
+          </div>
+
+          <!-- Mode: Redacción Escrito Specific Inputs -->
+          <div *ngIf="selectedContext() === 'REDACCION_ESCRITO'" class="flex flex-col gap-4">
+            <!-- Tipo de Escrito -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Tipo de Escrito Judicial
+              </label>
+              <p-select
+                [options]="tipoEscritoOptions"
+                [ngModel]="tipoEscrito()"
+                (ngModelChange)="tipoEscrito.set($event)"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione el tipo de escrito"
+                styleClass="w-full text-sm">
+              </p-select>
+            </div>
+
+            <!-- Extra instructions -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Instrucciones Estratégicas Adicionales <span class="font-normal text-slate-400">(opcional)</span>
+              </label>
+              <textarea pInputTextarea
+                [ngModel]="extraInstructions()"
+                (ngModelChange)="extraInstructions.set($event)"
+                rows="5"
+                placeholder="Ej: 'Negar rotundamente los hechos de la demanda', 'Hacer hincapié en la falta de pruebas de la actora' o alguna estrategia procesal particular..."
+                class="w-full p-4 rounded-xl text-sm font-sans border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 resize-none">
+              </textarea>
+            </div>
+          </div>
         </div>
 
         <!-- Action Buttons -->
@@ -66,7 +122,7 @@
             (click)="clear()"></button>
           
           <button pButton label="Analizar con Copiloto" icon="pi pi-sparkles"
-            [disabled]="loading() || !queryText().trim()"
+            [disabled]="loading() || (selectedContext() === 'ANALISIS_ESCRITO' ? !queryText().trim() : !selectedExpedienteId())"
             class="bg-indigo-600 border-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:shadow-lg transition-all w-full sm:w-auto flex items-center justify-center gap-2"
             (click)="onAnalyze()"></button>
         </div>
@@ -75,8 +131,8 @@
     </div>
 
     <!-- Output Section -->
-    <div class="lg:col-span-5 flex flex-col gap-4">
-      <div class="h-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-xl p-5 md:p-6 flex flex-col min-h-[400px]">
+    <div class="lg:col-span-6 flex flex-col gap-4">
+      <div class="h-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-xl p-5 md:p-6 flex flex-col min-h-[450px]">
         
         <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3 mb-4">
           <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
@@ -98,7 +154,7 @@
           </div>
           <p class="text-sm font-bold">Esperando consulta...</p>
           <p class="text-xs text-slate-400 dark:text-slate-500 max-w-xs mt-1">
-            Escriba su consulta en el panel izquierdo y haga clic en "Analizar con Copiloto" para comenzar.
+            Escriba su consulta o seleccione un expediente en el panel izquierdo y haga clic en "Analizar con Copiloto" para comenzar.
           </p>
         </div>
 
@@ -110,8 +166,65 @@
           <div class="h-4 bg-slate-100 dark:bg-slate-700 rounded w-1/2 animate-pulse"></div>
         </div>
 
+        <!-- Metrics Overlay for Risk Analysis -->
+        <div *ngIf="selectedContext() === 'ANALISIS_RIESGO' && successProbability() !== null && !loading()" class="flex flex-col gap-4 mb-4 pb-4 border-b border-slate-100 dark:border-slate-700">
+          <!-- Success Probability Card -->
+          <div class="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Probabilidad de Éxito Estimada</span>
+              <span class="text-lg font-extrabold" [ngClass]="{
+                'text-emerald-600 dark:text-emerald-400': successProbability()! >= 70,
+                'text-amber-600 dark:text-amber-400': successProbability()! >= 40 && successProbability()! < 70,
+                'text-rose-600 dark:text-rose-400': successProbability()! < 40
+              }">{{ successProbability() }}%</span>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-1000"
+                [ngClass]="{
+                  'bg-emerald-500': successProbability()! >= 70,
+                  'bg-amber-500': successProbability()! >= 40 && successProbability()! < 70,
+                  'bg-rose-500': successProbability()! < 40
+                }"
+                [style.width.%]="successProbability()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Strengths and Weaknesses -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Strengths -->
+            <div class="flex flex-col gap-2">
+              <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                <i class="pi pi-check-circle"></i> Puntos Fuertes
+              </span>
+              <ul class="flex flex-col gap-1.5">
+                <li *ngFor="let pt of strongPoints()" class="text-xs text-slate-700 dark:text-slate-300 flex items-start gap-1.5 bg-emerald-50/50 dark:bg-emerald-950/20 p-2.5 rounded-lg border border-emerald-100/40 dark:border-emerald-900/20">
+                  <i class="pi pi-check text-[10px] text-emerald-500 mt-1 flex-shrink-0"></i>
+                  <span>{{ pt }}</span>
+                </li>
+                <li *ngIf="strongPoints().length === 0" class="text-xs text-slate-400 italic">No se identificaron puntos fuertes específicos.</li>
+              </ul>
+            </div>
+
+            <!-- Weaknesses -->
+            <div class="flex flex-col gap-2">
+              <span class="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider flex items-center gap-1">
+                <i class="pi pi-exclamation-circle"></i> Puntos Débiles / Riesgos
+              </span>
+              <ul class="flex flex-col gap-1.5">
+                <li *ngFor="let pt of weakPoints()" class="text-xs text-slate-700 dark:text-slate-300 flex items-start gap-1.5 bg-rose-50/50 dark:bg-rose-950/20 p-2.5 rounded-lg border border-rose-100/40 dark:border-rose-900/20">
+                  <i class="pi pi-times text-[10px] text-rose-500 mt-1 flex-shrink-0"></i>
+                  <span>{{ pt }}</span>
+                </li>
+                <li *ngIf="weakPoints().length === 0" class="text-xs text-slate-400 italic">No se identificaron puntos débiles específicos.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         <!-- Render Response -->
-        <div *ngIf="aiResponse()" class="flex-grow overflow-y-auto max-h-[500px] text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans pr-2 whitespace-pre-line bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800/80">
+        <div *ngIf="aiResponse() && !loading()" class="flex-grow overflow-y-auto max-h-[550px] text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans pr-2 whitespace-pre-line bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800/80">
           {{ aiResponse() }}
         </div>
 

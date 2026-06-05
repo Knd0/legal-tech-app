@@ -87,4 +87,10 @@ export class DeadlineService {
       })
     );
   }
+
+  analyzePdf(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<any>(`${this.API_URL}/analyze-pdf`, formData);
+  }
 }

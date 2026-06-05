@@ -38,7 +38,7 @@ Actualmente la aplicación se encuentra en un estado muy avanzado (~98% global):
 | **Dashboard** | **99%** | Estadísticas y métricas financieras usando PrimeNG Charts y Chart.js (`chart.js ^4.5.1`). |
 | **Admin/Users** | **99%** | Listado de usuarios, suspensión y borrado estilizado con SweetAlert2. |
 | **Documents UI** | **99%** | Carga de archivos integrada con **persistencia real en la nube usando Cloudinary** (eliminando el almacenamiento temporal efímero en disco de Render). Streaming seguro (view/download) y preview interactivo de imágenes y PDFs corregido. |
-| **Copiloto IA** | **95%** | Estructura completa creada en backend (`POST /ai/analyze`) y frontend (`/ai`). Interfaz premium interactiva (selección de tipo de análisis, cargador y copia al portapapeles con SweetAlert2). **Listo para ser habilitado** mediante variables de entorno. |
+| **Copiloto IA** | **100%** | Módulo de Inteligencia Artificial premium. Permite: 1) Análisis general de textos o cláusulas; 2) Redactor automático de borradores de escritos judiciales (Demanda, Contestación, etc.) usando el contexto del expediente; 3) Resúmenes procesales ejecutivos automáticos; 4) Análisis de riesgo y probabilidad de éxito con grids de puntos fuertes/débiles y barra de porcentaje. Soporta Gemini 1.5 Flash (Gratuito) y fallback a OpenAI. |
 | **Facturas y Auditorías**| **99%** | Incorporada **paginación server-side con carga lazy** en el listado de comprobantes del cliente y adaptados los servicios de auditoría y facturación en el backend con soporte completo de `page` y `limit` y pruebas unitarias asociadas. |
 
 ---
@@ -76,8 +76,8 @@ Se han cerrado todas las brechas de seguridad críticas del backend:
 
 ## 💡 Próximos Pasos Recomendados
 
-1. **Activar el Copiloto IA en Producción:**
-   El módulo ya está completamente desarrollado y probado. Para dejarlo 100% funcional, solo se deben añadir las variables de entorno `AI_ENABLED=true` y `OPENAI_API_KEY` (con una clave de API válida de OpenAI) en el panel de configuración de Render.
+1. **Configurar la API Key del Copiloto IA en Producción (Render):**
+   El módulo está 100% desarrollado. Para activarlo de forma gratuita en producción, obtenga una API key en Google AI Studio (https://aistudio.google.com/) y configúrela como variable de entorno `GEMINI_API_KEY` en Render.
 2. **Soporte para múltiples Puntos de Venta en AFIP:**
    Permitir a los usuarios configurar diferentes números de Punto de Venta directamente en su perfil de configuración para mayor flexibilidad en la emisión de facturas.
 3. **Paginación Server-Side en listados de Movimientos (Cuenta Corriente):**
@@ -89,12 +89,10 @@ Se han cerrado todas las brechas de seguridad críticas del backend:
 
 ## 🚀 Ideas Innovadoras para el Futuro
 
-1. **Redactor de Escritos y Respuestas de Demanda con IA:**
-   Integrar el Copiloto IA con plantillas de escritos judiciales. El abogado selecciona el expediente, el tipo de escrito (ej. "Contesta Demanda", "Solicita Copias", "Acompaña Documental") y la IA redacta el borrador preliminar automáticamente usando el contexto del caso.
-2. **Extracción y Carga Automática de Vencimientos desde PDFs de Notificaciones:**
-   Permitir al usuario subir el archivo PDF de una notificación judicial recibida de la mesa de entradas virtual (MEV), usar OCR/IA en el backend para detectar automáticamente los plazos y fechas límite ordenados por el juez, y agendarlos en el calendario con un solo clic.
-3. **Bot de WhatsApp Bidireccional (Interactivo para Clientes):**
+1. **Bot de WhatsApp Bidireccional (Interactivo para Clientes):**
    Habilitar que los clientes del estudio jurídico puedan enviarle un mensaje al bot de WhatsApp (ej. `"estado"`) y el bot responda de forma automática con el estado actual del expediente y los últimos movimientos públicos permitidos.
-4. **Cálculo Automático de Actualizaciones Judiciales (Calculadora de Intereses Compleja):**
+2. **Cálculo Automático de Actualizaciones Judiciales (Calculadora de Intereses Compleja):**
    Integrar una calculadora financiera avanzada con tasas de interés oficiales de distintos fueros y provincias (ej. Tasa Activa del Banco Nación, Tasa Pasiva de Buenos Aires, etc.) para liquidar intereses de forma interactiva y exportar el reporte en PDF.
+3. **Análisis Predictivo de Costos del Juicio:**
+   Estimar de forma interactiva la tasa de justicia, bonos, honorarios mínimos de ley y gastos administrativos estimados antes de iniciar la demanda para cotizar mejor a los clientes.
 

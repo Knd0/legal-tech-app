@@ -60,7 +60,7 @@ Each feature is a NestJS module under `backend/src/`. Key modules:
 - **auth** — JWT (60 min expiry) + Passport local strategy. OTP-via-WhatsApp for password recovery. `AuthController` exposes `/auth/login`, `/auth/register`. **OTPs are stored in the database (`Otp` entity)**, preventing recovery session loss on server restarts.
 - **users** — `User` entity is the tenant root. Every client and expediente belongs to a `User`. Roles: `USER` | `ADMIN`. Auto-seeds `admin@legaltech.com` on bootstrap via `SeedService`.
 - **clients / expedientes** — Core legal domain. Expedientes track `EstadoExpediente`: `INICIADO → PRUEBA → ALEGATOS → SENTENCIA → ARCHIVADO`. Both support **server-side pagination, status filters, and search queries**.
-- **deadlines** — Judicial vencimientos. Cron job in `NotificationsModule` runs daily at 9 AM to send WhatsApp alerts for upcoming deadlines.
+- **deadlines** — Judicial vencimientos. Exposes `/deadlines` and `/deadlines/analyze-pdf` to upload a judicial notification PDF and extract/schedule upcoming deadline calendar events using Gemini 1.5 Flash. A daily cron job runs at 9 AM to send WhatsApp alerts.
 - **calendar** — Empty module. Google Calendar integration was removed. Controller has no endpoints.
 - **documents** — **File uploads are persisted in Cloudinary** (avoiding local ephemeral filesystem issues on Render). Safe streaming view/download endpoints are protected by `JwtAuthGuard` to mask public Cloudinary URLs.
 - **mercadopago** — Recurring subscriptions (`PreApproval`). Webhook at `POST /mercadopago/webhook` updates `subscriptionStatus` and `subscriptionExpiresAt` on the User entity.
@@ -68,7 +68,7 @@ Each feature is a NestJS module under `backend/src/`. Key modules:
 - **facturas** — AFIP/ARCA e-invoicing. Uses `os.tmpdir()` for cross-platform (Windows dev / Linux prod) temp certificate writing, and reads `AFIP_PRODUCTION` env variable dynamically to switch between homologation (false/default) and production. Falls back to simulation mode if `AFIP_CERT`/`AFIP_KEY` env vars are missing.
 - **movimientos** — Financial movements per client (honorarios, gastos, pagos) with JUS/UMA unit support.
 - **settings** — Key-value config store. Seeded with `VALOR_JUS_ENTRE_RIOS`, `VALOR_UMA_NACION`, `ENABLE_WHATSAPP`, `DAYS_BEFORE_ALERT`, `ENABLE_DESKTOP_NOTIFICATIONS`.
-- **ai** — **Copiloto IA module**. Exposes `POST /ai/analyze` protected by `JwtAuthGuard`. Leverages `openai` SDK (`gpt-4o-mini`). Behaves as an interactive fallback warning if `AI_ENABLED=true` and `OPENAI_API_KEY` are not set.
+- **ai** — **Copiloto IA module**. Exposes `/ai/analyze`, `/ai/draft`, `/ai/summarize-expediente`, and `/ai/analyze-risk` protected by `JwtAuthGuard`. Leverages Google Gemini 1.5 Flash (free tier) via `GEMINI_API_KEY` with automated fallback to OpenAI (`gpt-4o-mini`) if `OPENAI_API_KEY` is set.
 
 Database: PostgreSQL via TypeORM. `synchronize: true` in both dev and prod — schema changes apply on boot. No migration files exist.
 
@@ -154,7 +154,7 @@ Todos los gaps conocidos han sido corregidos:
 | Dashboard           | 99%     | — |
 | Admin/Users         | 99%     | — |
 | Documents UI        | 99%     | Cloudinary integration completed; preview modal resolved.                 |
-| Copiloto IA         | 95%     | Created and integrated; pending environment variable activation on Render.|
+| Copiloto IA         | 100%    | Premium AI module fully implemented (general text analysis, automatic judicial drafts, case summaries, and risk/success analysis dashboards). |
 | Calendar (BE)       | 95%     | — |
 | Facturas y Audits   | 99%     | Server-side pagination implemented for invoices (Facturas) and system logs (AuditLogs). |
 
@@ -195,14 +195,12 @@ Todos los gaps conocidos han sido corregidos:
 ## Recommended Next Steps & Innovative Ideas
 
 ### Next Steps:
-1. **Enable Copiloto IA in Production**: Add `AI_ENABLED=true` and `OPENAI_API_KEY` on Render to fully run the integrated AI chat.
+1. **Configure API Keys in Production**: Add `GEMINI_API_KEY` on Render to fully run the integrated AI copilot and PDF parsing features for free, or add `OPENAI_API_KEY` if preferred.
 2. **AFIP Point of Sale Configuration**: Allow configuring custom points of sale from the user profile settings.
 3. **Lazy-Loaded Account Movements**: Implement server-side pagination for movement lists (cuenta corriente).
 4. **Service Worker Push Notifications**: Implement VAPID subscriptions in NestJS for background notification alerts.
 
 ### Innovative Feature Ideas:
-1. **AI Legal Document Draft Generator**: Use the Copiloto IA to draft filings, demurrers, or briefs using case context.
-2. **Notification PDF Parsing**: Allow users to upload MEV notification PDFs and parse dates/deadlines automatically using OCR/LLM.
-3. **Two-Way Client WhatsApp Bot**: Clients query their case files by text message (e.g., `"status"`) and the bot responds with case details.
-4. **Judicial Interest Calculator**: Integrates provincial/national interest tables to calculate updates and output PDFs.
-
+1. **Two-Way Client WhatsApp Bot**: Clients query their case files by text message (e.g., `"status"`) and the bot responds with case details.
+2. **Judicial Interest Calculator**: Integrates provincial/national interest tables to calculate updates and output PDFs.
+3. **Predictive Trial Cost Analysis**: Estimate justice fees, minimum legal fees, and administrative expenses before filing to provide precise client quotes.

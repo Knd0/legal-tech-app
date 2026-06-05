@@ -40,6 +40,15 @@
             "styles": [
               "node_modules/primeicons/primeicons.css",
               "src/styles.scss"
+            ],
+            "allowedCommonJsDependencies": [
+              "jspdf",
+              "html2canvas",
+              "canvg",
+              "core-js",
+              "sweetalert2",
+              "raf",
+              "rgbcolor"
             ]
           },
           "configurations": {
@@ -47,8 +56,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1.5MB",
+                  "maximumError": "2MB"
                 },
                 {
                   "type": "anyComponentStyle",

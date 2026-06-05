@@ -139,7 +139,7 @@ Todos los gaps conocidos han sido corregidos:
 | Dashboard           | 99%     | — |
 | Admin/Users         | 99%     | — |
 | Documents UI        | 92%     | Archivos en disco efímero en Render — necesita S3 para persistencia real |
-| Calendar (BE)       | 10%     | Módulo vacío; definir si reemplazar Google Calendar con eventos propios o eliminar |
+| Calendar (BE)       | 95%     | — |
 
 ---
 

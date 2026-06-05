@@ -24,16 +24,42 @@
                 </button>
             </div>
 
-            <button pButton label="Nuevo Vencimiento" icon="pi pi-plus"
+            <button pButton label="Nuevo Vencimiento" icon="pi pi-gavel"
                 [disabled]="authService.isCreationBlocked()"
                 [pTooltip]="authService.isCreationBlocked() ? 'Suscripción vencida. Actualice su plan.' : ''"
                 class="bg-blue-900 border-blue-900 hover:bg-blue-800 shadow-sm w-full sm:w-auto premium-locked" (click)="openNew()">
+            </button>
+            <button pButton label="Nuevo Evento" icon="pi pi-calendar-plus"
+                [disabled]="authService.isCreationBlocked()"
+                class="p-button-outlined border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 w-full sm:w-auto" (click)="openNewEvent()">
             </button>
         </div>
     </div>
 
     <!-- LIST VIEW -->
-    <div *ngIf="viewMode() === 'LIST'"
+    <div *ngIf="viewMode() === 'LIST'">
+        <!-- Tabs -->
+        <div class="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg border border-slate-200 dark:border-slate-600 w-fit mb-3">
+            <button (click)="listTab.set('VENCIMIENTOS')"
+                [class.bg-white]="listTab() === 'VENCIMIENTOS'" [class.dark:bg-slate-600]="listTab() === 'VENCIMIENTOS'" [class.shadow-sm]="listTab() === 'VENCIMIENTOS'"
+                [class.text-blue-900]="listTab() === 'VENCIMIENTOS'" [class.dark:text-white]="listTab() === 'VENCIMIENTOS'"
+                [class.text-slate-500]="listTab() !== 'VENCIMIENTOS'" [class.dark:text-slate-400]="listTab() !== 'VENCIMIENTOS'"
+                class="px-4 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2">
+                <i class="pi pi-gavel"></i> Vencimientos
+                <span class="text-xs bg-slate-200 dark:bg-slate-500 px-1.5 rounded-full">{{ deadlines().length }}</span>
+            </button>
+            <button (click)="listTab.set('EVENTOS')"
+                [class.bg-white]="listTab() === 'EVENTOS'" [class.dark:bg-slate-600]="listTab() === 'EVENTOS'" [class.shadow-sm]="listTab() === 'EVENTOS'"
+                [class.text-blue-900]="listTab() === 'EVENTOS'" [class.dark:text-white]="listTab() === 'EVENTOS'"
+                [class.text-slate-500]="listTab() !== 'EVENTOS'" [class.dark:text-slate-400]="listTab() !== 'EVENTOS'"
+                class="px-4 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2">
+                <i class="pi pi-calendar"></i> Eventos
+                <span class="text-xs bg-slate-200 dark:bg-slate-500 px-1.5 rounded-full">{{ calendarEvents().length }}</span>
+            </button>
+        </div>
+
+    <!-- Vencimientos tab -->
+    <div *ngIf="listTab() === 'VENCIMIENTOS'"
         class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden overflow-x-auto">
         <p-table [value]="deadlines()" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '50rem' }"
             styleClass="p-datatable-sm">
@@ -131,6 +157,49 @@
         </p-table>
     </div>
 
+    <!-- Eventos tab -->
+    <div *ngIf="listTab() === 'EVENTOS'"
+        class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden overflow-x-auto">
+        <p-table [value]="calendarEvents()" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '40rem' }" styleClass="p-datatable-sm">
+            <ng-template pTemplate="header">
+                <tr class="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">Fecha</th>
+                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">Título</th>
+                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">Tipo</th>
+                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6 text-right">Acciones</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-ev>
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-100 dark:border-slate-700">
+                    <td class="py-3 px-6 font-bold text-slate-800 dark:text-slate-200">{{ ev.fecha | date:'dd/MM/yyyy' }}</td>
+                    <td class="py-3 px-6">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full shrink-0" [style.background-color]="ev.color"></span>
+                            <span class="font-semibold text-slate-800 dark:text-slate-200">{{ ev.titulo }}</span>
+                        </div>
+                        <div *ngIf="ev.descripcion" class="text-xs text-slate-400 mt-0.5 pl-4">{{ ev.descripcion }}</div>
+                    </td>
+                    <td class="py-3 px-6 text-slate-600 dark:text-slate-300 text-sm">{{ ev.tipo }}</td>
+                    <td class="py-3 px-6 text-right">
+                        <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-blue-600 dark:hover:text-blue-400" (click)="editEvent(ev)"></button>
+                        <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-red-600 dark:hover:text-red-400" (click)="deleteEvent(ev.id)"></button>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="4" class="text-center py-10 text-slate-500 dark:text-slate-400">
+                        <div class="flex flex-col items-center gap-3">
+                            <i class="pi pi-calendar text-3xl text-slate-300 dark:text-slate-600"></i>
+                            <span class="text-sm font-medium">No hay eventos agendados.</span>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+    </div><!-- end LIST VIEW wrapper -->
+
     <!-- MONTH VIEW -->
     <div *ngIf="viewMode() === 'MONTH'"
         class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col">
@@ -197,23 +266,80 @@
                             class="text-[10px] font-bold text-blue-900 dark:text-blue-400 uppercase tracking-wide mt-1.5 mr-1">Hoy</span>
                     </div>
 
-                    <!-- Deadlines List -->
+                    <!-- Items List -->
                     <div class="flex-1 flex flex-col gap-1.5 overflow-y-auto max-h-[100px] custom-scrollbar pr-1">
                         <div *ngFor="let v of day.deadlines" (click)="editDeadline(v); $event.stopPropagation()"
-                            class="flex items-center gap-2 pl-2 pr-2 py-1.5 rounded border-l-[3px] cursor-pointer border-slate-100 dark:border-slate-600 shadow-sm hover:shadow transition-all bg-white dark:bg-slate-700 hover:-translate-y-0.5 group/card"
+                            class="flex items-center gap-2 pl-2 pr-2 py-1.5 rounded border-l-[3px] cursor-pointer shadow-sm hover:shadow transition-all bg-white dark:bg-slate-700 hover:-translate-y-0.5 group/card"
                             [ngClass]="getUrgencyBorder(v)">
-
-                            <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" [ngClass]="getUrgencyDot(v)">
-                            </div>
-                            <span
-                                class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate leading-tight group-hover/card:text-blue-900 dark:group-hover/card:text-blue-300">{{
-                                v.titulo }}</span>
+                            <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" [ngClass]="getUrgencyDot(v)"></div>
+                            <span class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate leading-tight group-hover/card:text-blue-900 dark:group-hover/card:text-blue-300">{{ v.titulo }}</span>
+                        </div>
+                        <div *ngFor="let ev of day.events" (click)="editEvent(ev); $event.stopPropagation()"
+                            class="flex items-center gap-2 pl-2 pr-2 py-1.5 rounded border-l-[3px] cursor-pointer shadow-sm hover:shadow transition-all bg-white dark:bg-slate-700 hover:-translate-y-0.5 group/card"
+                            [style.border-left-color]="ev.color">
+                            <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" [style.background-color]="ev.color"></div>
+                            <span class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate leading-tight">{{ ev.titulo }}</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Event Dialog -->
+    <p-dialog [(visible)]="eventDialog" [style]="{width: '420px'}" header="Evento de Agenda" [modal]="true" styleClass="p-fluid">
+        <ng-template pTemplate="content">
+            <form [formGroup]="eventForm" class="flex flex-col gap-4 mt-2">
+                <div class="flex flex-col gap-2">
+                    <label class="font-bold text-sm text-slate-700 dark:text-slate-300">Título</label>
+                    <input type="text" pInputText formControlName="titulo" autofocus />
+                    <small class="text-red-500" *ngIf="eventForm.get('titulo')?.invalid && eventForm.get('titulo')?.touched">El título es requerido.</small>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-2">
+                        <label class="font-bold text-sm text-slate-700 dark:text-slate-300">Tipo</label>
+                        <p-select [options]="tiposEvento" formControlName="tipo" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full"></p-select>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="font-bold text-sm text-slate-700 dark:text-slate-300">Color</label>
+                        <p-select [options]="coloresEvento" formControlName="color" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full">
+                            <ng-template pTemplate="selectedItem" let-opt>
+                                <div class="flex items-center gap-2" *ngIf="opt">
+                                    <span class="w-3 h-3 rounded-full" [style.background-color]="opt.value"></span>
+                                    <span>{{ opt.label }}</span>
+                                </div>
+                            </ng-template>
+                            <ng-template pTemplate="item" let-opt>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full" [style.background-color]="opt.value"></span>
+                                    <span>{{ opt.label }}</span>
+                                </div>
+                            </ng-template>
+                        </p-select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-2">
+                        <label class="font-bold text-sm text-slate-700 dark:text-slate-300">Fecha</label>
+                        <p-datepicker formControlName="fecha" [showIcon]="true" appendTo="body" dateFormat="dd/mm/yy" styleClass="w-full"></p-datepicker>
+                        <small class="text-red-500" *ngIf="eventForm.get('fecha')?.invalid && eventForm.get('fecha')?.touched">La fecha es requerida.</small>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="font-bold text-sm text-slate-700 dark:text-slate-300">Fecha fin <span class="font-normal text-slate-400">(opcional)</span></label>
+                        <p-datepicker formControlName="fechaFin" [showIcon]="true" appendTo="body" dateFormat="dd/mm/yy" styleClass="w-full"></p-datepicker>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="font-bold text-sm text-slate-700 dark:text-slate-300">Descripción</label>
+                    <textarea pInputTextarea formControlName="descripcion" rows="2" class="w-full"></textarea>
+                </div>
+            </form>
+        </ng-template>
+        <ng-template pTemplate="footer">
+            <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text text-slate-500" (click)="eventDialog = false"></button>
+            <button pButton label="Guardar" icon="pi pi-check" class="bg-blue-900 dark:bg-blue-600 border-blue-900 text-white" (click)="saveEvent()" [disabled]="eventForm.invalid"></button>
+        </ng-template>
+    </p-dialog>
 
     <!-- CRUD Dialog -->
     <p-dialog [(visible)]="deadlineDialog" [style]="{width: '450px'}" header="Detalles del Vencimiento" [modal]="true"

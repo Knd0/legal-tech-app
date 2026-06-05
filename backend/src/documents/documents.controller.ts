@@ -66,27 +66,33 @@ export class DocumentsController {
 
   @Get(':id/view')
   async view(@Param('id') id: string, @Request() req, @Res() res: any) {
-      const INLINE_ALLOWLIST = new Set([
-        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-        'application/pdf',
-      ]);
+      // Content-Type always comes from this hardcoded map, never from DB/user data
+      const INLINE_TYPES: Record<string, string> = {
+        'image/jpeg': 'image/jpeg',
+        'image/png': 'image/png',
+        'image/gif': 'image/gif',
+        'image/webp': 'image/webp',
+        'application/pdf': 'application/pdf',
+        // image/svg+xml intentionally excluded — SVG can carry JavaScript
+      };
 
       const doc = await this.documentsService.findOne(id, req.user.userId);
       if (!fs.existsSync(doc.path)) {
           throw new InternalServerErrorException('El archivo físico no existe en el servidor');
       }
 
-      // Sanitize filename: strip CR, LF and quotes to prevent header injection
+      // Strip CR, LF and quotes from filename to prevent header injection
       const safeFilename = (doc.originalName ?? 'file').replace(/[\r\n"]/g, '_');
 
-      if (INLINE_ALLOWLIST.has(doc.mimeType)) {
-          res.setHeader('Content-Type', doc.mimeType);
+      const safeContentType = INLINE_TYPES[doc.mimeType];
+      if (safeContentType) {
+          res.setHeader('Content-Type', safeContentType);
           res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
           res.setHeader('X-Content-Type-Options', 'nosniff');
           res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox; frame-ancestors 'self'");
           return res.sendFile(doc.path, { root: '.' });
       } else {
-          // Anything outside the allowlist is forced to download, never rendered inline
+          // Outside the allowlist → force download, never render inline
           return res.download(doc.path, safeFilename);
       }
   }

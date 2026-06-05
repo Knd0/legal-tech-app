@@ -64,6 +64,18 @@ export class DocumentsController {
       }
   }
 
+  @Get(':id/view')
+  async view(@Param('id') id: string, @Request() req, @Res() res: any) {
+      const doc = await this.documentsService.findOne(id, req.user.userId);
+      if (fs.existsSync(doc.path)) {
+          res.setHeader('Content-Type', doc.mimeType);
+          res.setHeader('Content-Disposition', `inline; filename="${doc.originalName}"`);
+          return res.sendFile(doc.path, { root: '.' });
+      } else {
+          throw new InternalServerErrorException('El archivo físico no existe en el servidor');
+      }
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string, @Request() req) {
     return this.documentsService.remove(id, req.user.userId);

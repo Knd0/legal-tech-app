@@ -43,6 +43,35 @@
         </p>
     </div>
 
+    <!-- Preview Dialog -->
+    <p-dialog
+        [visible]="!!previewDoc()"
+        (visibleChange)="!$event && closePreview()"
+        [header]="previewDoc()?.originalName || ''"
+        [modal]="true"
+        [style]="{ width: '90vw', maxWidth: '900px' }"
+        [contentStyle]="{ padding: '0' }"
+        styleClass="preview-dialog">
+        <div class="flex items-center justify-center min-h-[60vh] bg-slate-900 rounded-b-lg overflow-hidden">
+            <div *ngIf="previewLoading()" class="text-white flex flex-col items-center gap-3">
+                <i class="pi pi-spin pi-spinner text-3xl"></i>
+                <span class="text-sm">Cargando...</span>
+            </div>
+            <ng-container *ngIf="!previewLoading() && safePreviewUrl()">
+                <!-- Image preview -->
+                <img *ngIf="previewDoc()?.mimeType?.startsWith('image/')"
+                    [src]="safePreviewUrl()"
+                    [alt]="previewDoc()?.originalName"
+                    class="max-w-full max-h-[80vh] object-contain" />
+                <!-- PDF preview -->
+                <iframe *ngIf="previewDoc()?.mimeType === 'application/pdf'"
+                    [src]="safePreviewUrl()"
+                    class="w-full h-[80vh] border-0">
+                </iframe>
+            </ng-container>
+        </div>
+    </p-dialog>
+
     <div *ngIf="documents().length > 0" class="divide-y divide-slate-100 dark:divide-slate-700">
         <div *ngFor="let doc of documents()"
             class="p-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 group transition-colors">
@@ -59,17 +88,23 @@
                     </p>
                 </div>
             </div>
-            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <!-- Preview -->
+                <button *ngIf="canPreview(doc.mimeType)" (click)="openPreview(doc)"
+                    class="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    title="Previsualizar">
+                    <i class="pi pi-eye"></i>
+                </button>
                 <!-- Download -->
-                <a [href]="getDownloadUrl(doc.id)" target="_blank"
-                    class="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+                <button (click)="downloadDoc(doc)"
+                    class="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                    title="Descargar">
                     <i class="pi pi-download"></i>
-                </a>
-                <!-- Preview (if applicable, separate feature) -->
-
+                </button>
                 <!-- Delete -->
                 <button (click)="deleteDocument(doc.id)"
-                    class="p-2 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                    class="p-2 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                    title="Eliminar">
                     <i class="pi pi-trash"></i>
                 </button>
             </div>

@@ -189,3 +189,20 @@ Todos los gaps conocidos han sido corregidos:
 - **Kanban: detectar columna por referencia**: `this.columns.find(c => c.items === event.container.data)` es más robusto que `event.container.id` (CDK puede devolver ID interno).
 - **chart.js instalado**: `legal-tech-app` tiene `chart.js ^4.5.1` + `ChartModule` de PrimeNG para el dashboard.
 - **Auth endpoints públicos**: `/auth/forgot-password` y `/auth/reset-password` no requieren JWT. OTPs keyed por `forgot_<email>` para no colisionar con los del perfil.
+
+---
+
+## Recommended Next Steps & Innovative Ideas
+
+### Next Steps:
+1. **Enable Copiloto IA in Production**: Add `AI_ENABLED=true` and `OPENAI_API_KEY` on Render to fully run the integrated AI chat.
+2. **AFIP Point of Sale Configuration**: Allow configuring custom points of sale from the user profile settings.
+3. **Lazy-Loaded Account Movements**: Implement server-side pagination for movement lists (cuenta corriente).
+4. **Service Worker Push Notifications**: Implement VAPID subscriptions in NestJS for background notification alerts.
+
+### Innovative Feature Ideas:
+1. **AI Legal Document Draft Generator**: Use the Copiloto IA to draft filings, demurrers, or briefs using case context.
+2. **Notification PDF Parsing**: Allow users to upload MEV notification PDFs and parse dates/deadlines automatically using OCR/LLM.
+3. **Two-Way Client WhatsApp Bot**: Clients query their case files by text message (e.g., `"status"`) and the bot responds with case details.
+4. **Judicial Interest Calculator**: Integrates provincial/national interest tables to calculate updates and output PDFs.
+

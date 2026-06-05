@@ -82,3 +82,19 @@ Se han cerrado todas las brechas de seguridad críticas del backend:
    Permitir a los usuarios configurar diferentes números de Punto de Venta directamente en su perfil de configuración para mayor flexibilidad en la emisión de facturas.
 3. **Paginación Server-Side en listados de Movimientos (Cuenta Corriente):**
    Si la cantidad de transacciones por cliente se incrementa fuertemente, se puede aplicar paginación diferida en la lista principal de movimientos del cliente.
+4. **Notificaciones Push en Segundo Plano Profundo (Service Worker + VAPID):**
+   Para recibir alertas incluso con la pestaña del navegador completamente cerrada en el móvil o PC, se puede integrar una suscripción Web Push completa en el backend conectando las claves VAPID generadas con la base de datos de endpoints.
+
+---
+
+## 🚀 Ideas Innovadoras para el Futuro
+
+1. **Redactor de Escritos y Respuestas de Demanda con IA:**
+   Integrar el Copiloto IA con plantillas de escritos judiciales. El abogado selecciona el expediente, el tipo de escrito (ej. "Contesta Demanda", "Solicita Copias", "Acompaña Documental") y la IA redacta el borrador preliminar automáticamente usando el contexto del caso.
+2. **Extracción y Carga Automática de Vencimientos desde PDFs de Notificaciones:**
+   Permitir al usuario subir el archivo PDF de una notificación judicial recibida de la mesa de entradas virtual (MEV), usar OCR/IA en el backend para detectar automáticamente los plazos y fechas límite ordenados por el juez, y agendarlos en el calendario con un solo clic.
+3. **Bot de WhatsApp Bidireccional (Interactivo para Clientes):**
+   Habilitar que los clientes del estudio jurídico puedan enviarle un mensaje al bot de WhatsApp (ej. `"estado"`) y el bot responda de forma automática con el estado actual del expediente y los últimos movimientos públicos permitidos.
+4. **Cálculo Automático de Actualizaciones Judiciales (Calculadora de Intereses Compleja):**
+   Integrar una calculadora financiera avanzada con tasas de interés oficiales de distintos fueros y provincias (ej. Tasa Activa del Banco Nación, Tasa Pasiva de Buenos Aires, etc.) para liquidar intereses de forma interactiva y exportar el reporte en PDF.
+

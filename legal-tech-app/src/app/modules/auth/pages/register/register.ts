@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { ButtonModule } from 'primeng/button';
 import { AuthService } from '../../../../core/services/auth.service';
 import Swal from 'sweetalert2';
 
@@ -17,7 +18,8 @@ import Swal from 'sweetalert2';
     RouterModule,
     InputTextModule,
     InputGroupModule,
-    InputGroupAddonModule
+    InputGroupAddonModule,
+    ButtonModule
   ],
   templateUrl: './register.html',
   styleUrl: './register.scss',

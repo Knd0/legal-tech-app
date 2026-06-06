@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { ButtonModule } from 'primeng/button';
 
 import { AuthRoutingModule } from './auth-routing-module';
 import { Auth } from './auth';
@@ -22,7 +23,8 @@ import { LoginComponent } from './pages/login/login';
     ReactiveFormsModule,
     InputTextModule,
     InputGroupModule,
-    InputGroupAddonModule
+    InputGroupAddonModule,
+    ButtonModule
   ]
 })
 export class AuthModule { }

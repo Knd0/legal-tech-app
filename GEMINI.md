@@ -38,7 +38,7 @@ Actualmente la aplicación se encuentra en un estado muy avanzado (~99% global):
 | **Dashboard** | **99%** | Estadísticas y métricas financieras usando PrimeNG Charts y Chart.js (`chart.js ^4.5.1`). |
 | **Admin/Users** | **99%** | Listado de usuarios, suspensión y borrado estilizado con SweetAlert2. |
 | **Documents UI** | **99%** | Carga de archivos integrada con **persistencia real en la nube usando Cloudinary**. Streaming seguro (view/download) y preview interactivo de imágenes y PDFs. |
-| **Copilot** | **100%** | Módulo de IA premium: análisis de textos, redactor de escritos judiciales, resúmenes procesales, análisis de riesgo/probabilidad de éxito. Gemini 2.5 Flash por defecto, fallback a OpenAI. |
+| **Copilot** | **100%** | Módulo de IA premium: análisis de textos, redactor de escritos judiciales, resúmenes procesales, análisis de riesgo/probabilidad de éxito, y calculadora interactiva de costos y análisis predictivo de viabilidad con reportes en PDF/Word. Gemini 2.5 Flash por defecto, fallback a OpenAI. |
 | **Facturas y Auditorías**| **99%** | Paginación server-side en facturas y audit logs. |
 
 ---

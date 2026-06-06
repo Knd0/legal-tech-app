@@ -1,10 +1,19 @@
 <div class="fade-in-up flex flex-col gap-6 pb-10 relative">
-  <!-- Loader overlay -->
-  <div *ngIf="loading()"
+  <!-- Loader overlay for Assistant -->
+  <div *ngIf="selectedTab() === 'assistant' && loading()"
     class="absolute inset-0 z-50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
     <div class="flex flex-col items-center gap-3">
       <i class="pi pi-spin pi-sparkles text-4xl text-indigo-600 dark:text-indigo-400"></i>
       <span class="text-sm font-bold text-slate-600 dark:text-slate-300 animate-pulse">Copilot analizando escrito...</span>
+    </div>
+  </div>
+
+  <!-- Loader overlay for Costs -->
+  <div *ngIf="selectedTab() === 'costs' && costsLoading()"
+    class="absolute inset-0 z-50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
+    <div class="flex flex-col items-center gap-3">
+      <i class="pi pi-spin pi-sparkles text-4xl text-indigo-600 dark:text-indigo-400"></i>
+      <span class="text-sm font-bold text-slate-600 dark:text-slate-300 animate-pulse">Copilot estimando costos del proceso...</span>
     </div>
   </div>
 
@@ -15,13 +24,41 @@
         <i class="pi pi-sparkles text-indigo-600 dark:text-indigo-400"></i> Copilot
       </h1>
       <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">
-        Analizá cláusulas, redactá escritos legales y resumí expedientes judiciales con inteligencia artificial.
+        Analizá cláusulas, redactá escritos legales, estimá costos del litigio y resumí expedientes con inteligencia artificial.
       </p>
     </div>
   </div>
 
-  <!-- Content Grid -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- Navigation Tabs -->
+  <div class="flex border-b border-slate-200 dark:border-slate-700">
+    <button
+      class="px-5 py-3 border-b-2 font-medium text-sm transition-all flex items-center gap-2"
+      [class.border-indigo-600]="selectedTab() === 'assistant'"
+      [class.text-indigo-600]="selectedTab() === 'assistant'"
+      [class.dark:text-indigo-400]="selectedTab() === 'assistant'"
+      [class.dark:border-indigo-400]="selectedTab() === 'assistant'"
+      [class.border-transparent]="selectedTab() !== 'assistant'"
+      [class.text-slate-500]="selectedTab() !== 'assistant'"
+      [class.dark:text-slate-400]="selectedTab() !== 'assistant'"
+      (click)="selectedTab.set('assistant')">
+      <i class="pi pi-sparkles"></i> Asistente Legal
+    </button>
+    <button
+      class="px-5 py-3 border-b-2 font-medium text-sm transition-all flex items-center gap-2"
+      [class.border-indigo-600]="selectedTab() === 'costs'"
+      [class.text-indigo-600]="selectedTab() === 'costs'"
+      [class.dark:text-indigo-400]="selectedTab() === 'costs'"
+      [class.dark:border-indigo-400]="selectedTab() === 'costs'"
+      [class.border-transparent]="selectedTab() !== 'costs'"
+      [class.text-slate-500]="selectedTab() !== 'costs'"
+      [class.dark:text-slate-400]="selectedTab() !== 'costs'"
+      (click)="selectedTab.set('costs')">
+      <i class="pi pi-calculator"></i> Análisis de Costos
+    </button>
+  </div>
+
+  <!-- Content Grid: Asistente Legal -->
+  <div *ngIf="selectedTab() === 'assistant'" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
     <!-- Input Section -->
     <div class="lg:col-span-6 flex flex-col gap-4">
       <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-xl p-5 md:p-6 flex flex-col gap-4">
@@ -102,7 +139,7 @@
             <!-- Extra instructions -->
             <div class="flex flex-col gap-2">
               <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Instrucciones Estratégicas Adicionales <span class="font-normal text-slate-400">(opcional)</span>
+                Instrucciones Estratégicas Adicionales <span class="font-normal text-slate-450">(opcional)</span>
               </label>
               <textarea pInputTextarea
                 [ngModel]="extraInstructions()"
@@ -234,6 +271,310 @@
         <!-- Render Response -->
         <div *ngIf="aiResponse() && !loading()" class="flex-grow overflow-y-auto max-h-[550px] text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans pr-2 whitespace-pre-line bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800/80">
           {{ aiResponse() }}
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Grid: Cálculo de Costos -->
+  <div *ngIf="selectedTab() === 'costs'" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Left Column: Form & Live Breakdown -->
+    <div class="lg:col-span-6 flex flex-col gap-4">
+      <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-xl p-5 md:p-6 flex flex-col gap-4">
+        
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-700 pb-2 mb-1 flex items-center gap-2">
+          <i class="pi pi-sliders-h text-indigo-500"></i> Variables del Litigio
+        </h3>
+
+        <!-- Form fields -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Monto Reclamo -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Monto del Reclamo ($)
+            </label>
+            <input type="number" 
+              [ngModel]="montoReclamo()" 
+              (ngModelChange)="montoReclamo.set($event)"
+              class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm"
+              placeholder="Ej: 1000000" />
+          </div>
+
+          <!-- Jurisdiccion -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Jurisdicción
+            </label>
+            <p-select
+              [options]="jurisdiccionOptions"
+              [ngModel]="jurisdiccion()"
+              (ngModelChange)="jurisdiccion.set($event)"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full text-sm">
+            </p-select>
+          </div>
+
+          <!-- Custom Tasa Percent (only shown if jurisdiction is custom) -->
+          <div *ngIf="jurisdiccion() === 'custom'" class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Tasa de Justicia Personalizada (%)
+            </label>
+            <input type="number" step="0.1"
+              [ngModel]="customTasaPercent()" 
+              (ngModelChange)="customTasaPercent.set($event)"
+              class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm"
+              placeholder="Ej: 2.0" />
+          </div>
+
+          <!-- Tipo Proceso -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Tipo de Proceso / Fuero
+            </label>
+            <p-select
+              [options]="tipoProcesoOptions"
+              [ngModel]="tipoProceso()"
+              (ngModelChange)="tipoProceso.set($event)"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full text-sm">
+            </p-select>
+          </div>
+
+          <!-- Cantidad Notificaciones -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Cantidad de Notificaciones
+            </label>
+            <input type="number" 
+              [ngModel]="cantidadNotificaciones()" 
+              (ngModelChange)="cantidadNotificaciones.set($event)"
+              class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm" />
+          </div>
+
+          <!-- JUS Manual Override -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex justify-between">
+              <span>Valor Ref. JUS ($)</span>
+              <span class="text-[10px] text-slate-400 font-normal">Sist: {{ configService.valorJus() | currency:'ARS':'symbol':'1.0-0' }}</span>
+            </label>
+            <input type="number" 
+              [ngModel]="valorJusManual()" 
+              (ngModelChange)="valorJusManual.set($event)"
+              [placeholder]="configService.valorJus()"
+              class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm" />
+          </div>
+
+          <!-- UMA Manual Override -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex justify-between">
+              <span>Valor Ref. UMA ($)</span>
+              <span class="text-[10px] text-slate-400 font-normal">Sist: {{ configService.valorUma() | currency:'ARS':'symbol':'1.0-0' }}</span>
+            </label>
+            <input type="number" 
+              [ngModel]="valorUmaManual()" 
+              (ngModelChange)="valorUmaManual.set($event)"
+              [placeholder]="configService.valorUma()"
+              class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm" />
+          </div>
+        </div>
+
+        <!-- Checkboxes for Mediation / Expert -->
+        <div class="flex flex-wrap gap-6 my-2 bg-slate-50 dark:bg-slate-900/40 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+          <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700 dark:text-slate-300">
+            <input type="checkbox" 
+              [ngModel]="requiereMediacion()" 
+              (ngModelChange)="requiereMediacion.set($event)"
+              class="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 h-4 w-4" />
+            <span>Requiere Mediación Previa</span>
+          </label>
+
+          <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700 dark:text-slate-300">
+            <input type="checkbox" 
+              [ngModel]="requierePerito()" 
+              (ngModelChange)="requierePerito.set($event)"
+              class="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 h-4 w-4" />
+            <span>Requiere Perito</span>
+          </label>
+        </div>
+
+        <!-- Extra details for the prompt -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            Detalles adicionales del caso para la IA <span class="font-normal text-slate-450">(opcional)</span>
+          </label>
+          <textarea pInputTextarea
+            [ngModel]="extraCostsDetails()"
+            (ngModelChange)="extraCostsDetails.set($event)"
+            rows="3"
+            placeholder="Ej: 'El demandado se encuentra en PBA', 'Hay 3 demandados insolventes', 'Es un proceso de alta complejidad probatoria'..."
+            class="w-full p-3 rounded-lg text-sm font-sans border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 resize-none">
+          </textarea>
+        </div>
+
+        <!-- Live Cost Breakdown Table -->
+        <div class="mt-2 flex flex-col gap-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Desglose de Costos de Inicio</h4>
+          <div class="overflow-hidden border border-slate-200 dark:border-slate-700 rounded-xl">
+            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700 text-sm">
+              <thead class="bg-slate-50 dark:bg-slate-900/60">
+                <tr>
+                  <th class="px-4 py-2 text-left font-bold text-slate-700 dark:text-slate-300">Concepto</th>
+                  <th class="px-4 py-2 text-left font-bold text-slate-500 dark:text-slate-400 text-xs">Cálculo / Referencia</th>
+                  <th class="px-4 py-2 text-right font-bold text-slate-700 dark:text-slate-300">Importe Estimado</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-800">
+                <!-- Tasa de justicia -->
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                  <td class="px-4 py-2 text-slate-800 dark:text-slate-200 font-medium">Tasa de Justicia</td>
+                  <td class="px-4 py-2 text-slate-500 dark:text-slate-400 text-xs">
+                    {{ jurisdiccion() === 'custom' ? customTasaPercent() + '%' : (jurisdiccion() === 'nacion' ? '3.0%' : (jurisdiccion() === 'pba' ? '2.2%' : '1.5%')) }} del Reclamo
+                  </td>
+                  <td class="px-4 py-2 text-right text-slate-800 dark:text-white font-mono">{{ tasaJusticia() | currency:'ARS':'symbol':'1.2-2' }}</td>
+                </tr>
+
+                <!-- Sobretasa de justicia (PBA) -->
+                <tr *ngIf="jurisdiccion() === 'pba'" class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                  <td class="px-4 py-2 text-slate-800 dark:text-slate-200 font-medium">Sobretasa de Justicia</td>
+                  <td class="px-4 py-2 text-slate-500 dark:text-slate-400 text-xs">10% de la Tasa (PBA)</td>
+                  <td class="px-4 py-2 text-right text-slate-800 dark:text-white font-mono">{{ sobretasaJusticia() | currency:'ARS':'symbol':'1.2-2' }}</td>
+                </tr>
+
+                <!-- Bono Ley -->
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                  <td class="px-4 py-2 text-slate-800 dark:text-slate-200 font-medium">Bono Ley / Instrumental</td>
+                  <td class="px-4 py-2 text-slate-500 dark:text-slate-400 text-xs">Arancel fijo instrumental</td>
+                  <td class="px-4 py-2 text-right text-slate-800 dark:text-white font-mono">{{ bonoLey() | currency:'ARS':'symbol':'1.2-2' }}</td>
+                </tr>
+
+                <!-- Aportes Previsionales -->
+                <tr *ngIf="jurisdiccion() === 'pba' || jurisdiccion() === 'er'" class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                  <td class="px-4 py-2 text-slate-800 dark:text-slate-200 font-medium">Aporte Previsional / Anticipo</td>
+                  <td class="px-4 py-2 text-slate-500 dark:text-slate-400 text-xs">0.5 JUS inicial</td>
+                  <td class="px-4 py-2 text-right text-slate-800 dark:text-white font-mono">{{ aportesPrevisionales() | currency:'ARS':'symbol':'1.2-2' }}</td>
+                </tr>
+
+                <!-- Gastos de Mediacion -->
+                <tr *ngIf="requiereMediacion()" class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                  <td class="px-4 py-2 text-slate-800 dark:text-slate-200 font-medium">Gastos de Mediación</td>
+                  <td class="px-4 py-2 text-slate-500 dark:text-slate-400 text-xs">
+                    {{ jurisdiccion() === 'nacion' ? '2 UMA arancel' : (jurisdiccion() === 'pba' || jurisdiccion() === 'er' ? '2 JUS arancel' : 'Fijo estimado') }}
+                  </td>
+                  <td class="px-4 py-2 text-right text-slate-800 dark:text-white font-mono">{{ gastosMediacion() | currency:'ARS':'symbol':'1.2-2' }}</td>
+                </tr>
+
+                <!-- Gastos de Notificacion -->
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                  <td class="px-4 py-2 text-slate-800 dark:text-slate-200 font-medium">Gastos de Notificación</td>
+                  <td class="px-4 py-2 text-slate-500 dark:text-slate-400 text-xs">{{ cantidadNotificaciones() }} Cédulas/Cartas Doc. ($1.500 c/u)</td>
+                  <td class="px-4 py-2 text-right text-slate-800 dark:text-white font-mono">{{ gastosNotificacion() | currency:'ARS':'symbol':'1.2-2' }}</td>
+                </tr>
+
+                <!-- Adelanto Perito -->
+                <tr *ngIf="requierePerito()" class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                  <td class="px-4 py-2 text-slate-800 dark:text-slate-200 font-medium">Adelanto de Gastos Perito</td>
+                  <td class="px-4 py-2 text-slate-500 dark:text-slate-400 text-xs">
+                    {{ jurisdiccion() === 'nacion' ? '5 UMA anticipo' : (jurisdiccion() === 'pba' || jurisdiccion() === 'er' ? '5 JUS anticipo' : 'Fijo estimado') }}
+                  </td>
+                  <td class="px-4 py-2 text-right text-slate-800 dark:text-white font-mono">{{ adelantoPerito() | currency:'ARS':'symbol':'1.2-2' }}</td>
+                </tr>
+
+                <!-- TOTAL GASTOS -->
+                <tr class="bg-indigo-50/50 dark:bg-indigo-950/20 font-bold border-t-2 border-indigo-200 dark:border-indigo-850">
+                  <td class="px-4 py-3 text-indigo-900 dark:text-indigo-300">TOTAL ESTIMADO DE INICIO</td>
+                  <td class="px-4 py-3"></td>
+                  <td class="px-4 py-3 text-right text-indigo-900 dark:text-indigo-300 font-mono">{{ totalGastosEstimados() | currency:'ARS':'symbol':'1.2-2' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Honorarios Sugeridos Scale -->
+        <div class="mt-1 bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estimación Honorarios de Ley (Sugeridos)</span>
+            <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded">
+              Escala de Aranceles
+            </span>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mt-1">
+            <div class="flex flex-col">
+              <span class="text-[10px] uppercase font-bold text-slate-400">Límite Mínimo (Monto / UMA / JUS)</span>
+              <span class="text-sm font-bold text-slate-800 dark:text-slate-200 font-mono">{{ honorariosMinimos() | currency:'ARS':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[10px] uppercase font-bold text-slate-400">Límite Máximo (Monto / UMA / JUS)</span>
+              <span class="text-sm font-bold text-slate-800 dark:text-slate-200 font-mono">{{ honorariosMaximos() | currency:'ARS':'symbol':'1.0-0' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3 mt-2">
+          <button pButton label="Limpiar" icon="pi pi-trash"
+            class="p-button-outlined p-button-secondary border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 w-full sm:w-auto"
+            (click)="clearCosts()"></button>
+          
+          <button pButton label="Analizar Costos con Copilot" icon="pi pi-sparkles"
+            [disabled]="costsLoading() || !montoReclamo() || !jurisdiccion() || !tipoProceso()"
+            class="bg-indigo-600 border-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:shadow-lg transition-all w-full sm:w-auto flex items-center justify-center gap-2"
+            (click)="onAnalyzeCosts()"></button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right Column: AI Cost Report -->
+    <div class="lg:col-span-6 flex flex-col gap-4">
+      <div class="h-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-xl p-5 md:p-6 flex flex-col min-h-[450px]">
+        
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3 mb-4">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <i class="pi pi-file-edit text-indigo-500"></i> Análisis Predictivo
+          </h2>
+          
+          <!-- Actions if response is present -->
+          <div *ngIf="costsAiResponse()" class="flex items-center gap-1">
+            <button pButton icon="pi pi-copy"
+              class="p-button-rounded p-button-text p-button-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+              pTooltip="Copiar texto limpio" tooltipPosition="top" (click)="copyCleanCostsText()"></button>
+
+            <button pButton icon="pi pi-file-word"
+              class="p-button-rounded p-button-text p-button-sm text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+              pTooltip="Copiar con formato para Word" tooltipPosition="top" (click)="copyFormattedCostsText()"></button>
+
+            <button pButton icon="pi pi-file-pdf"
+              class="p-button-rounded p-button-text p-button-sm text-red-500 dark:text-red-450 hover:bg-red-50 dark:hover:bg-red-900/20"
+              pTooltip="Descargar como PDF" tooltipPosition="top" (click)="exportCostsToPdf()"></button>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!costsAiResponse() && !costsLoading()" class="flex-grow flex flex-col items-center justify-center text-center p-6 text-slate-400 dark:text-slate-500">
+          <div class="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-4 border border-slate-100 dark:border-slate-800">
+            <i class="pi pi-sparkles text-2xl text-slate-300 dark:text-slate-600"></i>
+          </div>
+          <p class="text-sm font-bold">Esperando estimación de costos...</p>
+          <p class="text-xs text-slate-400 dark:text-slate-500 max-w-xs mt-1">
+            Configure los parámetros del litigio en el panel izquierdo y haga clic en "Analizar Costos con Copilot" para generar el informe predictivo.
+          </p>
+        </div>
+
+        <!-- Loading state helper placeholder -->
+        <div *ngIf="costsLoading()" class="flex-grow flex flex-col gap-3 justify-center">
+          <div class="h-4 bg-slate-100 dark:bg-slate-700 rounded w-3/4 animate-pulse"></div>
+          <div class="h-4 bg-slate-100 dark:bg-slate-700 rounded w-5/6 animate-pulse"></div>
+          <div class="h-4 bg-slate-100 dark:bg-slate-700 rounded w-2/3 animate-pulse"></div>
+          <div class="h-4 bg-slate-100 dark:bg-slate-700 rounded w-1/2 animate-pulse"></div>
+        </div>
+
+        <!-- Render Response -->
+        <div *ngIf="costsAiResponse() && !costsLoading()" class="flex-grow overflow-y-auto max-h-[550px] text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans pr-2 whitespace-pre-line bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800/80">
+          {{ costsAiResponse() }}
         </div>
 
       </div>

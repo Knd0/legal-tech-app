@@ -68,7 +68,7 @@ Each feature is a NestJS module under `backend/src/`. Key modules:
 - **facturas** — AFIP/ARCA e-invoicing. Uses `os.tmpdir()` for cross-platform (Windows dev / Linux prod) temp certificate writing, and reads `AFIP_PRODUCTION` env variable dynamically to switch between homologation (false/default) and production. Falls back to simulation mode if `AFIP_CERT`/`AFIP_KEY` env vars are missing.
 - **movimientos** — Financial movements per client (honorarios, gastos, pagos) with JUS/UMA unit support.
 - **settings** — Key-value config store. Seeded with `VALOR_JUS_ENTRE_RIOS`, `VALOR_UMA_NACION`, `ENABLE_WHATSAPP`, `DAYS_BEFORE_ALERT`, `ENABLE_DESKTOP_NOTIFICATIONS`.
-- **ai** — **Copilot module**. Exposes `/ai/analyze`, `/ai/draft`, `/ai/summarize-expediente`, and `/ai/analyze-risk` protected by `JwtAuthGuard`. Leverages Google Gemini 2.5 Flash (free tier) via `GEMINI_API_KEY` (or dynamically configured using `GEMINI_MODEL`) with automated fallback to OpenAI (`gpt-4o-mini`) if `OPENAI_API_KEY` is set.
+- **ai** — **Copilot module**. Exposes `/ai/analyze`, `/ai/draft`, `/ai/summarize-expediente`, `/ai/analyze-risk`, and `/ai/analyze-costs` protected by `JwtAuthGuard`. Leverages Google Gemini 2.5 Flash (free tier) via `GEMINI_API_KEY` (or dynamically configured using `GEMINI_MODEL`) with automated fallback to OpenAI (`gpt-4o-mini`) if `OPENAI_API_KEY` is set.
 
 Database: PostgreSQL via TypeORM. `synchronize: true` in both dev and prod — schema changes apply on boot. No migration files exist.
 
@@ -170,7 +170,7 @@ Todos los gaps de seguridad conocidos han sido corregidos. Pendientes únicament
 | Dashboard           | 99%     | —                                                                         |
 | Admin/Users         | 99%     | —                                                                         |
 | Documents UI        | 99%     | —                                                                         |
-| Copilot             | 100%    | —                                                                         |
+| Copilot             | 100%    | Módulo de IA premium con análisis general, redacción de escritos, resúmenes de causas, análisis de riesgo y calculadora interactiva predictiva de costos judiciales con exportación PDF/Word. |
 | Calendar (BE)       | 100%    | VAPID keys generadas. Ver sección "Pendientes de configurar en Render". |
 | Facturas y Audits   | 99%     | —                                                                         |
 
@@ -219,4 +219,4 @@ Todos los gaps de seguridad conocidos han sido corregidos. Pendientes únicament
 ### Innovative Feature Ideas:
 1. **Two-Way Client WhatsApp Bot**: Clients query their case files by text message (e.g., `"status"`) and the bot responds with case details.
 2. **Judicial Interest Calculator**: Integrates provincial/national interest tables to calculate updates and output PDFs.
-3. **Predictive Trial Cost Analysis**: Estimate justice fees, minimum legal fees, and administrative expenses before filing to provide precise client quotes.
+3. **Análisis Predictivo de Costos del Juicio**: Completado. Ahora incluye calculadora interactiva con desgloses por provincia/Nación y reporte de viabilidad generado por IA.

@@ -92,9 +92,23 @@ export class ProfileComponent implements OnInit, OnDestroy {
     effect(() => {
       this.configDays = this.notificationService.daysBeforeAlert();
       this.configHours = this.notificationService.checkFrequencyHours();
-      this.configWhatsapp = this.notificationService.enableWhatsapp();
+      const enabled = this.notificationService.enableWhatsapp();
+      this.configWhatsapp = enabled;
       this.configWhatsappNumber = this.notificationService.whatsappNumber();
       this.configDesktop = this.notificationService.enableDesktop();
+
+      // Start/stop polling based on settings state
+      if (enabled) {
+        this.ngZone.run(() => {
+          if (!this.qrPollInterval) {
+            this.startQrPolling();
+          }
+        });
+      } else {
+        this.ngZone.run(() => {
+          this.stopQrPolling();
+        });
+      }
     });
   }
 
@@ -447,6 +461,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   startQrPolling(intervalMs = 3000) {
       this.stopQrPolling();
+      
+      // If we don't have a connected number and we aren't pairing with a code or already scanned,
+      // let's show the loading/generating QR state from the start!
+      if (!this.configWhatsappNumber && !this.pairingCode() && !this.scannedAndProcessing()) {
+          this.loadingQr.set(true);
+      }
+
       let consecutiveErrors = 0;
       const maxPolls = Math.ceil(120_000 / intervalMs);
       let pollCount = 0;
@@ -473,6 +494,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   this.loadingQr.set(false);
                   this.scannedAndProcessing.set(false);
                 } else if (status.ready) {
+                  const wasLinking = this.loadingQr() || this.scannedAndProcessing() || this.loadingPairingCode() || this.pairingCode();
+                  
                   this.qrCodeUrl.set(null);
                   this.pairingCode.set(null);
                   this.whatsappError.set(null);
@@ -491,13 +514,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     );
                   }
 
-                  Swal.fire({
-                    title: '¡Conectado!',
-                    text: status.number ? `Vinculado con ${status.number}` : 'El bot de WhatsApp está listo.',
-                    icon: 'success',
-                    timer: 3000,
-                    showConfirmButton: false
-                  });
+                  if (wasLinking) {
+                    Swal.fire({
+                      title: '¡Conectado!',
+                      text: status.number ? `Vinculado con ${status.number}` : 'El bot de WhatsApp está listo.',
+                      icon: 'success',
+                      timer: 3000,
+                      showConfirmButton: false
+                    });
+                  }
                 } else if (status.error) {
                   this.whatsappError.set(status.error);
                   this.loadingQr.set(false);

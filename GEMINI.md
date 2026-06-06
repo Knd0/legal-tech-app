@@ -1,6 +1,6 @@
 # GEMINI.md
 
-Este archivo contiene el registro de contexto de **Gemini** (Antigravity AI) sobre la arquitectura, estado actual e integraciones de la plataforma **LegalTech**. Sirve como guía de alineación y referencia rápida de desarrollo.
+Este archivo contiene el registro de contexto de **Gemini** (Antigravity AI) sobre la arquitectura, estado actual e integraciones de la plataforma **Themis**. Sirve como guía de alineación y referencia rápida de desarrollo.
 
 ---
 
@@ -17,7 +17,7 @@ Este archivo contiene el registro de contexto de **Gemini** (Antigravity AI) sob
 - **Credenciales:** `postgres` / `1234`
 - **Base de datos:** `legal_tech_db`
 - **Cuentas Sembradas (`SeedService` & script manual con contraseña `password123`):**
-  1. `admin@legaltech.com` (Rol: `ADMIN` — bypass de checks de suscripción).
+  1. `admin@themis.com` (Rol: `ADMIN` — bypass de checks de suscripción).
   2. `multifranco0@gmail.com` (Rol: `USER` — 2 clientes y 2 expedientes de prueba).
   3. `admin@estudio.com` (Rol: `USER` — 1 cliente y 2 expedientes de prueba).
 
@@ -38,7 +38,7 @@ Actualmente la aplicación se encuentra en un estado muy avanzado (~98% global):
 | **Dashboard** | **99%** | Estadísticas y métricas financieras usando PrimeNG Charts y Chart.js (`chart.js ^4.5.1`). |
 | **Admin/Users** | **99%** | Listado de usuarios, suspensión y borrado estilizado con SweetAlert2. |
 | **Documents UI** | **99%** | Carga de archivos integrada con **persistencia real en la nube usando Cloudinary** (eliminando el almacenamiento temporal efímero en disco de Render). Streaming seguro (view/download) y preview interactivo de imágenes y PDFs corregido. |
-| **Copiloto IA** | **100%** | Módulo de Inteligencia Artificial premium. Permite: 1) Análisis general de textos o cláusulas; 2) Redactor automático de borradores de escritos judiciales (Demanda, Contestación, etc.) usando el contexto del expediente; 3) Resúmenes procesales ejecutivos automáticos; 4) Análisis de riesgo y probabilidad de éxito con grids de puntos fuertes/débiles y barra de porcentaje. Soporta Gemini 1.5 Flash (Gratuito) y fallback a OpenAI. |
+| **Copiloto Themis** | **100%** | Módulo de Inteligencia Artificial premium. Permite: 1) Análisis general de textos o cláusulas; 2) Redactor automático de borradores de escritos judiciales (Demanda, Contestación, etc.) usando el contexto del expediente; 3) Resúmenes procesales ejecutivos automáticos; 4) Análisis de riesgo y probabilidad de éxito con grids de puntos fuertes/débiles y barra de porcentaje. Soporta Gemini 2.5 Flash por defecto y fallback a OpenAI. |
 | **Facturas y Auditorías**| **99%** | Incorporada **paginación server-side con carga lazy** en el listado de comprobantes del cliente y adaptados los servicios de auditoría y facturación en el backend con soporte completo de `page` y `limit` y pruebas unitarias asociadas. |
 
 ---
@@ -52,6 +52,9 @@ Se han cerrado todas las brechas de seguridad críticas del backend:
 - **`mercadopago.controller.ts`**: Webhook ahora verifica firma HMAC-SHA256 usando `MP_WEBHOOK_SECRET` (con degradación grácil si la variable no está configurada).
 - **`calendar.service.ts`**: Se previno Mass Assignment e IDOR filtrando estrictamente por `userId` y usando allowlists explícitas al guardar/actualizar eventos de agenda.
 - **Prevención de XSS y Header Injection**: Mejorado el endpoint `/documents/:id/view` usando tipos de contenido mapeados de forma estricta (no dinámicos del input del usuario).
+- **Notificaciones Push en Segundo Plano**: Implementado el sistema completo de Web Push (VAPID + Angular Service Workers) para notificaciones en segundo plano profundo cuando la app o pestaña está cerrada.
+- **Modelado Gemini**: Solucionado el error 404 al migrar por defecto a `gemini-2.5-flash` y permitiendo configurar dinámicamente mediante `GEMINI_MODEL` en `.env`.
+- **Rebranding General**: Renombrada la plataforma a **Themis** y el asistente de inteligencia artificial a **Copiloto Themis** de manera integral.
 
 ---
 
@@ -76,14 +79,12 @@ Se han cerrado todas las brechas de seguridad críticas del backend:
 
 ## 💡 Próximos Pasos Recomendados
 
-1. **Configurar la API Key del Copiloto IA en Producción (Render):**
+1. **Configurar la API Key del Copiloto Themis en Producción (Render):**
    El módulo está 100% desarrollado. Para activarlo de forma gratuita en producción, obtenga una API key en Google AI Studio (https://aistudio.google.com/) y configúrela como variable de entorno `GEMINI_API_KEY` en Render.
 2. **Soporte para múltiples Puntos de Venta en AFIP:**
    Permitir a los usuarios configurar diferentes números de Punto de Venta directamente en su perfil de configuración para mayor flexibilidad en la emisión de facturas.
 3. **Paginación Server-Side en listados de Movimientos (Cuenta Corriente):**
    Si la cantidad de transacciones por cliente se incrementa fuertemente, se puede aplicar paginación diferida en la lista principal de movimientos del cliente.
-4. **Notificaciones Push en Segundo Plano Profundo (Service Worker + VAPID):**
-   Para recibir alertas incluso con la pestaña del navegador completamente cerrada en el móvil o PC, se puede integrar una suscripción Web Push completa en el backend conectando las claves VAPID generadas con la base de datos de endpoints.
 
 ---
 

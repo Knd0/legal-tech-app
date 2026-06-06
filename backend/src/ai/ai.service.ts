@@ -96,7 +96,7 @@ export class AiService {
     - Carátula: ${exp.caratula}
     - Nro de Expediente: ${exp.nroExpediente}
     - Juzgado/Secretaría: ${exp.juzgado} (${exp.secretaria || 'No especificada'}) - Fuero: ${exp.fuero}
-    - Cliente representado: ${exp.cliente?.nombre || 'No especificado'} (DNI/CUIT: ${exp.cliente?.cuitDni || 'No especificado'})
+    - Cliente representado: ${exp.cliente?.nombre || 'No especificado'} (DNI/CUIT: ${(exp.cliente?.cuit || exp.cliente?.dni) || 'No especificado'})
     - Contraparte: ${exp.contraparte || 'No especificado'}
     - Abogado de la contraparte: ${exp.abogadoContraparte || 'No especificado'}
     - Detalles/Descripción del caso: ${exp.descripcion || 'Sin descripción adicional'}

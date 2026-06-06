@@ -12,8 +12,9 @@ export class DeadlinesService {
     private calendarService: CalendarService
   ) {}
 
-  findAll(userId: string): Promise<Deadline[]> {
-    return this.deadlinesRepository.find({ where: { userId }, relations: ['expediente'] });
+  findAll(userId?: string): Promise<Deadline[]> {
+    const where = userId ? { userId } : {};
+    return this.deadlinesRepository.find({ where, relations: ['expediente'] });
   }
 
   findOne(id: string): Promise<Deadline | null> {

@@ -51,7 +51,7 @@
                         <i class="pi pi-search text-slate-400 dark:text-slate-500 text-lg"></i>
                     </div>
                     <input type="text" [(ngModel)]="searchQuery" 
-                        placeholder="Buscar ayuda sobre AFIP, Copiloto Themis, WhatsApp, PDFs de causas..."
+                        placeholder="Buscar ayuda sobre AFIP, Copilot, WhatsApp, PDFs de causas..."
                         class="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 text-sm">
                     <button *ngIf="searchQuery" (click)="searchQuery = ''" class="absolute inset-y-0 right-0 pr-4 flex items-center">
                         <i class="pi pi-times text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm cursor-pointer"></i>
@@ -375,7 +375,7 @@
                         <i class="pi pi-sparkles text-lg"></i>
                     </div>
                     <div>
-                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Copiloto Themis</h2>
+                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Copilot</h2>
                         <p class="text-xs text-slate-500 dark:text-slate-400">Inteligencia Artificial premium integrada para escritos y auditorías rápidas</p>
                     </div>
                 </div>
@@ -388,7 +388,7 @@
                         <span class="bg-white/20 text-violet-100 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full">Tecnología Premium</span>
                         <h3 class="text-lg font-bold">Un Abogado Experto a un clic</h3>
                         <p class="text-xs text-violet-100 leading-relaxed">
-                            Alimentado por Gemini 2.5 Flash y ChatGPT de OpenAI como respaldo. El Copiloto Themis analiza el expediente judicial completo seleccionado para proveerte cuatro flujos fundamentales:
+                            Alimentado por Gemini 2.5 Flash y ChatGPT de OpenAI como respaldo. El Copilot analiza el expediente judicial completo seleccionado para proveerte cuatro flujos fundamentales:
                         </p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-[11px] text-violet-100 font-medium">
                             <div class="flex items-center gap-1.5"><i class="pi pi-check text-[10px]"></i> Redactor de escritos adaptado a la terminología forense argentina.</div>
@@ -402,7 +402,7 @@
                 <!-- Simulator widget -->
                 <div class="space-y-3">
                     <h4 class="font-bold text-slate-800 dark:text-white text-xs flex items-center gap-1">
-                        <i class="pi pi-play-circle text-blue-500"></i> Laboratorio de Pruebas: Simulador de Copiloto Themis
+                        <i class="pi pi-play-circle text-blue-500"></i> Laboratorio de Pruebas: Simulador de Copilot
                     </h4>
                     
                     <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-sm">
@@ -420,7 +420,7 @@
                         <div class="p-6 space-y-4">
                             <div *ngIf="selectedAiTab === 'draft'" class="space-y-4">
                                 <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                                    Simula la redacción instantánea de escritos judiciales. Selecciona el tipo de escrito y observa cómo el Copiloto Themis recopila los detalles del expediente:
+                                    Simula la redacción instantánea de escritos judiciales. Selecciona el tipo de escrito y observa cómo el Copilot recopila los detalles del expediente:
                                 </p>
                                 <div class="flex flex-wrap gap-2">
                                     <button (click)="generateMockDraft('demanda')" class="bg-slate-100 hover:bg-blue-50 dark:bg-slate-700 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-300 text-slate-700 dark:text-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
@@ -552,7 +552,7 @@
                         <div *ngIf="pdfSimState === 'analyzed'" class="space-y-4">
                             <div class="bg-emerald-50/50 dark:bg-emerald-950/15 text-emerald-800 dark:text-emerald-350 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-950/30">
                                 <h4 class="text-xs font-bold mb-3 flex items-center gap-1.5">
-                                    <i class="pi pi-check-circle"></i> Plazos Detectados por el Copiloto Themis
+                                    <i class="pi pi-check-circle"></i> Plazos Detectados por el Copilot
                                 </h4>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                                     <div>

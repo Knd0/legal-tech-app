@@ -38,7 +38,7 @@ Actualmente la aplicación se encuentra en un estado muy avanzado (~98% global):
 | **Dashboard** | **99%** | Estadísticas y métricas financieras usando PrimeNG Charts y Chart.js (`chart.js ^4.5.1`). |
 | **Admin/Users** | **99%** | Listado de usuarios, suspensión y borrado estilizado con SweetAlert2. |
 | **Documents UI** | **99%** | Carga de archivos integrada con **persistencia real en la nube usando Cloudinary** (eliminando el almacenamiento temporal efímero en disco de Render). Streaming seguro (view/download) y preview interactivo de imágenes y PDFs corregido. |
-| **Copiloto Themis** | **100%** | Módulo de Inteligencia Artificial premium. Permite: 1) Análisis general de textos o cláusulas; 2) Redactor automático de borradores de escritos judiciales (Demanda, Contestación, etc.) usando el contexto del expediente; 3) Resúmenes procesales ejecutivos automáticos; 4) Análisis de riesgo y probabilidad de éxito con grids de puntos fuertes/débiles y barra de porcentaje. Soporta Gemini 2.5 Flash por defecto y fallback a OpenAI. |
+| **Copilot** | **100%** | Módulo de Inteligencia Artificial premium. Permite: 1) Análisis general de textos o cláusulas; 2) Redactor automático de borradores de escritos judiciales (Demanda, Contestación, etc.) usando el contexto del expediente; 3) Resúmenes procesales ejecutivos automáticos; 4) Análisis de riesgo y probabilidad de éxito con grids de puntos fuertes/débiles y barra de porcentaje. Soporta Gemini 2.5 Flash por defecto y fallback a OpenAI. |
 | **Facturas y Auditorías**| **99%** | Incorporada **paginación server-side con carga lazy** en el listado de comprobantes del cliente y adaptados los servicios de auditoría y facturación en el backend con soporte completo de `page` y `limit` y pruebas unitarias asociadas. |
 
 ---
@@ -54,7 +54,7 @@ Se han cerrado todas las brechas de seguridad críticas del backend:
 - **Prevención de XSS y Header Injection**: Mejorado el endpoint `/documents/:id/view` usando tipos de contenido mapeados de forma estricta (no dinámicos del input del usuario).
 - **Notificaciones Push en Segundo Plano**: Implementado el sistema completo de Web Push (VAPID + Angular Service Workers) para notificaciones en segundo plano profundo cuando la app o pestaña está cerrada.
 - **Modelado Gemini**: Solucionado el error 404 al migrar por defecto a `gemini-2.5-flash` y permitiendo configurar dinámicamente mediante `GEMINI_MODEL` en `.env`.
-- **Rebranding General**: Renombrada la plataforma a **Themis** y el asistente de inteligencia artificial a **Copiloto Themis** de manera integral.
+- **Rebranding General**: Renombrada la plataforma a **Themis** y el asistente de inteligencia artificial a **Copilot** de manera integral.
 
 ---
 
@@ -79,7 +79,7 @@ Se han cerrado todas las brechas de seguridad críticas del backend:
 
 ## 💡 Próximos Pasos Recomendados
 
-1. **Configurar la API Key del Copiloto Themis en Producción (Render):**
+1. **Configurar la API Key del Copilot en Producción (Render):**
    El módulo está 100% desarrollado. Para activarlo de forma gratuita en producción, obtenga una API key en Google AI Studio (https://aistudio.google.com/) y configúrela como variable de entorno `GEMINI_API_KEY` en Render.
 2. **Soporte para múltiples Puntos de Venta en AFIP:**
    Permitir a los usuarios configurar diferentes números de Punto de Venta directamente en su perfil de configuración para mayor flexibilidad en la emisión de facturas.

@@ -1,0 +1,243 @@
+/* Custom Landing Page Styles (Premium SaaS Design System) */
+
+// 1. Theme Variables & Smooth Scrolling
+:host {
+  display: block;
+  scroll-behavior: smooth;
+  --glow-color: rgba(59, 130, 246, 0.5);
+  --glow-color-secondary: rgba(147, 51, 234, 0.4);
+}
+
+// Selection colors
+::selection {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+// 2. High-Fidelity Gradients and Glow Effects
+.glow-bubble {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.65;
+  mix-blend-mode: plus-lighter;
+  animation: floatBubble 12s ease-in-out infinite alternate;
+}
+
+.glow-bubble-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, var(--glow-color) 0%, rgba(59, 130, 246, 0) 70%);
+  top: -150px;
+  left: 10%;
+}
+
+.glow-bubble-2 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, var(--glow-color-secondary) 0%, rgba(147, 51, 234, 0) 70%);
+  bottom: -200px;
+  right: 5%;
+  animation-duration: 18s;
+  animation-delay: -3s;
+}
+
+.glow-bubble-3 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0) 70%);
+  top: 45%;
+  left: -100px;
+  animation-duration: 15s;
+}
+
+// 3. Glassmorphism Design System
+.glass-nav {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px) saturate(190%);
+  border-bottom: 1px solid rgba(241, 245, 249, 0.8);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  .dark & {
+    background: rgba(15, 23, 42, 0.65);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.7);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .dark & {
+    background: rgba(30, 41, 59, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.glass-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 12px 40px rgba(59, 130, 246, 0.08);
+
+  .dark & {
+    border-color: rgba(96, 165, 250, 0.2);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 25px rgba(96, 165, 250, 0.05);
+  }
+}
+
+// 4. Live Platform Preview Shell
+.platform-shell {
+  border-radius: 16px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: #ffffff;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+
+  .dark & {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #0f172a; // slate-900
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.sidebar-item-active {
+  background: rgba(59, 130, 246, 0.08);
+  color: #2563eb !important;
+  font-weight: 600;
+
+  .dark & {
+    background: rgba(96, 165, 250, 0.12);
+    color: #60a5fa !important;
+  }
+}
+
+// 5. Interactive Simulated UI elements
+.simulated-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  &:hover {
+    transform: translateY(-3px) scale(1.01);
+  }
+}
+
+// Typing simulation for Copilot
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  background: #3b82f6;
+  border-radius: 50%;
+  animation: typingBounce 1.4s infinite ease-in-out;
+  display: inline-block;
+
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  &:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+}
+
+// Sparkle glow effect
+.glowing-sparkle {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0.5;
+    filter: blur(6px);
+  }
+}
+
+// 6. Interactive Pricing Toggle
+.switch-label-active {
+  color: #3b82f6;
+  font-weight: 700;
+  .dark & {
+    color: #60a5fa;
+  }
+}
+
+// Glow effect on premium cards
+.pricing-card-pro {
+  position: relative;
+  overflow: visible;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(135deg, #3b82f6, #9333ea, #10b981);
+    border-radius: 24px;
+    z-index: -1;
+    opacity: 0.5;
+    filter: blur(8px);
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover::before {
+    opacity: 0.85;
+    filter: blur(12px);
+  }
+}
+
+// 7. Animations
+@keyframes floatBubble {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(8%, 12%) scale(1.1);
+  }
+}
+
+@keyframes typingBounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-6px);
+  }
+}
+
+.text-gradient-primary {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  .dark & {
+    background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 50%, #c084fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+.text-gradient-accent {
+  background: linear-gradient(135deg, #2563eb, #10b981);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+  .dark & {
+    background: linear-gradient(135deg, #60a5fa, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+// 8. Base Layout Fixes
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}

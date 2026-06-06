@@ -3,9 +3,11 @@ import { FacturasService } from './facturas.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Factura } from './entities/factura.entity';
 import { ConfigService } from '@nestjs/config';
+import { UsersService } from '../users/users.service';
 
 describe('FacturasService - Pagination', () => {
   let service: FacturasService;
+  let usersService: UsersService;
   let repositoryMock: any;
 
   beforeEach(async () => {
@@ -40,10 +42,17 @@ describe('FacturasService - Pagination', () => {
             }),
           },
         },
+        {
+          provide: UsersService,
+          useValue: {
+            findOneById: jest.fn().mockResolvedValue({ id: 'user-1', puntoVenta: 1 }),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<FacturasService>(FacturasService);
+    usersService = module.get<UsersService>(UsersService);
   });
 
   it('should return paginated all invoices when page and limit are provided', async () => {
@@ -100,5 +109,18 @@ describe('FacturasService - Pagination', () => {
       order: { createdAt: 'DESC' },
     });
     expect(result).toHaveLength(2);
+  });
+
+  it('should create simulated invoice with user custom puntoVenta', async () => {
+    (service as any).afip = null; // Force simulation mode
+    jest.spyOn(usersService, 'findOneById').mockResolvedValue({ id: 'user-1', puntoVenta: 5 } as any);
+
+    const result = await service.createFactura({ total: 12000, clientId: 'client-1' }, 'user-1');
+
+    expect(result.puntoVenta).toBe(5);
+    expect(repositoryMock.create).toHaveBeenCalledWith(expect.objectContaining({
+      puntoVenta: 5,
+      impTotal: 12000,
+    }));
   });
 });

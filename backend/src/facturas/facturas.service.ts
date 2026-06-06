@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Factura } from './entities/factura.entity';
 import { ConfigService } from '@nestjs/config';
-// const Afip = require('afip.js'); // Use require for afip.js
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class FacturasService {
@@ -12,7 +12,8 @@ export class FacturasService {
   constructor(
     @InjectRepository(Factura)
     private facturasRepository: Repository<Factura>,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private usersService: UsersService
   ) {
     // Initialize AFIP SDK
     try {
@@ -71,12 +72,15 @@ export class FacturasService {
   }
 
   async createFactura(data: any, userId: string) {
+    const user = await this.usersService.findOneById(userId);
+    const puntoVenta = (user && user.puntoVenta) ? user.puntoVenta : 1;
+
     // SIMULATION MODE if AFIP is not configured
     if (!this.afip) {
         console.warn('AFIP Service not configured. Using SIMULATION MODE.');
         
         const mockFactura = this.facturasRepository.create({
-            puntoVenta: 1,
+            puntoVenta: puntoVenta,
             tipoCbte: 11, // Factura C
             nroCbte: Math.floor(Math.random() * 10000),
             fechaCbte: new Date().toISOString().split('T')[0].replace(/-/g, ''), // YYYYMMDD
@@ -97,7 +101,7 @@ export class FacturasService {
 
     let payload = {
         'CantReg': 1, // Cantidad de comprobantes a registrar
-        'PtoVta': 1, // Punto de venta
+        'PtoVta': puntoVenta, // Punto de venta
         'CbteTipo': 11, // Tipo de comprobante (ver tipos disponibles) 
         'Concepto': 1, // Concepto del Comprobante: (1)Productos, (2)Servicios, (3)Productos y Servicios
         'DocTipo': 99, // Tipo de documento del comprador (99 consumidor final, ver tipos disponibles)
@@ -116,8 +120,8 @@ export class FacturasService {
     };
 
     try {
-        // Retrieve Last Voucher to set CbteDesde/Hasta correctly
-        const lastVoucher = await this.afip.ElectronicBilling.getLastVoucher(1, 11);
+        // Retrieve Last Voucher to set CbteDesde/Hasta correctly using user's configured puntoVenta
+        const lastVoucher = await this.afip.ElectronicBilling.getLastVoucher(puntoVenta, 11);
         payload['CbteDesde'] = lastVoucher + 1;
         payload['CbteHasta'] = lastVoucher + 1;
 

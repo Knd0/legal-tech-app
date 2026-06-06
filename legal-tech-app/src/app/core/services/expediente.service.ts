@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Expediente } from '../models/expediente.model';
 import { Observable, tap } from 'rxjs';
 import { PaginatedResponse } from '../models/paginated-response.model';
+import Swal from 'sweetalert2';
 
 @Injectable({
   providedIn: 'root'
@@ -34,7 +35,7 @@ export class ExpedienteService {
   loadExpedientes() {
       this.http.get<Expediente[]>(this.API_URL).subscribe({
           next: (data) => this.expedientesSignal.set(data),
-          error: (err) => console.error('Failed to load expedientes', err)
+          error: () => Swal.fire({ icon: 'error', title: 'Error al cargar expedientes', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
       });
   }
 
@@ -52,7 +53,7 @@ export class ExpedienteService {
       next: (newExp) => {
         this.expedientesSignal.update(list => [...list, newExp]);
       },
-      error: (err) => console.error('Failed to create expediente', err)
+      error: () => Swal.fire({ icon: 'error', title: 'Error al crear expediente', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
     });
   }
 
@@ -63,7 +64,7 @@ export class ExpedienteService {
           list.map(e => e.id === id ? { ...e, ...updatedData } : e)
         );
       },
-      error: (err) => console.error('Failed to update expediente', err)
+      error: () => Swal.fire({ icon: 'error', title: 'Error al actualizar expediente', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
     });
   }
 

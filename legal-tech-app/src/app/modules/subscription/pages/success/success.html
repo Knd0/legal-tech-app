@@ -1,25 +1,71 @@
 <div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
   <div class="max-w-md w-full text-center space-y-8 p-10 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700">
-    <div>
-      <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 dark:bg-green-900 mb-6">
-        <i class="pi pi-check text-4xl text-green-600 dark:text-green-400"></i>
+
+    @if (state() === 'loading') {
+      <div class="flex flex-col items-center gap-4">
+        <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-blue-100 dark:bg-blue-900 mb-6">
+          <i class="pi pi-spin pi-spinner text-4xl text-blue-600 dark:text-blue-400"></i>
+        </div>
+        <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white">Verificando pago...</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400">Estamos confirmando tu suscripción con MercadoPago.</p>
       </div>
-      <h2 class="mt-6 text-3xl font-extrabold text-slate-900 dark:text-white">
-        ¡Pago Exitoso!
-      </h2>
-      <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">
-        Tu suscripción a Themis ha sido confirmada. Ya tienes acceso total a todas las funciones premium para gestionar tu estudio jurídico.
-      </p>
-    </div>
-    
-    <div class="mt-8">
-      <a routerLink="/expedientes" class="w-full flex tracking-wide items-center justify-center px-8 py-3 border border-transparent text-base font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg transition-colors">
-        Ir al Panel de Control <i class="pi pi-arrow-right ml-2"></i>
-      </a>
-    </div>
-    
-    <p class="text-xs text-slate-400 mt-4">
-      Puede demorar unos minutos en reflejarse en el sistema. Asegúrate de actualizar la página o volver a iniciar sesión si tienes incovenientes.
-    </p>
+    }
+
+    @if (state() === 'success') {
+      <div>
+        <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 dark:bg-green-900 mb-6">
+          <i class="pi pi-check text-4xl text-green-600 dark:text-green-400"></i>
+        </div>
+        <h2 class="mt-6 text-3xl font-extrabold text-slate-900 dark:text-white">¡Suscripción Activa!</h2>
+        <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">
+          Tu suscripción a Themis ha sido confirmada. Ya tenés acceso total a todas las funciones premium para gestionar tu estudio jurídico.
+        </p>
+      </div>
+      <div class="mt-8">
+        <a routerLink="/dashboard" class="w-full flex tracking-wide items-center justify-center px-8 py-3 border border-transparent text-base font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg transition-colors">
+          Ir al Panel de Control <i class="pi pi-arrow-right ml-2"></i>
+        </a>
+      </div>
+    }
+
+    @if (state() === 'pending') {
+      <div>
+        <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-yellow-100 dark:bg-yellow-900 mb-6">
+          <i class="pi pi-clock text-4xl text-yellow-600 dark:text-yellow-400"></i>
+        </div>
+        <h2 class="mt-6 text-3xl font-extrabold text-slate-900 dark:text-white">Pago en Proceso</h2>
+        <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">
+          Tu pago está siendo procesado por MercadoPago. Esto puede demorar unos minutos.
+        </p>
+      </div>
+      <div class="mt-8 flex flex-col gap-3">
+        <button (click)="retry()" [disabled]="retrying()"
+          class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors">
+          <i class="pi pi-refresh mr-2" [class.pi-spin]="retrying()"></i> Verificar nuevamente
+        </button>
+        <a routerLink="/dashboard" class="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline cursor-pointer">
+          Ir al panel de todas formas
+        </a>
+      </div>
+    }
+
+    @if (state() === 'failure') {
+      <div>
+        <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 dark:bg-red-900 mb-6">
+          <i class="pi pi-times text-4xl text-red-600 dark:text-red-400"></i>
+        </div>
+        <h2 class="mt-6 text-3xl font-extrabold text-slate-900 dark:text-white">Pago No Completado</h2>
+        <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">
+          No pudimos confirmar tu suscripción. El pago no fue aprobado o fue cancelado.
+        </p>
+      </div>
+      <div class="mt-8">
+        <button (click)="goToPricing()"
+          class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+          <i class="pi pi-refresh mr-2"></i> Intentar nuevamente
+        </button>
+      </div>
+    }
+
   </div>
 </div>

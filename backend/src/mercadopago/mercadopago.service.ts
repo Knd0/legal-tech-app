@@ -45,19 +45,16 @@ export class MercadopagoService {
             { id: 'debit_card' }
           ],
         },
-        back_url: 'https://legal-tech-app-woad.vercel.app/subscription/success',
+        back_url: `${this.configService.get<string>('FRONTEND_URL', 'https://legal-tech-app-woad.vercel.app')}/subscription/success`,
       }
     });
   }
 
   // A PreApproval is an actual subscription of a client to a plan
   async createSubscriptionForUser(userId: string, payerEmail: string) {
-      // In a real app, you would reuse an existing plan ID. Here we'll just create a new one or use a hardcoded one for simplicity
-      // Or we can just use PreApproval to create a direct subscription link without a pre-defined plan
       if (!this.client) throw new Error("MercadoPago not configured");
 
       const preApproval = new PreApproval(this.client);
-
       const request = {
           body: {
              reason: 'Themis Pro',
@@ -69,7 +66,7 @@ export class MercadopagoService {
                  transaction_amount: 15000,
                  currency_id: 'ARS',
              },
-             back_url: 'https://legal-tech-app-woad.vercel.app/subscription/success',
+             back_url: `${this.configService.get<string>('FRONTEND_URL', 'https://legal-tech-app-woad.vercel.app')}/subscription/success`,
              status: 'pending'
           }
       };

@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Cliente, Familiar } from '../models/cliente.model';
 import { Observable, tap } from 'rxjs';
 import { PaginatedResponse } from '../models/paginated-response.model';
+import Swal from 'sweetalert2';
 
 @Injectable({
   providedIn: 'root'
@@ -33,7 +34,7 @@ export class ClientService {
   loadClients() {
     this.http.get<Cliente[]>(this.API_URL).subscribe({
       next: (data) => this.clientsSignal.set(data),
-      error: (err) => console.error('Failed to load clients', err)
+      error: () => Swal.fire({ icon: 'error', title: 'Error al cargar clientes', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
     });
   }
 
@@ -52,7 +53,7 @@ export class ClientService {
       next: (createdClient) => {
         this.clientsSignal.update(clients => [...clients, createdClient]);
       },
-      error: (err) => console.error('Failed to create client', err)
+      error: () => Swal.fire({ icon: 'error', title: 'Error al crear cliente', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
     });
   }
 
@@ -67,7 +68,7 @@ export class ClientService {
           clients.map(client => client.id === id ? { ...client, ...updatedData } : client)
         );
       },
-      error: (err) => console.error('Failed to update client', err)
+      error: () => Swal.fire({ icon: 'error', title: 'Error al actualizar cliente', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
     });
   }
 

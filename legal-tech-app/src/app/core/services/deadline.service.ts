@@ -2,6 +2,7 @@ import { Injectable, signal, computed } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Vencimiento } from '../models/vencimiento.model';
+import Swal from 'sweetalert2';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +22,7 @@ export class DeadlineService {
   loadDeadlines() {
     this.http.get<Vencimiento[]>(this.API_URL).subscribe({
       next: (data) => this.deadlinesSignal.set(data),
-      error: (err) => console.error('Failed to load deadlines', err)
+      error: () => Swal.fire({ icon: 'error', title: 'Error al cargar vencimientos', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
     });
   }
 
@@ -34,7 +35,7 @@ export class DeadlineService {
       next: (newDeadline) => {
         this.deadlinesSignal.update(list => [...list, newDeadline]);
       },
-      error: (err) => console.error('Failed to create deadline', err)
+      error: () => Swal.fire({ icon: 'error', title: 'Error al crear vencimiento', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
     });
   }
 
@@ -43,7 +44,7 @@ export class DeadlineService {
       next: () => {
         this.deadlinesSignal.update(list => list.filter(d => d.id !== id));
       },
-      error: (err) => console.error('Failed to delete deadline', err)
+      error: () => Swal.fire({ icon: 'error', title: 'Error al eliminar vencimiento', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
     });
   }
 
@@ -54,7 +55,7 @@ export class DeadlineService {
       next: () => {
         this.deadlinesSignal.update(list => list.map(d => d.id === id ? deadline : d));
       },
-      error: (err) => console.error('Failed to update deadline', err)
+      error: () => Swal.fire({ icon: 'error', title: 'Error al actualizar vencimiento', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
     });
   }
 
@@ -65,7 +66,7 @@ export class DeadlineService {
           list.map(d => d.id === id ? { ...d, estado: 'CUMPLIDO' } : d)
         );
       },
-      error: (err) => console.error('Failed to mark as completed', err)
+      error: () => Swal.fire({ icon: 'error', title: 'Error al marcar como completado', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
     });
   }
 

@@ -32,13 +32,6 @@ import { AiModule } from './ai/ai.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
         const dbUrl = configService.get<string>('DATABASE_URL');
-        const nodeEnv = configService.get<string>('NODE_ENV');
-        
-        console.log(`[DEBUG] NODE_ENV: ${nodeEnv}`);
-        console.log(`[DEBUG] DATABASE_URL present: ${!!dbUrl}`);
-        if (!dbUrl) {
-             console.log(`[DEBUG] Fallback to LOCALHOST settings: Host=${configService.get('DB_HOST')}, Port=${configService.get('DB_PORT')}`);
-        }
 
         if (dbUrl) {
           return {

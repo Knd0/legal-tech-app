@@ -108,7 +108,10 @@ Backend (`.env`):
 - `PORT` (default 3000)
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` — Cloudinary uploads
 - `AI_ENABLED` (`true` / `false`) — enables Copiloto IA
-- `OPENAI_API_KEY` — OpenAI API key
+- `GEMINI_API_KEY` — Google Gemini API key (free tier via Google AI Studio)
+- `GEMINI_MODEL` — override default model (defaults to `gemini-2.5-flash`)
+- `OPENAI_API_KEY` — OpenAI API key (fallback if Gemini not configured)
+- `RESEND_API_KEY` — Resend email API key (fallback for forgot-password if WhatsApp unavailable)
 - `AFIP_CUIT` — Taxpayer CUIT for AFIP billing
 - `AFIP_CERT` — Content of AFIP certificate file (.crt)
 - `AFIP_KEY` — Content of AFIP private key file (.key)
@@ -121,23 +124,36 @@ Frontend: `environment.ts` → `http://localhost:3000`; `environment.prod.ts` �
 
 ## Known Bugs
 
-No hay bugs confirmados pendientes.
+### Críticos (bloquean producción)
+~~- **`main.ts:5-7`** — `console.log` expone la API URL en la consola del browser en producción. Eliminados los 3 logs de arranque. ✓~~
+~~- **`mercadopago.service.ts:48,72`** — `back_url` hardcodeada. Movida a `configService.get('FRONTEND_URL')` con fallback. ✓~~
+~~- **`home.component.html`** — Archivo orphanado (no referenciado en routing). La ruta `/` usa el componente `Landing` real. ✓~~
+~~- **`environment.prod.ts:4`** — VAPID key regenerada con `npx web-push generate-vapid-keys`. ✓~~
+
+### Alta prioridad (visibles al usuario)
+~~- **`login.html`, `register.html`, `forgot-password.html`** — Botones migrados a `<button pButton>` con `[loading]` nativo de PrimeNG. ✓~~
+~~- **`app.module.ts:37-40`** — `console.log` de debug eliminados del backend. ✓~~
+~~- **`login.html`** — Campo de contraseña ahora muestra mensaje de error de validación con `<small>`. ✓~~
+
+### Media prioridad
+~~- **`expediente.service.ts`, `client.service.ts`, `deadline.service.ts`, `calendar-event.service.ts`** — Reemplazados `console.error` con `Swal.fire` toast en todos los handlers de error HTTP. ✓~~
+~~- **`register.html`** — Agregado hint estático con requisitos de contraseña debajo del campo. ✓~~
+~~- **`mercadopago.service.ts:55`** — Comentario stale eliminado. ✓~~
 
 ---
 
 ## Security Gaps
 
-Todos los gaps conocidos han sido corregidos:
-
-- ~~`deadlines.controller.ts`~~ — **ARREGLADO**: `@UseGuards(JwtAuthGuard)` + filtro por `userId` en service
-- ~~`documents.controller.ts`~~ — **ARREGLADO**: guard + `userId` en entidad `Documento` + filtro en service
-- ~~`whatsapp.controller.ts`~~ — **ARREGLADO**: `@UseGuards(JwtAuthGuard)` en todos los endpoints
-- ~~`mercadopago.controller.ts` webhook~~ — **ARREGLADO**: verificación HMAC-SHA256 con `MP_WEBHOOK_SECRET` env var (si no está configurada, loguea warning y permite — degradación grácil)
+Todos los gaps de seguridad conocidos han sido corregidos. Pendientes únicamente de configuración en Render:
 
 **Pendientes de configurar en Render** (Environment → Add Variable):
 
 - `MP_WEBHOOK_SECRET` — valor en mercadopago.com.ar → Tu negocio → Configuración → Notificaciones → Webhooks → Clave secreta del webhook apuntando a `https://legal-tech-app-gdme.onrender.com/mercadopago/webhook`. Sin esta variable, el webhook acepta todas las requests sin verificar firma (loguea warning pero no rompe).
 - `RESEND_API_KEY` — valor en resend.com → API Keys. Sin esta variable, el fallback a email en forgot-password no funciona (WhatsApp sigue andando normalmente).
+- `GEMINI_API_KEY` — Google AI Studio. Sin esta variable, el Copilot IA y el análisis de PDFs no funcionan en producción.
+- `FRONTEND_URL` — URL del frontend (`https://legal-tech-app-woad.vercel.app`). Ya se usa en el código; configurar en Render para que el `back_url` de MercadoPago apunte correctamente en producción.
+- `VAPID_PUBLIC_KEY` — clave pública generada con `npx web-push generate-vapid-keys`. Sin esta variable el backend genera claves efímeras en cada restart, invalidando todas las suscripciones push existentes.
+- `VAPID_PRIVATE_KEY` — clave privada correspondiente. Guardar también en `.env` local.
 
 ---
 
@@ -145,18 +161,18 @@ Todos los gaps conocidos han sido corregidos:
 
 | Área                | Estado  | Próximo paso                                                              |
 | ------------------- | ------- | ------------------------------------------------------------------------- |
-| Auth (BE+FE)        | 100%    | OTPs persisted in PostgreSQL.                                             |
-| Clientes            | 99%     | Server-side pagination fully integrated.                                  |
-| Expedientes         | 99%     | Server-side pagination and state filter fully integrated.                 |
-| Calendario          | 99%     | Integrated client-side Native Browser notifications and in-app SweetAlert2 scheduler for calendar events and deadlines. |
-| Profile             | 100%    | WhatsApp session persisted in DB using RemoteAuth (session ID: `themis-session`); AFIP dynamic env configuration. |
-| Subscription UI     | 95%     | — |
-| Dashboard           | 99%     | — |
-| Admin/Users         | 99%     | — |
-| Documents UI        | 99%     | Cloudinary integration completed; preview modal resolved.                 |
-| Copilot             | 100%    | Premium AI module fully implemented (general text analysis, automatic judicial drafts, case summaries, and risk/success analysis dashboards). |
-| Calendar (BE)       | 100%    | Service Worker Deep Background Push Notifications implemented using VAPID keys. |
-| Facturas y Audits   | 99%     | Server-side pagination implemented for invoices (Facturas) and system logs (AuditLogs). |
+| Auth (BE+FE)        | 100%    | —                                                                         |
+| Clientes            | 99%     | —                                                                         |
+| Expedientes         | 99%     | —                                                                         |
+| Calendario          | 99%     | —                                                                         |
+| Profile             | 100%    | —                                                                         |
+| Subscription UI     | 99%     | —                                                                         |
+| Dashboard           | 99%     | —                                                                         |
+| Admin/Users         | 99%     | —                                                                         |
+| Documents UI        | 99%     | —                                                                         |
+| Copilot             | 100%    | —                                                                         |
+| Calendar (BE)       | 100%    | VAPID keys generadas. Ver sección "Pendientes de configurar en Render". |
+| Facturas y Audits   | 99%     | —                                                                         |
 
 ---
 
@@ -189,6 +205,7 @@ Todos los gaps conocidos han sido corregidos:
 - **Kanban: detectar columna por referencia**: `this.columns.find(c => c.items === event.container.data)` es más robusto que `event.container.id` (CDK puede devolver ID interno).
 - **chart.js instalado**: `legal-tech-app` tiene `chart.js ^4.5.1` + `ChartModule` de PrimeNG para el dashboard.
 - **Auth endpoints públicos**: `/auth/forgot-password` y `/auth/reset-password` no requieren JWT. OTPs keyed por `forgot_<email>` para no colisionar con los del perfil.
+- **Local DB dev setup**: PostgreSQL en `localhost:5432`, user `postgres`, password `1234`, database `legal_tech_db`. Cuentas de test sembradas (contraseña `password123`): `multifranco0@gmail.com` (2 clientes, 2 expedientes), `admin@estudio.com` (1 cliente, 2 expedientes).
 
 ---
 

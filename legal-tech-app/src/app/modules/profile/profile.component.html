@@ -237,25 +237,44 @@
                         <div *ngIf="configWhatsapp"
                             class="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-lg text-center">
 
-                            <div *ngIf="qrCodeUrl(); else statusInfo">
-                                <p class="text-xs text-green-800 dark:text-green-300 mb-2 font-medium">Escanea para
-                                    conectar:</p>
+                            <!-- Generating QR state -->
+                            <div *ngIf="loadingQr() && !qrCodeUrl()" class="py-6 flex flex-col items-center justify-center gap-3">
+                                <i class="pi pi-spin pi-spinner text-3xl text-indigo-600 dark:text-indigo-400"></i>
+                                <p class="text-sm font-bold text-slate-700 dark:text-slate-300 animate-pulse">Generando Código QR...</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+                                    Iniciando navegador automatizado en el servidor. Esto puede demorar unos segundos. Por favor espera...
+                                </p>
+                            </div>
+
+                            <!-- QR Scanned & Processing state -->
+                            <div *ngIf="scannedAndProcessing()" class="py-6 flex flex-col items-center justify-center gap-3">
+                                <i class="pi pi-spin pi-sync text-3xl text-emerald-600 dark:text-emerald-400"></i>
+                                <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300 animate-pulse">¡QR Escaneado!</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+                                    Autenticando y sincronizando tu cuenta de WhatsApp. Preparando el bot... por favor espera.
+                                </p>
+                            </div>
+
+                            <!-- QR Code Ready -->
+                            <div *ngIf="qrCodeUrl()">
+                                <p class="text-xs text-green-800 dark:text-green-300 mb-2 font-medium">Escanea para conectar:</p>
                                 <img [src]="qrCodeUrl()"
                                     class="mx-auto w-40 h-40 border-4 border-white dark:border-slate-700 rounded-lg shadow-sm">
                             </div>
 
-                            <ng-template #statusInfo>
-                                <div *ngIf="!qrCodeUrl && !configWhatsappNumber"
-                                    class="text-slate-600 dark:text-slate-400 text-sm py-4 flex flex-col items-center gap-3">
+                            <!-- Empty/Idle state -->
+                            <div *ngIf="!qrCodeUrl() && !loadingQr() && !scannedAndProcessing() && !configWhatsappNumber"
+                                class="text-slate-600 dark:text-slate-400 text-sm py-4 flex flex-col items-center gap-3">
 
-                                    <p class="mb-1 text-center max-w-xs">
-                                        Para recibir notificaciones, debes vincular tu cuenta de WhatsApp.
-                                    </p>
+                                <p class="mb-1 text-center max-w-xs">
+                                    Para recibir notificaciones, debes vincular tu cuenta de WhatsApp.
+                                </p>
 
-                                    <button pButton label="Generar Código QR" icon="pi pi-qrcode"
-                                        class="p-button-primary p-button-sm" (click)="restartWhatsapp()"
-                                        [loading]="loadingQr()">
-                                    </button>
+                                <button pButton label="Generar Código QR" icon="pi pi-qrcode"
+                                    class="p-button-primary p-button-sm" (click)="restartWhatsapp()"
+                                    [loading]="loadingQr()">
+                                </button>
+
 
                                     <div class="flex items-center gap-2 my-2 w-full justify-center">
                                         <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
@@ -286,16 +305,15 @@
                                         class="mt-2 bg-red-50 dark:bg-red-900/20 p-2 rounded text-red-600 dark:text-red-400 text-xs text-center max-w-xs break-words">
                                         <i class="pi pi-exclamation-circle mr-1"></i> {{ whatsappError() }}
                                     </div>
+                                    </div>
+                                    <div *ngIf="configWhatsappNumber" class="space-y-2">
+                                        <span class="text-green-700 dark:text-green-400 font-bold text-sm block">Bot
+                                            Conectado</span>
+                                        <button pButton label="Desconectar" icon="pi pi-power-off"
+                                            class="p-button-outlined p-button-danger p-button-sm w-full"
+                                            (click)="logoutWhatsapp()"></button>
+                                    </div>
                                 </div>
-                                <div *ngIf="configWhatsappNumber" class="space-y-2">
-                                    <span class="text-green-700 dark:text-green-400 font-bold text-sm block">Bot
-                                        Conectado</span>
-                                    <button pButton label="Desconectar" icon="pi pi-power-off"
-                                        class="p-button-outlined p-button-danger p-button-sm w-full"
-                                        (click)="logoutWhatsapp()"></button>
-                                </div>
-                            </ng-template>
-                        </div>
                     </div>
 
                     <!-- AFIP / ARCA Integration -->

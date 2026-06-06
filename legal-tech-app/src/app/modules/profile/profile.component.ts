@@ -398,18 +398,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   loadingQr = signal<boolean>(false);
+  scannedAndProcessing = signal<boolean>(false);
   pairingCode = signal<string | null>(null);
   loadingPairingCode = signal<boolean>(false);
 
   restartWhatsapp() {
       this.loadingQr.set(true);
+      this.scannedAndProcessing.set(false);
       this.notificationService.restartWhatsapp().subscribe({
           next: () => {
               this.qrCodeUrl.set(null);
               this.pairingCode.set(null);
               this.whatsappError.set(null);
               this.startQrPolling();
-              setTimeout(() => this.loadingQr.set(false), 3000); 
           },
           error: () => {
               this.loadingQr.set(false);
@@ -426,6 +427,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
       
       this.loadingPairingCode.set(true);
+      this.scannedAndProcessing.set(false);
       this.notificationService.requestPairingCode(phone).subscribe({
           next: (res) => {
               this.loadingPairingCode.set(false);
@@ -454,6 +456,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
           if (++pollCount > maxPolls) {
             this.ngZone.run(() => {
               this.stopQrPolling();
+              this.loadingQr.set(false);
+              this.scannedAndProcessing.set(false);
               this.whatsappError.set('Tiempo de espera agotado. Intentá de nuevo.');
             });
             return;
@@ -466,26 +470,47 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
                 if (status.qr) {
                   this.qrCodeUrl.set(status.qr);
+                  this.loadingQr.set(false);
+                  this.scannedAndProcessing.set(false);
                 } else if (status.ready) {
                   this.qrCodeUrl.set(null);
                   this.pairingCode.set(null);
                   this.whatsappError.set(null);
+                  this.loadingQr.set(false);
+                  this.scannedAndProcessing.set(false);
                   this.stopQrPolling();
 
                   if (status.number && !this.configWhatsappNumber) {
                     this.configWhatsappNumber = status.number;
+                    this.notificationService.updateAlertSettings(
+                      this.configDays,
+                      this.configHours,
+                      this.configWhatsapp,
+                      status.number,
+                      this.configDesktop
+                    );
                   }
 
                   Swal.fire({
                     title: '¡Conectado!',
                     text: status.number ? `Vinculado con ${status.number}` : 'El bot de WhatsApp está listo.',
                     icon: 'success',
-                    timer: 2000,
+                    timer: 3000,
                     showConfirmButton: false
                   });
                 } else if (status.error) {
                   this.whatsappError.set(status.error);
+                  this.loadingQr.set(false);
+                  this.scannedAndProcessing.set(false);
                   this.stopQrPolling();
+                } else {
+                  // status.qr is null AND status.ready is false
+                  // If we had a QR code showing, it means it was scanned!
+                  if (this.qrCodeUrl()) {
+                    this.qrCodeUrl.set(null);
+                    this.scannedAndProcessing.set(true);
+                    this.loadingQr.set(false);
+                  }
                 }
               });
             },
@@ -493,6 +518,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
               this.ngZone.run(() => {
                 if (err.status === 401) {
                   this.stopQrPolling();
+                  this.loadingQr.set(false);
+                  this.scannedAndProcessing.set(false);
                   this.whatsappError.set('Sesión expirada. Volvé a iniciar sesión.');
                   return;
                 }
@@ -502,6 +529,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
                 if (consecutiveErrors >= 5) {
                   this.stopQrPolling();
+                  this.loadingQr.set(false);
+                  this.scannedAndProcessing.set(false);
                   this.whatsappError.set('No se pudo conectar con el servidor. Intentá de nuevo.');
                 } else if (consecutiveErrors >= 3 && intervalMs < 10_000) {
                   this.startQrPolling(10_000);

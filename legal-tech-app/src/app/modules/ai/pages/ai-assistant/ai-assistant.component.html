@@ -140,10 +140,18 @@
           </h2>
           
           <!-- Actions if response is present -->
-          <div *ngIf="aiResponse()" class="flex items-center gap-2">
+          <div *ngIf="aiResponse()" class="flex items-center gap-1">
             <button pButton icon="pi pi-copy"
               class="p-button-rounded p-button-text p-button-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
-              pTooltip="Copiar Resultado" tooltipPosition="top" (click)="copyToClipboard()"></button>
+              pTooltip="Copiar texto limpio" tooltipPosition="top" (click)="copyCleanText()"></button>
+
+            <button pButton icon="pi pi-file-word"
+              class="p-button-rounded p-button-text p-button-sm text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+              pTooltip="Copiar con formato para Word" tooltipPosition="top" (click)="copyFormattedText()"></button>
+
+            <button pButton icon="pi pi-file-pdf"
+              class="p-button-rounded p-button-text p-button-sm text-red-500 dark:text-red-450 hover:bg-red-50 dark:hover:bg-red-900/20"
+              pTooltip="Descargar como PDF" tooltipPosition="top" (click)="exportToPdf()"></button>
           </div>
         </div>
 

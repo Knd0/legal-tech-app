@@ -83,4 +83,21 @@ describe('AiService', () => {
 
     expect(result.analysis).toBe('Análisis legal de prueba simulado.');
   });
+
+  it('should call generateAIResponse and return cost analysis', async () => {
+    await createService({ AI_ENABLED: 'true', OPENAI_API_KEY: 'sk-1234567890' });
+    const result = await service.analyzeCosts({
+      montoReclamo: 1000000,
+      jurisdiccion: 'pba',
+      tipoProceso: 'civil',
+      requiereMediacion: true,
+      requierePerito: false,
+      cantidadNotificaciones: 3,
+      valorJus: 37000,
+      valorUma: 80000,
+      extraDetails: 'Instrucciones extra'
+    });
+
+    expect(result.analysis).toBe('Análisis legal de prueba simulado.');
+  });
 });

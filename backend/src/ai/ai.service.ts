@@ -182,4 +182,39 @@ export class AiService {
       };
     }
   }
+
+  async analyzeCosts(data: {
+    montoReclamo: number;
+    jurisdiccion: string;
+    tipoProceso: string;
+    requiereMediacion: boolean;
+    requierePerito: boolean;
+    cantidadNotificaciones: number;
+    extraDetails?: string;
+    valorJus: number;
+    valorUma: number;
+  }): Promise<{ analysis: string }> {
+    const prompt = `Eres un abogado procesal de Argentina experto en cálculo y análisis predictivo de costos judiciales.
+    Realiza un análisis detallado sobre la viabilidad económica y costos estimados para un posible litigio judicial con los siguientes parámetros:
+    - Monto del Reclamo: $${(data.montoReclamo || 0).toLocaleString('es-AR')} ARS
+    - Jurisdicción: ${data.jurisdiccion.toUpperCase()}
+    - Tipo de Proceso/Fuero: ${data.tipoProceso.toUpperCase()}
+    - Requiere Mediación Previa: ${data.requiereMediacion ? 'Sí' : 'No'}
+    - Requiere Peritajes: ${data.requierePerito ? 'Sí' : 'No'}
+    - Cantidad Estimada de Notificaciones: ${data.cantidadNotificaciones}
+    - Valor JUS de referencia: $${(data.valorJus || 0).toLocaleString('es-AR')} ARS
+    - Valor UMA de referencia: $${(data.valorUma || 0).toLocaleString('es-AR')} ARS
+    ${data.extraDetails ? `- Detalles/Estrategia adicionales brindados: ${data.extraDetails}` : ''}
+
+    Estructura tu respuesta en Markdown limpio y profesional con las siguientes secciones:
+    1. **Resumen de Viabilidad Económica**: Un análisis de costo-beneficio de litigar versus la probabilidad de éxito o la posibilidad de un acuerdo extrajudicial.
+    2. **Estructura Impositiva Aplicable**: Comenta los aranceles de tasas de justicia y sobretasas correspondientes a la jurisdicción seleccionada (${data.jurisdiccion.toUpperCase()}).
+    3. **Impacto de los Honorarios**: Explica las escalas arancelarias de la ley de honorarios local para abogados y peritos involucrados.
+    4. **Recomendación y Mitigación de Costos**: Sugiere formas de disminuir gastos (beneficio de litigar sin gastos, convenios de cuota litis, tasas reducidas o mediación efectiva).
+
+    Devuelve ÚNICAMENTE el análisis en Markdown.`;
+
+    const analysis = await this.generateAIResponse(prompt);
+    return { analysis };
+  }
 }

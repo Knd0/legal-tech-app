@@ -38,4 +38,22 @@ export class AiController {
     }
     return this.aiService.analyzeRisk(body.expedienteId, req.user.userId);
   }
+
+  @Post('analyze-costs')
+  async analyzeCosts(@Body() body: {
+    montoReclamo: number;
+    jurisdiccion: string;
+    tipoProceso: string;
+    requiereMediacion: boolean;
+    requierePerito: boolean;
+    cantidadNotificaciones: number;
+    extraDetails?: string;
+    valorJus: number;
+    valorUma: number;
+  }) {
+    if (body.montoReclamo === undefined || !body.jurisdiccion || !body.tipoProceso) {
+      throw new BadRequestException('montoReclamo, jurisdiccion y tipoProceso son requeridos.');
+    }
+    return this.aiService.analyzeCosts(body);
+  }
 }

@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 import { AuthService } from '../../../../core/services/auth.service';
 import Swal from 'sweetalert2';
@@ -13,6 +13,7 @@ import Swal from 'sweetalert2';
   templateUrl: './pricing.html'
 })
 export class Pricing implements OnInit {
+  private router = inject(Router);
   private http = inject(HttpClient);
   authService = inject(AuthService);
 
@@ -70,5 +71,37 @@ export class Pricing implements OnInit {
         }
       });
     });
+  }
+
+  simulatePayment() {
+    this.loading.set('pro');
+    this.http.post<{ success: boolean }>(`${environment.apiUrl}/mercadopago/simulate-payment`, {})
+      .subscribe({
+        next: (res) => {
+          this.loading.set(null);
+          if (res.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Pago Simulado',
+              text: '¡Redirigiendo a la pantalla de confirmación!',
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              const user = this.authService.currentUser();
+              if (user) {
+                this.authService.currentUser.set({
+                  ...user,
+                  subscriptionStatus: 'active'
+                });
+              }
+              this.router.navigate(['/subscription/success']);
+            });
+          }
+        },
+        error: (err) => {
+          this.loading.set(null);
+          Swal.fire('Error', err.error?.message || 'Error al intentar simular el pago.', 'error');
+        }
+      });
   }
 }

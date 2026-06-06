@@ -175,19 +175,79 @@ export class NotificationService {
   subscribeToNotifications() {
     if (!this.swPush.isEnabled) {
       console.warn('Service Worker Push no está habilitado (¿Estás en localhost/HTTPS?)');
+      import('sweetalert2').then((Swal) => {
+        Swal.default.fire({
+          title: 'Notificaciones no soportadas',
+          text: 'Tu navegador o entorno no soporta notificaciones Push en segundo plano (se requiere HTTPS en producción).',
+          icon: 'info',
+          confirmButtonText: 'Entendido'
+        });
+      });
       return;
     }
 
-    this.swPush.requestSubscription({
-      serverPublicKey: environment.vapidPublicKey
-    })
-    .then(sub => {
-      console.log('Usuario suscrito a notificaciones:', sub);
-      this.isSubscribed.set(true);
-    })
-    .catch(err => {
-      console.error('No se pudo suscribir a notificaciones', err);
-      this.isSubscribed.set(false);
+    this.http.get<{ publicKey: string }>(`${environment.apiUrl}/notifications/vapid-public-key`).subscribe({
+      next: (res) => {
+        const vapidKey = res.publicKey;
+        
+        this.swPush.requestSubscription({
+          serverPublicKey: vapidKey
+        })
+        .then(sub => {
+          console.log('Usuario suscrito a notificaciones:', sub);
+          // Post subscription to backend
+          this.http.post(`${environment.apiUrl}/notifications/subscribe`, sub).subscribe({
+            next: () => {
+              this.isSubscribed.set(true);
+              import('sweetalert2').then((Swal) => {
+                Swal.default.fire({
+                  title: '¡Suscripción Exitosa!',
+                  text: 'Recibirás notificaciones push incluso con la aplicación cerrada.',
+                  icon: 'success',
+                  timer: 2000,
+                  showConfirmButton: false,
+                  toast: true,
+                  position: 'top-end'
+                });
+              });
+            },
+            error: (err) => {
+              console.error('Error al guardar suscripción en backend', err);
+              this.isSubscribed.set(false);
+            }
+          });
+        })
+        .catch(err => {
+          console.error('No se pudo suscribir a notificaciones en navegador', err);
+          this.isSubscribed.set(false);
+        });
+      },
+      error: (err) => {
+        console.error('Error al obtener la clave pública VAPID del servidor', err);
+      }
+    });
+  }
+
+  /**
+   * Elimina la suscripción de notificaciones push del usuario en el navegador y el backend.
+   */
+  unsubscribeFromNotifications() {
+    if (!this.swPush.isEnabled) return;
+
+    this.swPush.subscription.subscribe({
+      next: (sub) => {
+        if (sub) {
+          this.http.post(`${environment.apiUrl}/notifications/unsubscribe`, { endpoint: sub.endpoint }).subscribe({
+            next: () => {
+              sub.unsubscribe().then(() => {
+                console.log('Usuario desuscrito de notificaciones push');
+                this.isSubscribed.set(false);
+              }).catch(err => console.error('Error al dar de baja en navegador', err));
+            },
+            error: (err) => console.error('Error al dar de baja en backend', err)
+          });
+        }
+      }
     });
   }
 

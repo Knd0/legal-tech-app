@@ -86,18 +86,23 @@
 
                 <!-- Active & Not Expired -->
                 <div *ngIf="authService.currentUser()?.role !== 'ADMIN' && authService.currentUser()?.subscriptionStatus === 'active' && !authService.isSubscriptionExpired()" class="space-y-3">
-                    <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-100 dark:border-green-800/50 shadow-sm relative">
+                    <div [ngClass]="authService.currentUser()?.subscriptionPlan === 'basic' ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/50' : 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/50'" 
+                         class="p-4 rounded-lg border shadow-sm relative">
                         <div class="absolute -right-2 -top-2">
                             <span class="flex h-3 w-3">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                <span [ngClass]="authService.currentUser()?.subscriptionPlan === 'basic' ? 'bg-blue-400' : 'bg-green-400'" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
+                                <span [ngClass]="authService.currentUser()?.subscriptionPlan === 'basic' ? 'bg-blue-500' : 'bg-green-500'" class="relative inline-flex rounded-full h-3 w-3"></span>
                             </span>
                         </div>
                         <div class="flex items-center gap-2 mb-3">
-                            <i class="pi pi-check-circle text-green-500 text-2xl drop-shadow-sm"></i>
-                            <p class="text-green-800 dark:text-green-300 font-extrabold text-base tracking-tight">Estudio Pro Activo</p>
+                            <i [ngClass]="authService.currentUser()?.subscriptionPlan === 'basic' ? 'pi-info-circle text-blue-500' : 'pi-check-circle text-green-500'" class="pi text-2xl drop-shadow-sm"></i>
+                            <p [ngClass]="authService.currentUser()?.subscriptionPlan === 'basic' ? 'text-blue-800 dark:text-blue-300' : 'text-green-800 dark:text-green-300'" class="font-extrabold text-base tracking-tight">
+                              {{ authService.currentUser()?.subscriptionPlan === 'basic' ? 'Plan Básico Activo' : 'Estudio Pro Activo' }}
+                            </p>
                         </div>
-                        <p class="text-xs font-medium text-green-600 dark:text-green-400 mb-3">Tenés acceso a todas las funcionalidades integradas.</p>
+                        <p [ngClass]="authService.currentUser()?.subscriptionPlan === 'basic' ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'" class="text-xs font-medium mb-3">
+                          {{ authService.currentUser()?.subscriptionPlan === 'basic' ? 'Tenés acceso a la gestión de expedientes básica.' : 'Tenés acceso a todas las funcionalidades integradas.' }}
+                        </p>
                         <div *ngIf="subscriptionData()?.expiresAt" class="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-green-100 dark:border-green-800/50 mb-3">
                             <i class="pi pi-calendar text-slate-400 text-sm"></i>
                             <div>
@@ -159,9 +164,9 @@
                 <!-- Trial / No active subscription -->
                 <div *ngIf="authService.currentUser()?.role !== 'ADMIN' && (authService.currentUser()?.subscriptionStatus === 'trial' || !authService.currentUser()?.subscriptionStatus)" class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-100 dark:border-amber-800/50 text-center shadow-sm group">
                     <i class="pi pi-star text-amber-500 text-3xl mb-2 group-hover:scale-110 transition-transform"></i>
-                    <p class="text-amber-800 dark:text-amber-300 font-extrabold text-lg tracking-tight uppercase">Plan Básico (Gratis)</p>
-                    <p class="text-xs font-medium text-amber-600 dark:text-amber-400 mt-1 mb-4">Mejorá tu plan para conectar bots y recursos ilimitados.</p>
-                    <a routerLink="/subscription/pricing" class="inline-flex justify-center w-full text-center px-4 py-2 text-sm font-bold rounded-lg bg-amber-500 text-white hover:bg-amber-600 hover:-translate-y-0.5 transition-all shadow-md shadow-amber-500/30">Mejorar a Plan Pro</a>
+                    <p class="text-amber-800 dark:text-amber-300 font-extrabold text-lg tracking-tight uppercase">Periodo de Prueba (Trial)</p>
+                    <p class="text-xs font-medium text-amber-600 dark:text-amber-400 mt-1 mb-4">Estás disfrutando de una prueba gratuita del sistema. Elegí un plan para continuar.</p>
+                    <a routerLink="/subscription/pricing" class="inline-flex justify-center w-full text-center px-4 py-2 text-sm font-bold rounded-lg bg-amber-500 text-white hover:bg-amber-600 hover:-translate-y-0.5 transition-all shadow-md shadow-amber-500/30">Adquirir un Plan</a>
                 </div>
             </div>
 
@@ -206,12 +211,12 @@
 
                     <!-- WhatsApp -->
                     <div class="border-t border-slate-100 dark:border-slate-700 pt-4">
-                        <div class="flex items-center justify-between mb-2" [pTooltip]="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial' ? 'Requiere Plan Pro' : ''">
-                            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2" [class.opacity-50]="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial'">
-                                <i class="pi pi-whatsapp text-green-500"></i> WhatsApp Bot
-                                <span *ngIf="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial'" class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black uppercase">Pro</span>
+                        <div class="flex items-center justify-between mb-2" [pTooltip]="!authService.isProUser() ? 'Requiere Plan Pro' : ''">
+                            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2" [class.opacity-50]="!authService.isProUser()">
+                                <i class="pi pi-whatsapp text-lg text-emerald-500"></i> Alertas por WhatsApp
+                                <span *ngIf="!authService.isProUser()" class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black uppercase">Pro</span>
                             </h3>
-                            <p-checkbox [(ngModel)]="configWhatsapp" [binary]="true" [disabled]="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial'" class="premium-locked"></p-checkbox>
+                            <p-checkbox [(ngModel)]="configWhatsapp" [binary]="true" [disabled]="!authService.isProUser()" class="premium-locked"></p-checkbox>
                         </div>
 
                         <div *ngIf="configWhatsappNumber">
@@ -334,11 +339,11 @@
                     </div>
 
                     <!-- AFIP / ARCA Integration -->
-                    <div class="border-t border-slate-100 dark:border-slate-700 pt-6 mt-6 relative" [pTooltip]="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial' ? 'Requiere Plan Pro' : ''">
+                    <div class="border-t border-slate-100 dark:border-slate-700 pt-6 mt-6 relative" [pTooltip]="!authService.isProUser() ? 'Requiere Plan Pro' : ''">
                         <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2" [class.opacity-50]="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial'">
+                            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2" [class.opacity-50]="!authService.isProUser()">
                                 <i class="pi pi-briefcase text-purple-600"></i> AFIP / ARCA
-                                <span *ngIf="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial'" class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black uppercase">Pro</span>
+                                <span *ngIf="!authService.isProUser()" class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black uppercase">Pro</span>
                             </h3>
                             <!-- Status Badge -->
                             <span *ngIf="isAfipLinked()" class="text-xs font-bold px-2 py-1 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-1 ring-green-500/50">Vinculado</span>
@@ -346,7 +351,7 @@
                         </div>
 
                         <!-- Paywall Overlay if Basic -->
-                        <div *ngIf="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial'" 
+                        <div *ngIf="!authService.isProUser()" 
                              class="absolute inset-x-0 bottom-0 top-[40px] z-10 bg-white/60 dark:bg-slate-800/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-4 rounded-xl text-center">
                              <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-3 shadow-sm border border-amber-200">
                                 <i class="pi pi-lock text-amber-600 dark:text-amber-400 text-xl"></i>

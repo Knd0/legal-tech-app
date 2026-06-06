@@ -61,6 +61,9 @@ export class User {
   @Column({ default: 'trial' }) // 'active', 'trial', 'paused', 'cancelled'
   subscriptionStatus: string;
 
+  @Column({ default: 'pro' }) // 'basic' | 'pro'
+  subscriptionPlan: string;
+
   @Column({ nullable: true })
   subscriptionExpiresAt: Date;
 

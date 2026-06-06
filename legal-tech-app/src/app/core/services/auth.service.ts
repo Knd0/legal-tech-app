@@ -24,6 +24,13 @@ export class AuthService {
     return new Date(user.subscriptionExpiresAt).getTime() < Date.now();
   });
 
+  isProUser = computed(() => {
+    const user = this.currentUser();
+    if (!user) return false;
+    if (user.role === 'ADMIN') return true;
+    return (user.subscriptionStatus === 'active' && user.subscriptionPlan !== 'basic') || user.subscriptionStatus === 'trial';
+  });
+
   isGracePeriod = computed(() => {
     const user = this.currentUser();
     if (!user || user.role === 'ADMIN') return false;
@@ -107,6 +114,7 @@ export class AuthService {
                 phoneNumber: decoded.phoneNumber,
                 fullName: decoded.fullName,
                 subscriptionStatus: decoded.subscriptionStatus,
+                subscriptionPlan: decoded.subscriptionPlan || 'pro',
                 subscriptionExpiresAt: decoded.subscriptionExpiresAt
             });
         } else {

@@ -73,9 +73,9 @@ export class Pricing implements OnInit {
     });
   }
 
-  simulatePayment() {
-    this.loading.set('pro');
-    this.http.post<{ success: boolean }>(`${environment.apiUrl}/mercadopago/simulate-payment`, {})
+  simulatePayment(plan: 'basic' | 'pro') {
+    this.loading.set(plan);
+    this.http.post<{ success: boolean }>(`${environment.apiUrl}/mercadopago/simulate-payment`, { plan })
       .subscribe({
         next: (res) => {
           this.loading.set(null);
@@ -91,7 +91,8 @@ export class Pricing implements OnInit {
               if (user) {
                 this.authService.currentUser.set({
                   ...user,
-                  subscriptionStatus: 'active'
+                  subscriptionStatus: 'active',
+                  subscriptionPlan: plan
                 });
               }
               this.router.navigate(['/subscription/success']);

@@ -43,6 +43,7 @@ export class AuthService {
       phoneNumber: user.phoneNumber, 
       fullName: user.fullName, 
       subscriptionStatus: user.subscriptionStatus,
+      subscriptionPlan: user.subscriptionPlan,
       subscriptionExpiresAt: user.subscriptionExpiresAt
     };
     return {

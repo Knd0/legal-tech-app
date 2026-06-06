@@ -1,4 +1,4 @@
-<div class="bg-slate-50 dark:bg-slate-900 transition-colors selection:bg-blue-300 selection:text-blue-900 relative">
+<div class="bg-slate-50 dark:bg-slate-900 transition-colors selection:bg-blue-300 selection:text-blue-900 relative overflow-hidden">
   
   <!-- Floating background glow bubbles -->
   <div class="glow-bubble glow-bubble-1"></div>
@@ -633,12 +633,22 @@ En mi carácter de Letrado Apoderado de la Administración del Consorcio de Prop
               <h3 class="text-xl font-bold leading-8 text-white">Plan Básico</h3>
             </div>
             <p class="mt-4 text-xs leading-6 text-slate-400">Perfecto para abogados independientes e inicio de cartera.</p>
-            <p class="mt-6 flex items-baseline gap-x-1">
-              <span class="text-5xl font-black tracking-tight text-white">Gratis</span>
+            
+            <p class="mt-6 flex items-baseline gap-x-1" *ngIf="billingCycle() === 'monthly'">
+              <span class="text-5xl font-black tracking-tight text-white">$20.000</span>
+              <span class="text-sm font-semibold leading-6 text-slate-400">ARS / mes</span>
             </p>
+            <p class="mt-6 flex items-baseline gap-x-1" *ngIf="billingCycle() === 'yearly'">
+              <span class="text-5xl font-black tracking-tight text-white">$16.000</span>
+              <span class="text-sm font-semibold leading-6 text-slate-400">ARS / mes</span>
+            </p>
+            <span class="text-[10px] text-emerald-400 font-bold mt-1 block" *ngIf="billingCycle() === 'yearly'">
+              Facturado anualmente ($192.000 ARS/año)
+            </span>
+
             <ul role="list" class="mt-8 space-y-3.5 text-xs leading-6 text-slate-300">
               <li class="flex gap-x-3 items-center"><i class="pi pi-check text-blue-400 font-bold"></i> CRM de Clientes Completo</li>
-              <li class="flex gap-x-3 items-center"><i class="pi pi-check text-blue-400 font-bold"></i> Límite de 30 Expedientes Activos</li>
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check text-blue-400 font-bold"></i> Límite de 50 Expedientes Activos</li>
               <li class="flex gap-x-3 items-center"><i class="pi pi-check text-blue-400 font-bold"></i> Agenda e Historial Básico</li>
               <li class="flex gap-x-3 items-center opacity-50"><i class="pi pi-times text-slate-600 font-bold"></i> Sin Alertas por WhatsApp</li>
               <li class="flex gap-x-3 items-center opacity-50"><i class="pi pi-times text-slate-600 font-bold"></i> Sin Copiloto de IA</li>
@@ -646,7 +656,7 @@ En mi carácter de Letrado Apoderado de la Administración del Consorcio de Prop
           </div>
           <a [routerLink]="authService.isAuthenticated() ? '/dashboard' : '/auth/register'" 
              class="mt-8 block rounded-2xl py-3 px-3 text-center text-xs font-bold leading-6 text-white bg-slate-800 hover:bg-slate-700 transition-colors">
-            {{ authService.isAuthenticated() ? 'Volver al Dashboard' : 'Crear Cuenta Gratis' }}
+            {{ authService.isAuthenticated() ? 'Volver al Dashboard' : 'Suscribirse al Plan Básico' }}
           </a>
         </div>
 
@@ -660,15 +670,15 @@ En mi carácter de Letrado Apoderado de la Administración del Consorcio de Prop
             <p class="mt-4 text-xs leading-6 text-blue-100">La tranquilidad de digitalizar todo tu estudio jurídico, sin restricciones.</p>
             
             <p class="mt-6 flex items-baseline gap-x-1" *ngIf="billingCycle() === 'monthly'">
-              <span class="text-5xl font-black tracking-tight text-white">$15.000</span>
+              <span class="text-5xl font-black tracking-tight text-white">$35.000</span>
               <span class="text-sm font-semibold leading-6 text-blue-200">ARS / mes</span>
             </p>
             <p class="mt-6 flex items-baseline gap-x-1" *ngIf="billingCycle() === 'yearly'">
-              <span class="text-5xl font-black tracking-tight text-white">$12.000</span>
+              <span class="text-5xl font-black tracking-tight text-white">$28.000</span>
               <span class="text-sm font-semibold leading-6 text-blue-200">ARS / mes</span>
             </p>
             <span class="text-[10px] text-teal-350 font-bold mt-1 block" *ngIf="billingCycle() === 'yearly'">
-              Facturado anualmente ($144.000 ARS/año)
+              Facturado anualmente ($336.000 ARS/año)
             </span>
 
             <ul role="list" class="mt-8 space-y-3.5 text-xs leading-6 text-blue-50">

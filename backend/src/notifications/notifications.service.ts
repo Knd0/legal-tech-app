@@ -25,7 +25,7 @@ export class NotificationsService {
   ) {
     const pubKey = this.configService.get<string>('VAPID_PUBLIC_KEY');
     const privKey = this.configService.get<string>('VAPID_PRIVATE_KEY');
-    const email = this.configService.get<string>('VAPID_EMAIL') || 'mailto:admin@legaltech.com';
+    const email = this.configService.get<string>('VAPID_EMAIL') || 'mailto:admin@themis.com';
 
     if (pubKey && privKey) {
       this.vapidPublicKey = pubKey;

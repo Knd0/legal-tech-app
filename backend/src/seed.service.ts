@@ -19,7 +19,7 @@ export class SeedService implements OnApplicationBootstrap {
   private async seedAdmin() {
     this.logger.log('Checking for default Admin user...');
     
-    const adminEmail = 'admin@legaltech.com';
+    const adminEmail = 'admin@themis.com';
     const adminPassword = process.env.ADMIN_PASSWORD || 'ChangeMe123!';
     
     if (!process.env.ADMIN_PASSWORD) {

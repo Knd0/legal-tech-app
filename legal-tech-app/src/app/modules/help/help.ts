@@ -35,7 +35,7 @@ export class Help implements AfterViewInit, OnDestroy {
     { id: 'clientes', label: 'Gestión de Clientes', icon: 'pi pi-users', category: 'gestion' },
     { id: 'expedientes', label: 'Expedientes y Kanban', icon: 'pi pi-briefcase', category: 'gestion' },
     { id: 'documentos', label: 'Gestión Documental', icon: 'pi pi-folder-open', category: 'gestion' },
-    { id: 'ia', label: 'Copiloto Legal IA', icon: 'pi pi-sparkles', category: 'ia' },
+    { id: 'ia', label: 'Copiloto Themis', icon: 'pi pi-sparkles', category: 'ia' },
     { id: 'calendario', label: 'Agenda y PDFs', icon: 'pi pi-calendar', category: 'gestion' },
     { id: 'afip', label: 'Facturación AFIP / ARCA', icon: 'pi pi-receipt', category: 'facturacion' },
     { id: 'suscripciones', label: 'Suscripciones y Pagos', icon: 'pi pi-credit-card', category: 'facturacion' },
@@ -51,9 +51,9 @@ export class Help implements AfterViewInit, OnDestroy {
       section: 'configuracion'
     },
     {
-      title: '¿Cómo funciona el Copiloto Legal de IA?',
-      description: 'Aprende a redactar demandas, resumir expedientes y calcular la probabilidad de éxito de tus causas.',
-      keywords: 'ia copiloto gemini openai resumen demanda redactar riesgos probabilidad exitos puntos fuertes debiles',
+      title: '¿Cómo funciona el Copiloto Themis?',
+      description: 'Aprende a redactar demandas, resumir expedientes y calcular la probabilidad de éxito de tus causas con IA.',
+      keywords: 'ia copiloto gemini openai resumen demanda redactar riesgos probabilidad exitos puntos fuertes debiles themis',
       section: 'ia'
     },
     {
@@ -94,7 +94,7 @@ export class Help implements AfterViewInit, OnDestroy {
     }
   ];
 
-  // Simulator 1: Copiloto IA
+  // Simulator 1: Copiloto Themis
   selectedAiTab = 'draft';
   isAiGenerating = false;
   aiOutput = '';
@@ -178,7 +178,7 @@ export class Help implements AfterViewInit, OnDestroy {
     );
   }
 
-  // Simulator Actions: Copiloto IA
+  // Simulator Actions: Copiloto Themis
   generateMockDraft(type: string) {
     this.isAiGenerating = true;
     this.aiOutput = '';

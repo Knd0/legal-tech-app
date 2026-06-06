@@ -62,7 +62,7 @@ export class AiService {
           messages: [
             {
               role: 'system',
-              content: 'Eres un copiloto legal experto para un software de gestión jurídica (LegalTech) de Argentina.'
+              content: 'Eres Copiloto Themis, un asistente legal experto para un software de gestión jurídica (Themis) de Argentina.'
             },
             {
               role: 'user',
@@ -77,7 +77,7 @@ export class AiService {
       }
     }
 
-    return `[MÓDULO IA DESACTIVADO]\n\nEl Copiloto Legal de IA no está configurado.\n\nPara activarlo de forma gratuita, configure la variable de entorno 'GEMINI_API_KEY' en su panel de Render con una clave de Google AI Studio (https://aistudio.google.com/).`;
+    return `[MÓDULO IA DESACTIVADO]\n\nCopiloto Themis no está configurado.\n\nPara activarlo de forma gratuita, configure la variable de entorno 'GEMINI_API_KEY' en su panel de Render con una clave de Google AI Studio (https://aistudio.google.com/).`;
   }
 
   async analyze(text: string, context?: string): Promise<{ analysis: string }> {

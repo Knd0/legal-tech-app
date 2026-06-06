@@ -80,7 +80,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    console.log('LegalTech App Initialized successfully');
+    console.log('Themis App Initialized successfully');
     this.items = [
         {
             label: 'Inicio',

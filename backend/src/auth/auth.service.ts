@@ -82,7 +82,7 @@ export class AuthService {
     if (this.resend) {
       try {
         await this.resend.emails.send({
-          from: 'LegalTech <no-reply@legaltech.com.ar>',
+          from: 'Themis <no-reply@themis.com.ar>',
           to: email,
           subject: 'Código para restablecer tu contraseña',
           html: `<p>Tu código para restablecer la contraseña es: <strong>${code}</strong></p><p>Expira en 5 minutos.</p>`,

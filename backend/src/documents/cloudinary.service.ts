@@ -17,7 +17,7 @@ export class CloudinaryService {
 
   async uploadFile(
     filePath: string,
-    folder: string = 'legaltech_documents',
+    folder: string = 'themis_documents',
   ): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
       cloudinary.uploader.upload(

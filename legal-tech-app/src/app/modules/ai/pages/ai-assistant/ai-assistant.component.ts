@@ -249,7 +249,7 @@ export class AiAssistantComponent {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
     doc.setTextColor(26, 54, 93); // Dark blue
-    doc.text("Copiloto Legal IA - Reporte", 15, 20);
+    doc.text("Copiloto Themis - Reporte", 15, 20);
     
     // Line separator
     doc.setDrawColor(226, 232, 240);
@@ -272,7 +272,7 @@ export class AiAssistantComponent {
       y += 6.5;
     }
     
-    doc.save("analisis-copiloto-ia.pdf");
+    doc.save("analisis-copiloto-themis.pdf");
     
     Swal.fire({
       icon: 'success',

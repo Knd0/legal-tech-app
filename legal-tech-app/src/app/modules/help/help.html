@@ -31,7 +31,7 @@
                 <p class="text-[11px] text-indigo-600 dark:text-indigo-400 mb-3 leading-relaxed">
                     Contacta al administrador del estudio para reportar errores o solicitar ayuda adicional.
                 </p>
-                <a href="mailto:soporte@legaltech.com"
+                <a href="mailto:soporte@themis.com"
                     class="text-xs bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-3 py-2 rounded-lg font-bold block text-center transition-colors shadow-sm">
                     Contactar Soporte
                 </a>
@@ -51,7 +51,7 @@
                         <i class="pi pi-search text-slate-400 dark:text-slate-500 text-lg"></i>
                     </div>
                     <input type="text" [(ngModel)]="searchQuery" 
-                        placeholder="Buscar ayuda sobre AFIP, Copiloto IA, WhatsApp, PDFs de causas..."
+                        placeholder="Buscar ayuda sobre AFIP, Copiloto Themis, WhatsApp, PDFs de causas..."
                         class="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 text-sm">
                     <button *ngIf="searchQuery" (click)="searchQuery = ''" class="absolute inset-y-0 right-0 pr-4 flex items-center">
                         <i class="pi pi-times text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm cursor-pointer"></i>
@@ -101,9 +101,9 @@
                     </div>
                     <div class="relative z-10 max-w-2xl space-y-4">
                         <span class="bg-blue-500/30 text-blue-100 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">Guía Completa</span>
-                        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Centro de Ayuda LegalTech</h1>
+                        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Centro de Ayuda Themis</h1>
                         <p class="text-blue-100 text-base md:text-lg leading-relaxed font-medium">
-                            LegalTech es una plataforma diseñada para digitalizar, organizar y potenciar estudios jurídicos. 
+                            Themis es una plataforma diseñada para digitalizar, organizar y potenciar estudios jurídicos. 
                             Aprende a sacarle el máximo partido a cada módulo utilizando nuestras guías interactivas paso a paso.
                         </p>
                     </div>
@@ -375,7 +375,7 @@
                         <i class="pi pi-sparkles text-lg"></i>
                     </div>
                     <div>
-                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Copiloto Legal de IA</h2>
+                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Copiloto Themis</h2>
                         <p class="text-xs text-slate-500 dark:text-slate-400">Inteligencia Artificial premium integrada para escritos y auditorías rápidas</p>
                     </div>
                 </div>
@@ -388,7 +388,7 @@
                         <span class="bg-white/20 text-violet-100 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full">Tecnología Premium</span>
                         <h3 class="text-lg font-bold">Un Abogado Experto a un clic</h3>
                         <p class="text-xs text-violet-100 leading-relaxed">
-                            Alimentado por Gemini 2.5 Flash y ChatGPT de OpenAI como respaldo. El Copiloto de IA analiza el expediente judicial completo seleccionado para proveerte cuatro flujos fundamentales:
+                            Alimentado por Gemini 2.5 Flash y ChatGPT de OpenAI como respaldo. El Copiloto Themis analiza el expediente judicial completo seleccionado para proveerte cuatro flujos fundamentales:
                         </p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-[11px] text-violet-100 font-medium">
                             <div class="flex items-center gap-1.5"><i class="pi pi-check text-[10px]"></i> Redactor de escritos adaptado a la terminología forense argentina.</div>
@@ -402,7 +402,7 @@
                 <!-- Simulator widget -->
                 <div class="space-y-3">
                     <h4 class="font-bold text-slate-800 dark:text-white text-xs flex items-center gap-1">
-                        <i class="pi pi-play-circle text-blue-500"></i> Laboratorio de Pruebas: Simulador de Copiloto Legal
+                        <i class="pi pi-play-circle text-blue-500"></i> Laboratorio de Pruebas: Simulador de Copiloto Themis
                     </h4>
                     
                     <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-sm">
@@ -420,7 +420,7 @@
                         <div class="p-6 space-y-4">
                             <div *ngIf="selectedAiTab === 'draft'" class="space-y-4">
                                 <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                                    Simula la redacción instantánea de escritos judiciales. Selecciona el tipo de escrito y observa cómo el copiloto recopila los detalles del expediente:
+                                    Simula la redacción instantánea de escritos judiciales. Selecciona el tipo de escrito y observa cómo el Copiloto Themis recopila los detalles del expediente:
                                 </p>
                                 <div class="flex flex-wrap gap-2">
                                     <button (click)="generateMockDraft('demanda')" class="bg-slate-100 hover:bg-blue-50 dark:bg-slate-700 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-300 text-slate-700 dark:text-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
@@ -511,7 +511,7 @@
                             <i class="pi pi-sync text-orange-500 animate-spin" style="animation-duration: 8s;"></i> Sincronización Google Calendar
                         </h3>
                         <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
-                            Al vincular tu cuenta de Google en tu Perfil, cada audiencia, reunión o vencimiento perentorio que cargues en LegalTech se sincronizará automáticamente en tu calendario de Google en tiempo real, permitiendo alertas móviles instantáneas.
+                            Al vincular tu cuenta de Google en tu Perfil, cada audiencia, reunión o vencimiento perentorio que cargues en Themis se sincronizará automáticamente en tu calendario de Google en tiempo real, permitiendo alertas móviles instantáneas.
                         </p>
                     </div>
 
@@ -520,7 +520,7 @@
                             <i class="pi pi-file-pdf text-red-500"></i> Escáner de PDFs Judiciales (Notificaciones)
                         </h3>
                         <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
-                            ¿Recibiste una cédula o notificación judicial con plazos ajustados? En lugar de calcular a mano, LegalTech te permite subir el archivo PDF. La IA de Gemini leerá el texto legal, deducirá los plazos otorgados, verificará la fecha de notificación y los fines de semana/feriados de Argentina, calculando de inmediato tu fecha límite exacta.
+                            ¿Recibiste una cédula o notificación judicial con plazos ajustados? En lugar de calcular a mano, Themis te permite subir el archivo PDF. La IA de Gemini leerá el texto legal, deducirá los plazos otorgados, verificará la fecha de notificación y los fines de semana/feriados de Argentina, calculando de inmediato tu fecha límite exacta.
                         </p>
                     </div>
                 </div>
@@ -552,7 +552,7 @@
                         <div *ngIf="pdfSimState === 'analyzed'" class="space-y-4">
                             <div class="bg-emerald-50/50 dark:bg-emerald-950/15 text-emerald-800 dark:text-emerald-350 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-950/30">
                                 <h4 class="text-xs font-bold mb-3 flex items-center gap-1.5">
-                                    <i class="pi pi-check-circle"></i> Plazos Detectados por el Copiloto
+                                    <i class="pi pi-check-circle"></i> Plazos Detectados por el Copiloto Themis
                                 </h4>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                                     <div>
@@ -600,8 +600,8 @@
                 <div class="bg-purple-50 dark:bg-purple-950/20 border-l-4 border-purple-500 p-5 rounded-r-2xl space-y-2">
                     <h4 class="font-bold text-purple-900 dark:text-purple-300 text-sm">¿Cómo funciona la emisión integrada?</h4>
                     <p class="text-xs text-purple-800 dark:text-purple-450 leading-relaxed">
-                        Para simplificar la contabilidad, LegalTech utiliza el sistema oficial de **Delegación de Relaciones** del portal de la AFIP. 
-                        No necesitas cargar tu certificado digital ni tu clave privada del certificado `.key` en la plataforma; simplemente autorizas al CUIT central de LegalTech a facturar y el sistema se comunica de forma segura con el WebService (wsfe) para obtener el **CAE**.
+                        Para simplificar la contabilidad, Themis utiliza el sistema oficial de **Delegación de Relaciones** del portal de la AFIP. 
+                        No necesitas cargar tu certificado digital ni tu clave privada del certificado `.key` en la plataforma; simplemente autorizas al CUIT central de Themis a facturar y el sistema se comunica de forma segura con el WebService (wsfe) para obtener el **CAE**.
                     </p>
                 </div>
 
@@ -623,9 +623,9 @@
                         <!-- Paso 2 -->
                         <div class="relative">
                             <div class="absolute -left-[35px] top-0.5 w-6 h-6 rounded-full bg-purple-600 text-white font-bold text-xs flex items-center justify-center shadow">2</div>
-                            <h4 class="font-bold text-slate-800 dark:text-white text-xs">Ingresar tu CUIT en LegalTech</h4>
+                            <h4 class="font-bold text-slate-800 dark:text-white text-xs">Ingresar tu CUIT en Themis</h4>
                             <p class="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed mt-1">
-                                En LegalTech, ve a la sección <a routerLink="/profile" class="text-blue-500 hover:underline">Mi Perfil</a>, busca la tarjeta de AFIP y escribe tu CUIT de 11 dígitos sin guiones y el número de tu **Punto de Venta** (debe estar habilitado para factura electrónica / factura en línea). Guarda los cambios.
+                                En Themis, ve a la sección <a routerLink="/profile" class="text-blue-500 hover:underline">Mi Perfil</a>, busca la tarjeta de AFIP y escribe tu CUIT de 11 dígitos sin guiones y el número de tu **Punto de Venta** (debe estar habilitado para factura electrónica / factura en línea). Guarda los cambios.
                             </p>
                         </div>
 
@@ -722,7 +722,7 @@
                         </div>
                         <p class="text-xs text-slate-650 dark:text-slate-400 leading-relaxed">
                             Gracias a la tecnología Angular Service Worker y al firmado criptográfico VAPID, puedes autorizar notificaciones en tu computadora o celular. 
-                            Incluso si apagas o cierras el navegador, cuando la tarea diaria de LegalTech detecte un vencimiento inminente a las 9:00 AM, el sistema enviará un push que aparecerá directamente en tu centro de alertas del sistema operativo.
+                            Incluso si apagas o cierras el navegador, cuando la tarea diaria de Themis detecte un vencimiento inminente a las 9:00 AM, el sistema enviará un push que aparecerá directamente en tu centro de alertas del sistema operativo.
                         </p>
                     </div>
                 </div>
@@ -763,7 +763,7 @@
                             <!-- Simulated Phone screen -->
                             <div class="w-full md:w-64 bg-slate-950 rounded-3xl p-3.5 border-[6px] border-slate-800 flex flex-col justify-between shadow-md max-w-[280px] mx-auto min-h-[220px]">
                                 <div class="flex justify-between items-center text-[9px] text-slate-500 px-2 pb-2 border-b border-slate-900 font-bold">
-                                    <span>WhatsApp LegalTech</span>
+                                    <span>WhatsApp Themis</span>
                                     <span>10:30</span>
                                 </div>
                                 <div class="flex-grow py-4 flex flex-col justify-end">

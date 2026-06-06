@@ -8,7 +8,7 @@ async function bootstrap() {
   const usersService = app.get(UsersService);
   const logger = new Logger('SeedAdmin');
 
-  const adminEmail = 'admin@legaltech.com';
+  const adminEmail = 'admin@themis.com';
   const adminPassword = process.env.ADMIN_PASSWORD || 'ChangeMe123!'; 
   if (!process.env.ADMIN_PASSWORD) {
       logger.warn('WARNING: Using default admin password. Set ADMIN_PASSWORD environment variable in production!');

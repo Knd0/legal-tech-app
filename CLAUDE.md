@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-LegalTech is a SaaS platform for Argentine law firms. It manages clients, expedientes (case files), judicial deadlines, documents, billing (facturas), and calendar events. Subscriptions are handled via MercadoPago recurring payments.
+Themis is a SaaS platform for Argentine law firms. It manages clients, expedientes (case files), judicial deadlines, documents, billing (facturas), and calendar events. Subscriptions are handled via MercadoPago recurring payments.
 
 ## Repository Layout
 
@@ -58,9 +58,9 @@ cd backend && docker-compose up -d
 Each feature is a NestJS module under `backend/src/`. Key modules:
 
 - **auth** — JWT (60 min expiry) + Passport local strategy. OTP-via-WhatsApp for password recovery. `AuthController` exposes `/auth/login`, `/auth/register`. **OTPs are stored in the database (`Otp` entity)**, preventing recovery session loss on server restarts.
-- **users** — `User` entity is the tenant root. Every client and expediente belongs to a `User`. Roles: `USER` | `ADMIN`. Auto-seeds `admin@legaltech.com` on bootstrap via `SeedService`.
+- **users** — `User` entity is the tenant root. Every client and expediente belongs to a `User`. Roles: `USER` | `ADMIN`. Auto-seeds `admin@themis.com` on bootstrap via `SeedService`.
 - **clients / expedientes** — Core legal domain. Expedientes track `EstadoExpediente`: `INICIADO → PRUEBA → ALEGATOS → SENTENCIA → ARCHIVADO`. Both support **server-side pagination, status filters, and search queries**.
-- **deadlines** — Judicial vencimientos. Exposes `/deadlines` and `/deadlines/analyze-pdf` to upload a judicial notification PDF and extract/schedule upcoming deadline calendar events using Gemini 1.5 Flash. A daily cron job runs at 9 AM to send WhatsApp alerts.
+- **deadlines** — Judicial vencimientos. Exposes `/deadlines` and `/deadlines/analyze-pdf` to upload a judicial notification PDF and extract/schedule upcoming deadline calendar events using Gemini 2.5 Flash by default. A daily cron job runs at 9 AM to send WhatsApp alerts.
 - **calendar** — Empty module. Google Calendar integration was removed. Controller has no endpoints.
 - **documents** — **File uploads are persisted in Cloudinary** (avoiding local ephemeral filesystem issues on Render). Safe streaming view/download endpoints are protected by `JwtAuthGuard` to mask public Cloudinary URLs.
 - **mercadopago** — Recurring subscriptions (`PreApproval`). Webhook at `POST /mercadopago/webhook` updates `subscriptionStatus` and `subscriptionExpiresAt` on the User entity.
@@ -68,7 +68,7 @@ Each feature is a NestJS module under `backend/src/`. Key modules:
 - **facturas** — AFIP/ARCA e-invoicing. Uses `os.tmpdir()` for cross-platform (Windows dev / Linux prod) temp certificate writing, and reads `AFIP_PRODUCTION` env variable dynamically to switch between homologation (false/default) and production. Falls back to simulation mode if `AFIP_CERT`/`AFIP_KEY` env vars are missing.
 - **movimientos** — Financial movements per client (honorarios, gastos, pagos) with JUS/UMA unit support.
 - **settings** — Key-value config store. Seeded with `VALOR_JUS_ENTRE_RIOS`, `VALOR_UMA_NACION`, `ENABLE_WHATSAPP`, `DAYS_BEFORE_ALERT`, `ENABLE_DESKTOP_NOTIFICATIONS`.
-- **ai** — **Copiloto IA module**. Exposes `/ai/analyze`, `/ai/draft`, `/ai/summarize-expediente`, and `/ai/analyze-risk` protected by `JwtAuthGuard`. Leverages Google Gemini 1.5 Flash (free tier) via `GEMINI_API_KEY` with automated fallback to OpenAI (`gpt-4o-mini`) if `OPENAI_API_KEY` is set.
+- **ai** — **Copiloto Themis module**. Exposes `/ai/analyze`, `/ai/draft`, `/ai/summarize-expediente`, and `/ai/analyze-risk` protected by `JwtAuthGuard`. Leverages Google Gemini 2.5 Flash (free tier) via `GEMINI_API_KEY` (or dynamically configured using `GEMINI_MODEL`) with automated fallback to OpenAI (`gpt-4o-mini`) if `OPENAI_API_KEY` is set.
 
 Database: PostgreSQL via TypeORM. `synchronize: true` in both dev and prod — schema changes apply on boot. No migration files exist.
 
@@ -149,13 +149,13 @@ Todos los gaps conocidos han sido corregidos:
 | Clientes            | 99%     | Server-side pagination fully integrated.                                  |
 | Expedientes         | 99%     | Server-side pagination and state filter fully integrated.                 |
 | Calendario          | 99%     | Integrated client-side Native Browser notifications and in-app SweetAlert2 scheduler for calendar events and deadlines. |
-| Profile             | 100%    | WhatsApp session persisted in DB using RemoteAuth; AFIP dynamic env configuration. |
+| Profile             | 100%    | WhatsApp session persisted in DB using RemoteAuth (session ID: `themis-session`); AFIP dynamic env configuration. |
 | Subscription UI     | 95%     | — |
 | Dashboard           | 99%     | — |
 | Admin/Users         | 99%     | — |
 | Documents UI        | 99%     | Cloudinary integration completed; preview modal resolved.                 |
-| Copiloto IA         | 100%    | Premium AI module fully implemented (general text analysis, automatic judicial drafts, case summaries, and risk/success analysis dashboards). |
-| Calendar (BE)       | 95%     | — |
+| Copiloto Themis     | 100%    | Premium AI module fully implemented (general text analysis, automatic judicial drafts, case summaries, and risk/success analysis dashboards). |
+| Calendar (BE)       | 100%    | Service Worker Deep Background Push Notifications implemented using VAPID keys. |
 | Facturas y Audits   | 99%     | Server-side pagination implemented for invoices (Facturas) and system logs (AuditLogs). |
 
 ---
@@ -174,8 +174,8 @@ Todos los gaps conocidos han sido corregidos:
 
 - **Signals vs RxJS**: Usar `signal()` y `computed()` para nuevo estado en el frontend. Suscribirse a Observables HTTP con `.subscribe()` está bien, pero no crear `BehaviorSubject` nuevos — convertir a signal en el `tap`/`next`.
 - **Audit logging**: Los módulos clients/expedientes/movimientos hacen audit logging de forma asíncrona sin `await` ni `try/catch` — puede fallar silenciosamente. No agregar awaits sin manejar el error.
-- **SeedService**: Crea `admin@legaltech.com` automáticamente al iniciar el backend si no existe. Password desde env `ADMIN_PASSWORD`.
-- **Storage efímero en Render**: Cloudinary handles document uploads. WhatsApp auth session is now persisted in PostgreSQL via a custom `WhatsappDbStore` with `RemoteAuth`, solving the Render ephemeral restarts issue.
+- **SeedService**: Creates `admin@themis.com` automatically on startup if it does not exist. Password from env `ADMIN_PASSWORD`.
+- **Storage efímero en Render**: Cloudinary handles document uploads. WhatsApp auth session is now persisted in PostgreSQL via a custom `WhatsappDbStore` with `RemoteAuth` under key `RemoteAuth-themis-session`, solving the Render ephemeral restarts issue.
 - **synchronize:true en prod**: TypeORM crea/altera tablas al iniciar. Cambios de columna pueden perder datos. No usar para eliminar columnas — hacerlo manualmente en la DB.
 - **Hardcoded values a recordar**:
   - MercadoPago: monto `15000 ARS` en `mercadopago.service.ts`
@@ -198,7 +198,6 @@ Todos los gaps conocidos han sido corregidos:
 1. **Configure API Keys in Production**: Add `GEMINI_API_KEY` on Render to fully run the integrated AI copilot and PDF parsing features for free, or add `OPENAI_API_KEY` if preferred.
 2. **AFIP Point of Sale Configuration**: Allow configuring custom points of sale from the user profile settings.
 3. **Lazy-Loaded Account Movements**: Implement server-side pagination for movement lists (cuenta corriente).
-4. **Service Worker Push Notifications**: Implement VAPID subscriptions in NestJS for background notification alerts.
 
 ### Innovative Feature Ideas:
 1. **Two-Way Client WhatsApp Bot**: Clients query their case files by text message (e.g., `"status"`) and the bot responds with case details.

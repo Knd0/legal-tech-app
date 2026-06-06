@@ -39,7 +39,7 @@ export class WhatsappService implements OnModuleInit {
     const store = new WhatsappDbStore(this.sessionRepository);
     this.client = new Client({
       authStrategy: new RemoteAuth({
-        clientId: 'legaltech-session',
+        clientId: 'themis-session',
         dataPath: './whatsapp-auth',
         store: store,
         backupSyncIntervalMs: 60000,
@@ -223,7 +223,7 @@ export class WhatsappService implements OnModuleInit {
               }
 
               // Also delete from database for a clean start!
-              await this.sessionRepository.delete({ id: 'RemoteAuth-legaltech-session' });
+              await this.sessionRepository.delete({ id: 'RemoteAuth-themis-session' });
               this.logger.log('Session data cleared from DB.');
 
               this.initializationError = null;

@@ -1,24 +1,25 @@
-<div class="p-6 bg-slate-50 min-h-screen">
+<div class="p-6 bg-slate-50 dark:bg-slate-900 min-h-screen w-full max-w-full overflow-hidden flex flex-col transition-colors duration-300">
     <div class="mb-6 flex justify-between items-center">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800">Tablero de Expedientes</h1>
-            <p class="text-slate-500 text-sm">Gestiona el flujo de tus causas arrastrando y soltando.</p>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Tablero de Expedientes</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-sm">Gestiona el flujo de tus causas arrastrando y soltando.</p>
         </div>
-        <a href="/expedientes" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">
-            <i class="pi pi-list mr-1"></i> Ver Lista
+        <a href="/expedientes" class="text-indigo-600 hover:text-indigo-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm flex items-center gap-1">
+            <i class="pi pi-list"></i> Ver Lista
         </a>
     </div>
 
-    <div class="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-12rem)]" cdkDropListGroup>
+    <!-- Scrollable board container -->
+    <div class="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-12rem)] w-full max-w-full" cdkDropListGroup>
 
         <div *ngFor="let col of columns"
-            class="flex-shrink-0 w-80 bg-slate-100 rounded-lg flex flex-col h-full border border-slate-200">
+            class="flex-shrink-0 w-72 bg-slate-100 dark:bg-slate-800/40 rounded-lg flex flex-col h-full border border-slate-200 dark:border-slate-700/80 transition-colors duration-300">
 
             <!-- Column Header -->
             <div
-                class="p-3 border-b border-slate-200 bg-white rounded-t-lg flex justify-between items-center sticky top-0 z-10">
-                <h3 class="font-semibold text-slate-700">{{ col.title }}</h3>
-                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                class="p-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-t-lg flex justify-between items-center sticky top-0 z-10 transition-colors duration-300">
+                <h3 class="font-semibold text-slate-700 dark:text-slate-200">{{ col.title }}</h3>
+                <span class="bg-indigo-100 text-indigo-700 dark:bg-blue-900/30 dark:text-blue-300 text-xs font-bold px-2 py-0.5 rounded-full">
                     {{ col.items.length }}
                 </span>
             </div>
@@ -30,34 +31,34 @@
                 <div *ngFor="let item of col.items; trackBy: trackByExpedienteId" cdkDrag [cdkDragData]="item" (cdkDragStarted)="onDragStarted()"
                     [class.opacity-60]="saving() === item.id"
                     [class.pointer-events-none]="saving() === item.id"
-                    class="bg-white p-4 rounded-md shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing hover:shadow-md transition-all group relative">
+                    class="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-750 cursor-grab active:cursor-grabbing hover:shadow-md transition-all group relative">
                     <!-- Drag Handle / Placeholder -->
                     <div class="custom-placeholder" *cdkDragPlaceholder></div>
 
                     <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">{{ item.nroExpediente }}</span>
+                        <span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ item.nroExpediente }}</span>
                         <div class="flex items-center gap-1">
                             <i *ngIf="saving() === item.id" class="pi pi-spin pi-spinner text-slate-400 text-xs"></i>
                             <div class="w-2 h-2 rounded-full" [ngClass]="col.color"></div>
                         </div>
                     </div>
 
-                    <h4 class="text-sm font-semibold text-slate-800 mb-1 leading-snug hover:text-indigo-600">
+                    <h4 class="text-sm font-semibold text-slate-800 dark:text-slate-250 mb-1 leading-snug hover:text-indigo-600 dark:hover:text-blue-400">
                         <a [routerLink]="['/expedientes', item.id]">{{ item.caratula }}</a>
                     </h4>
 
-                    <p class="text-xs text-slate-500 mb-3 truncate">{{ item.juzgado }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-3 truncate">{{ item.juzgado }}</p>
 
-                    <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
+                    <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-50 dark:border-slate-800">
                         <div class="flex items-center space-x-2">
                             <div class="flex -space-x-1 overflow-hidden" *ngIf="item.cliente">
-                                <div class="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600"
+                                <div class="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-900 bg-indigo-100 dark:bg-blue-900/30 flex items-center justify-center text-xs font-bold text-indigo-600 dark:text-blue-300"
                                     title="{{item.cliente.nombre}}">
                                     {{ item.cliente.nombre.charAt(0) }}
                                 </div>
                             </div>
                         </div>
-                        <span class="text-xs text-slate-400">
+                        <span class="text-xs text-slate-450 dark:text-slate-500">
                             {{ item.fechaInicio | date:'dd/MM' }}
                         </span>
                     </div>

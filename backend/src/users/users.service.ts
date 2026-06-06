@@ -15,20 +15,20 @@ export class UsersService implements OnModuleInit {
     const adminPassword = process.env.ADMIN_PASSWORD;
     if (adminPassword) {
       // Check if admin already exists
-      const existingAdmin = await this.findOneByEmail('admin@lexsaas.com');
+      const existingAdmin = await this.findOneByEmail('admin@themis.com');
       if (!existingAdmin) {
         const salt = await bcrypt.genSalt();
         const passwordHash = await bcrypt.hash(adminPassword, salt);
         const adminUser = this.usersRepository.create({
           fullName: 'Super Admin',
-          email: 'admin@lexsaas.com',
+          email: 'admin@themis.com',
           passwordHash,
           role: 'ADMIN',
           isActive: true,
           subscriptionStatus: 'active'
         } as any);
         await this.usersRepository.save(adminUser);
-        console.log('Seeded default Super Admin account (admin@lexsaas.com).');
+        console.log('Seeded default Super Admin account (admin@themis.com).');
       } else {
         // Option: we could also force update the password here, but usually seeder only creates it
         // If we want to strictly allow overriding the password via env, we can uncomment below:

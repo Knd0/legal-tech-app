@@ -20,6 +20,7 @@ import { CalendarModule } from './calendar/calendar.module';
 import { FacturasModule } from './facturas/facturas.module';
 import { SeedService } from './seed.service';
 import { MercadopagoModule } from './mercadopago/mercadopago.module';
+import { AiModule } from './ai/ai.module';
 
 
 @Module({
@@ -88,7 +89,7 @@ import { MercadopagoModule } from './mercadopago/mercadopago.module';
     CalendarModule,
     FacturasModule,
     MercadopagoModule,
-
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService, SeedService],

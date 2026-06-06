@@ -30,7 +30,7 @@ export class MercadopagoService {
     
     return preApprovalPlan.create({
       body: {
-        reason: planData.reason || 'Suscripción LexSaaS',
+        reason: planData.reason || 'Suscripción Themis',
         auto_recurring: {
           frequency: 1,
           frequency_type: 'months',
@@ -60,7 +60,7 @@ export class MercadopagoService {
 
       const request = {
           body: {
-             reason: 'LexSaaS Pro',
+             reason: 'Themis Pro',
              external_reference: userId,
              payer_email: payerEmail,
              auto_recurring: {
@@ -122,7 +122,7 @@ export class MercadopagoService {
           amount: p.transaction_amount,
           currency: p.currency_id,
           status: p.status,
-          description: p.description || 'Suscripción LexSaaS',
+          description: p.description || 'Suscripción Themis',
         })),
       };
     } catch (error) {

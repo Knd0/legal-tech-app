@@ -32,19 +32,26 @@
             <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
             <input pInputText
                 [ngModel]="searchTerm()"
-                (ngModelChange)="searchTerm.set($event)"
+                (input)="onSearch($event)"
                 placeholder="Buscar por nombre, apellido, DNI, email o teléfono..."
                 class="w-full pl-9 text-sm dark:bg-slate-800 dark:text-white dark:border-slate-600" />
         </div>
         <span *ngIf="searchTerm()" class="text-xs text-slate-400 self-center whitespace-nowrap">
-            {{ clientes().length }} de {{ clientService.clients().length }} clientes
+            {{ totalRecords() }} de {{ clientService.clients().length }} clientes encontrados
         </span>
     </div>
 
     <!-- Table -->
     <div
         class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden overflow-x-auto">
-        <p-table [value]="clientes()" [paginator]="true" [rows]="10" [totalRecords]="clientes().length"
+        <p-table [value]="clientes()" 
+            [lazy]="true"
+            (onLazyLoad)="loadClientsLazy($event)"
+            [paginator]="true" 
+            [rows]="rows()" 
+            [totalRecords]="totalRecords()"
+            [loading]="loading()"
+            [first]="first()"
             styleClass="p-datatable-sm"
             [tableStyle]="{ 'min-width': '50rem' }">
 

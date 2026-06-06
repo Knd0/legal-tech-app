@@ -32,28 +32,37 @@
             <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
             <input pInputText
                 [ngModel]="searchTerm()"
-                (ngModelChange)="searchTerm.set($event)"
+                (input)="onSearch($event)"
                 placeholder="Buscar por nro., carátula, fuero, juzgado..."
                 class="w-full pl-9 text-sm dark:bg-slate-800 dark:text-white dark:border-slate-600" />
         </div>
         <p-select
             [options]="estadoOptions"
             [ngModel]="filterEstado()"
-            (ngModelChange)="filterEstado.set($event)"
+            (ngModelChange)="onEstadoChange($event)"
             optionLabel="label"
             optionValue="value"
             placeholder="Estado"
             styleClass="text-sm w-full sm:w-44">
         </p-select>
         <span *ngIf="searchTerm() || filterEstado()" class="text-xs text-slate-400 self-center whitespace-nowrap">
-            {{ expedientes().length }} de {{ expedienteService.expedientes().length }} expedientes
+            {{ totalRecords() }} de {{ expedienteService.expedientes().length }} expedientes encontrados
         </span>
     </div>
 
     <div
         class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden overflow-x-auto">
-        <p-table [value]="expedientes()" [tableStyle]="{ 'min-width': '60rem' }" styleClass="p-datatable-sm"
-            [paginator]="true" [rows]="10" [showCurrentPageReport]="true"
+        <p-table [value]="expedientes()" 
+            [lazy]="true"
+            (onLazyLoad)="loadExpedientesLazy($event)"
+            [paginator]="true" 
+            [rows]="rows()" 
+            [totalRecords]="totalRecords()"
+            [loading]="loading()"
+            [first]="first()"
+            [tableStyle]="{ 'min-width': '60rem' }" 
+            styleClass="p-datatable-sm"
+            [showCurrentPageReport]="true"
             currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}">
 
             <ng-template pTemplate="header">
@@ -102,7 +111,7 @@
                             [routerLink]="[expediente.id, 'edit']" pTooltip="Editar" tooltipPosition="top"></button>
                         <button pButton icon="pi pi-trash"
                             class="p-button-rounded p-button-text p-button-sm text-slate-400 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            (click)="expedienteService.deleteExpediente(expediente.id)" pTooltip="Eliminar"
+                            (click)="deleteExpediente(expediente)" pTooltip="Eliminar"
                             tooltipPosition="top"></button>
                     </td>
                 </tr>

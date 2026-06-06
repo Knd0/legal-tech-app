@@ -17,10 +17,12 @@ export class SettingsService implements OnModuleInit {
   async getSettings() {
     const whatsapp = await this.getValue('ENABLE_WHATSAPP');
     const days = await this.getValue('DAYS_BEFORE_ALERT');
+    const desktop = await this.getValue('ENABLE_DESKTOP_NOTIFICATIONS');
     
     return {
         enableWhatsapp: whatsapp === 1, // Store as '1' or '0'
-        daysBeforeAlert: days || 3
+        daysBeforeAlert: days || 3,
+        enableDesktop: desktop === 1
     };
   }
 
@@ -29,7 +31,8 @@ export class SettingsService implements OnModuleInit {
       { key: 'VALOR_JUS_ENTRE_RIOS', value: '37677', description: 'Valor del JUS en Provincia de Entre Ríos' },
       { key: 'VALOR_UMA_NACION', value: '87342', description: 'Valor de la Unidad de Medida Arancelaria (Nación)' },
       { key: 'ENABLE_WHATSAPP', value: '1', description: 'Habilitar notificaciones de WhatsApp (1=Sí, 0=No)' },
-      { key: 'DAYS_BEFORE_ALERT', value: '3', description: 'Días de anticipación para alertas de vencimiento' }
+      { key: 'DAYS_BEFORE_ALERT', value: '3', description: 'Días de anticipación para alertas de vencimiento' },
+      { key: 'ENABLE_DESKTOP_NOTIFICATIONS', value: '1', description: 'Habilitar notificaciones en PC/Celular (1=Sí, 0=No)' }
     ];
 
     for (const setting of defaults) {
@@ -68,6 +71,7 @@ export class SettingsService implements OnModuleInit {
           'checkFrequencyHours': 'CHECK_FREQUENCY_HOURS',
           'enableWhatsapp': 'ENABLE_WHATSAPP',
           'whatsappNumber': 'WHATSAPP_NUMBER',
+          'enableDesktop': 'ENABLE_DESKTOP_NOTIFICATIONS',
           'VALOR_JUS_ENTRE_RIOS': 'VALOR_JUS_ENTRE_RIOS',
           'VALOR_UMA_NACION': 'VALOR_UMA_NACION'
       };

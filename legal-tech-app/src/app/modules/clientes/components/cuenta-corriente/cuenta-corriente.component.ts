@@ -260,13 +260,34 @@ export class CuentaCorrienteComponent implements OnInit {
 
   // FACTURAS LOGIC
   facturas = signal<any[]>([]);
+  facturasTotalRecords = signal<number>(0);
+  facturasLoading = signal<boolean>(false);
+  facturasRows = signal<number>(5);
+  facturasFirst = signal<number>(0);
+  facturasPage = signal<number>(1);
 
   loadFacturas() {
       if (!this.clientId) return;
-      this.movimientoService.getFacturasByClient(this.clientId).subscribe({
-          next: (data) => this.facturas.set(data),
-          error: (err) => console.error('Error fetching invoices', err)
+      this.facturasLoading.set(true);
+      this.movimientoService.getFacturasByClientPaginated(this.clientId, this.facturasPage(), this.facturasRows()).subscribe({
+          next: (res) => {
+              this.facturas.set(res.data);
+              this.facturasTotalRecords.set(res.total);
+              this.facturasLoading.set(false);
+          },
+          error: (err) => {
+              console.error('Error fetching invoices', err);
+              this.facturasLoading.set(false);
+          }
       });
+  }
+
+  loadFacturasLazy(event: any) {
+      const pageNum = Math.floor(event.first / event.rows) + 1;
+      this.facturasPage.set(pageNum);
+      this.facturasRows.set(event.rows);
+      this.facturasFirst.set(event.first);
+      this.loadFacturas();
   }
 
   printFactura(factura: any) {

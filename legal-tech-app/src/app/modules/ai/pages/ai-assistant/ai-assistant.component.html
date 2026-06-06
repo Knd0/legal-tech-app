@@ -1,0 +1,242 @@
+<div class="fade-in-up flex flex-col gap-6 pb-10 relative">
+  <!-- Loader overlay -->
+  <div *ngIf="loading()"
+    class="absolute inset-0 z-50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
+    <div class="flex flex-col items-center gap-3">
+      <i class="pi pi-spin pi-sparkles text-4xl text-indigo-600 dark:text-indigo-400"></i>
+      <span class="text-sm font-bold text-slate-600 dark:text-slate-300 animate-pulse">Copilot analizando escrito...</span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+    <div>
+      <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-900 via-indigo-900 to-indigo-600 dark:from-blue-400 dark:via-indigo-400 dark:to-indigo-300 flex items-center gap-2">
+        <i class="pi pi-sparkles text-indigo-600 dark:text-indigo-400"></i> Copilot
+      </h1>
+      <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">
+        Analizá cláusulas, redactá escritos legales y resumí expedientes judiciales con inteligencia artificial.
+      </p>
+    </div>
+  </div>
+
+  <!-- Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Input Section -->
+    <div class="lg:col-span-6 flex flex-col gap-4">
+      <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-xl p-5 md:p-6 flex flex-col gap-4">
+        
+        <!-- Controls: Context Selection -->
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            Tipo de Análisis o Tarea
+          </label>
+          <p-select
+            [options]="contextOptions"
+            [ngModel]="selectedContext()"
+            (ngModelChange)="selectedContext.set($event)"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione el tipo de tarea"
+            styleClass="w-full text-sm">
+          </p-select>
+        </div>
+
+        <!-- Mode: General Text Analysis -->
+        <div *ngIf="selectedContext() === 'ANALISIS_ESCRITO'" class="flex flex-col gap-4">
+          <!-- Escrito Input -->
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex justify-between">
+              <span>Texto o Escrito Legal</span>
+              <span class="text-[10px] lowercase font-normal text-slate-400">
+                {{ queryText().length }} caracteres
+              </span>
+            </label>
+            <textarea pInputTextarea
+              [ngModel]="queryText()"
+              (ngModelChange)="queryText.set($event)"
+              rows="12"
+              placeholder="Escriba o pegue el texto, contrato, cláusula o descripción del expediente aquí..."
+              class="w-full p-4 rounded-xl text-sm font-sans border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 resize-none">
+            </textarea>
+          </div>
+        </div>
+
+        <!-- Mode: Case-based Tasks (Redacción, Resumen, Riesgo) -->
+        <div *ngIf="selectedContext() !== 'ANALISIS_ESCRITO'" class="flex flex-col gap-4">
+          <!-- Case Selector -->
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Seleccionar Expediente / Causa
+            </label>
+            <p-select
+              [options]="expedienteOptions()"
+              [ngModel]="selectedExpedienteId()"
+              (ngModelChange)="selectedExpedienteId.set($event)"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccione un expediente..."
+              [showClear]="true"
+              styleClass="w-full text-sm">
+            </p-select>
+          </div>
+
+          <!-- Mode: Redacción Escrito Specific Inputs -->
+          <div *ngIf="selectedContext() === 'REDACCION_ESCRITO'" class="flex flex-col gap-4">
+            <!-- Tipo de Escrito -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Tipo de Escrito Judicial
+              </label>
+              <p-select
+                [options]="tipoEscritoOptions"
+                [ngModel]="tipoEscrito()"
+                (ngModelChange)="tipoEscrito.set($event)"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione el tipo de escrito"
+                styleClass="w-full text-sm">
+              </p-select>
+            </div>
+
+            <!-- Extra instructions -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Instrucciones Estratégicas Adicionales <span class="font-normal text-slate-400">(opcional)</span>
+              </label>
+              <textarea pInputTextarea
+                [ngModel]="extraInstructions()"
+                (ngModelChange)="extraInstructions.set($event)"
+                rows="5"
+                placeholder="Ej: 'Negar rotundamente los hechos de la demanda', 'Hacer hincapié en la falta de pruebas de la actora' o alguna estrategia procesal particular..."
+                class="w-full p-4 rounded-xl text-sm font-sans border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 resize-none">
+              </textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3 mt-2">
+          <button pButton label="Limpiar" icon="pi pi-trash"
+            class="p-button-outlined p-button-secondary border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 w-full sm:w-auto"
+            (click)="clear()"></button>
+          
+          <button pButton label="Analizar con Copilot" icon="pi pi-sparkles"
+            [disabled]="loading() || (selectedContext() === 'ANALISIS_ESCRITO' ? !queryText().trim() : !selectedExpedienteId())"
+            class="bg-indigo-600 border-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:shadow-lg transition-all w-full sm:w-auto flex items-center justify-center gap-2"
+            (click)="onAnalyze()"></button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="lg:col-span-6 flex flex-col gap-4">
+      <div class="h-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-xl p-5 md:p-6 flex flex-col min-h-[450px]">
+        
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3 mb-4">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <i class="pi pi-file-edit text-indigo-500"></i> Resultado del Copilot
+          </h2>
+          
+          <!-- Actions if response is present -->
+          <div *ngIf="aiResponse()" class="flex items-center gap-1">
+            <button pButton icon="pi pi-copy"
+              class="p-button-rounded p-button-text p-button-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+              pTooltip="Copiar texto limpio" tooltipPosition="top" (click)="copyCleanText()"></button>
+
+            <button pButton icon="pi pi-file-word"
+              class="p-button-rounded p-button-text p-button-sm text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+              pTooltip="Copiar con formato para Word" tooltipPosition="top" (click)="copyFormattedText()"></button>
+
+            <button pButton icon="pi pi-file-pdf"
+              class="p-button-rounded p-button-text p-button-sm text-red-500 dark:text-red-450 hover:bg-red-50 dark:hover:bg-red-900/20"
+              pTooltip="Descargar como PDF" tooltipPosition="top" (click)="exportToPdf()"></button>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!aiResponse() && !loading()" class="flex-grow flex flex-col items-center justify-center text-center p-6 text-slate-400 dark:text-slate-500">
+          <div class="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-4 border border-slate-100 dark:border-slate-800">
+            <i class="pi pi-sparkles text-2xl text-slate-300 dark:text-slate-600"></i>
+          </div>
+          <p class="text-sm font-bold">Esperando consulta...</p>
+          <p class="text-xs text-slate-400 dark:text-slate-500 max-w-xs mt-1">
+            Escriba su consulta o seleccione un expediente en el panel izquierdo y haga clic en "Analizar con Copilot" para comenzar.
+          </p>
+        </div>
+
+        <!-- Loading state helper placeholder -->
+        <div *ngIf="loading()" class="flex-grow flex flex-col gap-3 justify-center">
+          <div class="h-4 bg-slate-100 dark:bg-slate-700 rounded w-3/4 animate-pulse"></div>
+          <div class="h-4 bg-slate-100 dark:bg-slate-700 rounded w-5/6 animate-pulse"></div>
+          <div class="h-4 bg-slate-100 dark:bg-slate-700 rounded w-2/3 animate-pulse"></div>
+          <div class="h-4 bg-slate-100 dark:bg-slate-700 rounded w-1/2 animate-pulse"></div>
+        </div>
+
+        <!-- Metrics Overlay for Risk Analysis -->
+        <div *ngIf="selectedContext() === 'ANALISIS_RIESGO' && successProbability() !== null && !loading()" class="flex flex-col gap-4 mb-4 pb-4 border-b border-slate-100 dark:border-slate-700">
+          <!-- Success Probability Card -->
+          <div class="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Probabilidad de Éxito Estimada</span>
+              <span class="text-lg font-extrabold" [ngClass]="{
+                'text-emerald-600 dark:text-emerald-400': successProbability()! >= 70,
+                'text-amber-600 dark:text-amber-400': successProbability()! >= 40 && successProbability()! < 70,
+                'text-rose-600 dark:text-rose-400': successProbability()! < 40
+              }">{{ successProbability() }}%</span>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-1000"
+                [ngClass]="{
+                  'bg-emerald-500': successProbability()! >= 70,
+                  'bg-amber-500': successProbability()! >= 40 && successProbability()! < 70,
+                  'bg-rose-500': successProbability()! < 40
+                }"
+                [style.width.%]="successProbability()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Strengths and Weaknesses -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Strengths -->
+            <div class="flex flex-col gap-2">
+              <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                <i class="pi pi-check-circle"></i> Puntos Fuertes
+              </span>
+              <ul class="flex flex-col gap-1.5">
+                <li *ngFor="let pt of strongPoints()" class="text-xs text-slate-700 dark:text-slate-300 flex items-start gap-1.5 bg-emerald-50/50 dark:bg-emerald-950/20 p-2.5 rounded-lg border border-emerald-100/40 dark:border-emerald-900/20">
+                  <i class="pi pi-check text-[10px] text-emerald-500 mt-1 flex-shrink-0"></i>
+                  <span>{{ pt }}</span>
+                </li>
+                <li *ngIf="strongPoints().length === 0" class="text-xs text-slate-400 italic">No se identificaron puntos fuertes específicos.</li>
+              </ul>
+            </div>
+
+            <!-- Weaknesses -->
+            <div class="flex flex-col gap-2">
+              <span class="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider flex items-center gap-1">
+                <i class="pi pi-exclamation-circle"></i> Puntos Débiles / Riesgos
+              </span>
+              <ul class="flex flex-col gap-1.5">
+                <li *ngFor="let pt of weakPoints()" class="text-xs text-slate-700 dark:text-slate-300 flex items-start gap-1.5 bg-rose-50/50 dark:bg-rose-950/20 p-2.5 rounded-lg border border-rose-100/40 dark:border-rose-900/20">
+                  <i class="pi pi-times text-[10px] text-rose-500 mt-1 flex-shrink-0"></i>
+                  <span>{{ pt }}</span>
+                </li>
+                <li *ngIf="weakPoints().length === 0" class="text-xs text-slate-400 italic">No se identificaron puntos débiles específicos.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Render Response -->
+        <div *ngIf="aiResponse() && !loading()" class="flex-grow overflow-y-auto max-h-[550px] text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans pr-2 whitespace-pre-line bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800/80">
+          {{ aiResponse() }}
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

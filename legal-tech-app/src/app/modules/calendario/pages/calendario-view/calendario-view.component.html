@@ -24,6 +24,15 @@
                 </button>
             </div>
 
+            <!-- Hidden PDF File Input -->
+            <input type="file" id="pdfFileInput" style="display: none" accept="application/pdf" (change)="onPdfFileSelected($event)">
+
+            <button pButton label="Subir PDF Notificación" icon="pi pi-file-pdf"
+                [disabled]="authService.isCreationBlocked() || analyzingPdf()"
+                [pTooltip]="authService.isCreationBlocked() ? 'Suscripción vencida. Actualice su plan.' : 'Analizar proveído o notificación PDF con IA'"
+                class="p-button-outlined p-button-danger border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 w-full sm:w-auto" (click)="triggerPdfUpload()">
+            </button>
+
             <button pButton label="Nuevo Vencimiento" icon="pi pi-gavel"
                 [disabled]="authService.isCreationBlocked()"
                 [pTooltip]="authService.isCreationBlocked() ? 'Suscripción vencida. Actualice su plan.' : ''"

@@ -67,7 +67,7 @@ describe('AiService', () => {
     const result = await service.analyze('Texto de prueba', 'Análisis');
 
     expect(result.analysis).toContain('[MÓDULO IA DESACTIVADO]');
-    expect(result.analysis).toContain('Copiloto Themis no está configurado');
+    expect(result.analysis).toContain('Copilot no está configurado');
   });
 
   it('should return mock info message when OPENAI_API_KEY is not set', async () => {

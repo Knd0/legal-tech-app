@@ -68,7 +68,7 @@ Each feature is a NestJS module under `backend/src/`. Key modules:
 - **facturas** — AFIP/ARCA e-invoicing. Uses `os.tmpdir()` for cross-platform (Windows dev / Linux prod) temp certificate writing, and reads `AFIP_PRODUCTION` env variable dynamically to switch between homologation (false/default) and production. Falls back to simulation mode if `AFIP_CERT`/`AFIP_KEY` env vars are missing.
 - **movimientos** — Financial movements per client (honorarios, gastos, pagos) with JUS/UMA unit support.
 - **settings** — Key-value config store. Seeded with `VALOR_JUS_ENTRE_RIOS`, `VALOR_UMA_NACION`, `ENABLE_WHATSAPP`, `DAYS_BEFORE_ALERT`, `ENABLE_DESKTOP_NOTIFICATIONS`.
-- **ai** — **Copiloto Themis module**. Exposes `/ai/analyze`, `/ai/draft`, `/ai/summarize-expediente`, and `/ai/analyze-risk` protected by `JwtAuthGuard`. Leverages Google Gemini 2.5 Flash (free tier) via `GEMINI_API_KEY` (or dynamically configured using `GEMINI_MODEL`) with automated fallback to OpenAI (`gpt-4o-mini`) if `OPENAI_API_KEY` is set.
+- **ai** — **Copilot module**. Exposes `/ai/analyze`, `/ai/draft`, `/ai/summarize-expediente`, and `/ai/analyze-risk` protected by `JwtAuthGuard`. Leverages Google Gemini 2.5 Flash (free tier) via `GEMINI_API_KEY` (or dynamically configured using `GEMINI_MODEL`) with automated fallback to OpenAI (`gpt-4o-mini`) if `OPENAI_API_KEY` is set.
 
 Database: PostgreSQL via TypeORM. `synchronize: true` in both dev and prod — schema changes apply on boot. No migration files exist.
 
@@ -154,7 +154,7 @@ Todos los gaps conocidos han sido corregidos:
 | Dashboard           | 99%     | — |
 | Admin/Users         | 99%     | — |
 | Documents UI        | 99%     | Cloudinary integration completed; preview modal resolved.                 |
-| Copiloto Themis     | 100%    | Premium AI module fully implemented (general text analysis, automatic judicial drafts, case summaries, and risk/success analysis dashboards). |
+| Copilot             | 100%    | Premium AI module fully implemented (general text analysis, automatic judicial drafts, case summaries, and risk/success analysis dashboards). |
 | Calendar (BE)       | 100%    | Service Worker Deep Background Push Notifications implemented using VAPID keys. |
 | Facturas y Audits   | 99%     | Server-side pagination implemented for invoices (Facturas) and system logs (AuditLogs). |
 

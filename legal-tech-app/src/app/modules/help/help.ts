@@ -35,7 +35,7 @@ export class Help implements AfterViewInit, OnDestroy {
     { id: 'clientes', label: 'Gestión de Clientes', icon: 'pi pi-users', category: 'gestion' },
     { id: 'expedientes', label: 'Expedientes y Kanban', icon: 'pi pi-briefcase', category: 'gestion' },
     { id: 'documentos', label: 'Gestión Documental', icon: 'pi pi-folder-open', category: 'gestion' },
-    { id: 'ia', label: 'Copiloto Themis', icon: 'pi pi-sparkles', category: 'ia' },
+    { id: 'ia', label: 'Copilot', icon: 'pi pi-sparkles', category: 'ia' },
     { id: 'calendario', label: 'Agenda y PDFs', icon: 'pi pi-calendar', category: 'gestion' },
     { id: 'afip', label: 'Facturación AFIP / ARCA', icon: 'pi pi-receipt', category: 'facturacion' },
     { id: 'suscripciones', label: 'Suscripciones y Pagos', icon: 'pi pi-credit-card', category: 'facturacion' },
@@ -51,9 +51,9 @@ export class Help implements AfterViewInit, OnDestroy {
       section: 'configuracion'
     },
     {
-      title: '¿Cómo funciona el Copiloto Themis?',
+      title: '¿Cómo funciona el Copilot?',
       description: 'Aprende a redactar demandas, resumir expedientes y calcular la probabilidad de éxito de tus causas con IA.',
-      keywords: 'ia copiloto gemini openai resumen demanda redactar riesgos probabilidad exitos puntos fuertes debiles themis',
+      keywords: 'ia copiloto gemini openai resumen demanda redactar riesgos probabilidad exitos puntos fuertes debiles themis copilot',
       section: 'ia'
     },
     {
@@ -94,7 +94,7 @@ export class Help implements AfterViewInit, OnDestroy {
     }
   ];
 
-  // Simulator 1: Copiloto Themis
+  // Simulator 1: Copilot
   selectedAiTab = 'draft';
   isAiGenerating = false;
   aiOutput = '';
@@ -178,7 +178,7 @@ export class Help implements AfterViewInit, OnDestroy {
     );
   }
 
-  // Simulator Actions: Copiloto Themis
+  // Simulator Actions: Copilot
   generateMockDraft(type: string) {
     this.isAiGenerating = true;
     this.aiOutput = '';

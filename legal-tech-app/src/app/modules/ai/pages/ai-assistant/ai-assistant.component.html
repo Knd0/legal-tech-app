@@ -4,7 +4,7 @@
     class="absolute inset-0 z-50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
     <div class="flex flex-col items-center gap-3">
       <i class="pi pi-spin pi-sparkles text-4xl text-indigo-600 dark:text-indigo-400"></i>
-      <span class="text-sm font-bold text-slate-600 dark:text-slate-300 animate-pulse">Copiloto Themis analizando escrito...</span>
+      <span class="text-sm font-bold text-slate-600 dark:text-slate-300 animate-pulse">Copilot analizando escrito...</span>
     </div>
   </div>
 
@@ -12,7 +12,7 @@
   <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
     <div>
       <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-900 via-indigo-900 to-indigo-600 dark:from-blue-400 dark:via-indigo-400 dark:to-indigo-300 flex items-center gap-2">
-        <i class="pi pi-sparkles text-indigo-600 dark:text-indigo-400"></i> Copiloto Themis
+        <i class="pi pi-sparkles text-indigo-600 dark:text-indigo-400"></i> Copilot
       </h1>
       <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">
         Analizá cláusulas, redactá escritos legales y resumí expedientes judiciales con inteligencia artificial.
@@ -121,7 +121,7 @@
             class="p-button-outlined p-button-secondary border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 w-full sm:w-auto"
             (click)="clear()"></button>
           
-          <button pButton label="Analizar con Copiloto Themis" icon="pi pi-sparkles"
+          <button pButton label="Analizar con Copilot" icon="pi pi-sparkles"
             [disabled]="loading() || (selectedContext() === 'ANALISIS_ESCRITO' ? !queryText().trim() : !selectedExpedienteId())"
             class="bg-indigo-600 border-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:shadow-lg transition-all w-full sm:w-auto flex items-center justify-center gap-2"
             (click)="onAnalyze()"></button>
@@ -136,7 +136,7 @@
         
         <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3 mb-4">
           <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
-            <i class="pi pi-file-edit text-indigo-500"></i> Resultado del Copiloto Themis
+            <i class="pi pi-file-edit text-indigo-500"></i> Resultado del Copilot
           </h2>
           
           <!-- Actions if response is present -->
@@ -162,7 +162,7 @@
           </div>
           <p class="text-sm font-bold">Esperando consulta...</p>
           <p class="text-xs text-slate-400 dark:text-slate-500 max-w-xs mt-1">
-            Escriba su consulta o seleccione un expediente en el panel izquierdo y haga clic en "Analizar con Copiloto Themis" para comenzar.
+            Escriba su consulta o seleccione un expediente en el panel izquierdo y haga clic en "Analizar con Copilot" para comenzar.
           </p>
         </div>
 

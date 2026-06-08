@@ -81,7 +81,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
       iibb: [''],
       initActivityUser: [''],
       puntoVenta: [null, Validators.required],
-      condicionIva: ['Resp. Monotributo']
+      condicionIva: ['Resp. Monotributo'],
+      afipCert: [''],
+      afipKey: [''],
+      afipProduction: [false]
     });
 
     this.securityForm = this.fb.group({
@@ -213,7 +216,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     iibb: user.iibb,
                     initActivityUser: dateStr,
                     puntoVenta: user.puntoVenta,
-                    condicionIva: user.condicionIva || 'Resp. Monotributo'
+                    condicionIva: user.condicionIva || 'Resp. Monotributo',
+                    afipCert: user.afipCert,
+                    afipKey: user.afipKey,
+                    afipProduction: user.afipProduction || false
                 });
 
                 if (user.cuit && user.puntoVenta) {
@@ -276,7 +282,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
           iibb: data.iibb,
           initActivityUser: data.initActivityUser,
           puntoVenta: data.puntoVenta,
-          condicionIva: data.condicionIva
+          condicionIva: data.condicionIva,
+          afipCert: data.afipCert,
+          afipKey: data.afipKey,
+          afipProduction: data.afipProduction
       };
 
       this.http.patch(this.apiUrl, payload).subscribe({
@@ -316,7 +325,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   iibb: null,
                   initActivityUser: null,
                   puntoVenta: null,
-                  condicionIva: null
+                  condicionIva: null,
+                  afipCert: null,
+                  afipKey: null,
+                  afipProduction: false
               };
               
               this.http.patch(this.apiUrl, payload).subscribe({
@@ -332,6 +344,26 @@ export class ProfileComponent implements OnInit, OnDestroy {
               });
           }
       });
+  }
+
+  onCertFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.afipForm.patchValue({ afipCert: e.target.result });
+    };
+    reader.readAsText(file);
+  }
+
+  onKeyFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.afipForm.patchValue({ afipKey: e.target.result });
+    };
+    reader.readAsText(file);
   }
 
   // --- INTEGRATIONS ---

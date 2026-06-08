@@ -2,7 +2,7 @@
   class="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 pb-0 flex flex-col transition-colors duration-300">
 
   <!-- Global Subscription Banner (Grace Period) -->
-  <div *ngIf="authService.isGracePeriod() && !bannerDismissed()" 
+  <div *ngIf="subscriptionService.isGracePeriod() && !bannerDismissed()"
     class="fixed top-20 left-1/2 -translate-x-1/2 z-[60] w-[95%] max-w-2xl">
     <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-amber-200 dark:border-amber-800/50 shadow-xl rounded-2xl p-4 flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500 group relative">
       <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center flex-shrink-0">

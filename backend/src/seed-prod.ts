@@ -36,8 +36,8 @@ async function bootstrap() {
       userId = user.id;
       logger.log(`Test user already exists with ID: ${userId}`);
       
-      if (user.subscriptionStatus !== 'active' || user.subscriptionPlan !== 'pro') {
-        await usersService.updateProfile(userId, { subscriptionStatus: 'active', subscriptionPlan: 'pro' });
+      if (user.subscription?.subscriptionStatus !== 'active' || user.subscription?.subscriptionPlan !== 'pro') {
+        await usersService.updateSubscription(userId, { subscriptionStatus: 'active', subscriptionPlan: 'pro' });
         logger.log(`Updated test user subscription status to active with pro plan.`);
       }
     }

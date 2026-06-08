@@ -3,6 +3,7 @@ import { DashboardService } from '../../core/services/dashboard.service';
 import { AuditService } from '../../core/services/audit.service';
 import { DeadlineService } from '../../core/services/deadline.service';
 import { AuthService } from '../../core/services/auth.service';
+import { SubscriptionService } from '../../core/services/subscription.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -22,6 +23,7 @@ export class DashboardComponent implements OnInit {
   auditService = inject(AuditService);
   deadlineService = inject(DeadlineService);
   authService = inject(AuthService);
+  subscriptionService = inject(SubscriptionService);
   themeService = inject(ThemeService);
 
   stats = signal<any>(null);

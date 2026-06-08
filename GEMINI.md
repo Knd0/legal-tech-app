@@ -123,44 +123,6 @@ Todos los gaps de seguridad conocidos están cerrados (JWT guards, filtros por u
 
 ---
 
-## 🗄️ Subscription Entity Migration — Post-Deploy SQL
-
-Los campos `subscriptionStatus`, `subscriptionExpiresAt` y `mpSubscriptionId` fueron extraídos de la tabla `user` a una tabla `subscription` separada. El código está actualizado; para producción (Render) hay que ejecutar SQL manual **después del deploy**.
-
-### Secuencia de deploy
-
-1. **Push a main** → Render bootea → TypeORM crea tabla `subscription` automáticamente.
-2. **Ejecutar en psql de Render** (panel PostgreSQL → psql):
-
-```sql
-INSERT INTO "subscription" (
-  "userId", "subscriptionStatus", "subscriptionExpiresAt", "mpSubscriptionId", "createdAt", "updatedAt"
-)
-SELECT
-  id,
-  COALESCE("subscriptionStatus", 'trial'),
-  "subscriptionExpiresAt",
-  "mpSubscriptionId",
-  NOW(), NOW()
-FROM "user"
-ON CONFLICT ("userId") DO NOTHING;
-
--- Verificar: deben coincidir
-SELECT COUNT(*) FROM "user";
-SELECT COUNT(*) FROM "subscription";
-```
-
-3. **Verificar** que el login y el dashboard funcionan sin errores 403/500.
-4. **Cuando todo esté estable** (opcional): limpiar las columnas viejas de `user`:
-
-```sql
-ALTER TABLE "user" DROP COLUMN IF EXISTS "subscriptionStatus";
-ALTER TABLE "user" DROP COLUMN IF EXISTS "subscriptionExpiresAt";
-ALTER TABLE "user" DROP COLUMN IF EXISTS "mpSubscriptionId";
-```
-
----
-
 ## 💡 Próximos Pasos Recomendados
 
 1. **Configurar la API Key del Copilot en Producción (Render):**
@@ -180,4 +142,57 @@ ALTER TABLE "user" DROP COLUMN IF EXISTS "mpSubscriptionId";
    Integrar una calculadora financiera avanzada con tasas de interés oficiales de distintos fueros y provincias (ej. Tasa Activa del Banco Nación, Tasa Pasiva de Buenos Aires, etc.) para liquidar intereses de forma interactiva y exportar el reporte en PDF.
 3. **Análisis Predictivo de Costos del Juicio:**
    Estimar de forma interactiva la tasa de justicia, bonos, honorarios mínimos de ley y gastos administrativos estimados antes de iniciar la demanda para cotizar mejor a los clientes.
+
+---
+
+## ⚠️ Pendientes de Acción Manual (fuera del repositorio)
+
+Todo lo que figura aquí requiere acción directa sobre Render o servicios externos. No hay cambios de código pendientes.
+
+### A) Variables de entorno — configurar en Render (Environment → Add Variable)
+
+- `MP_WEBHOOK_SECRET` — mercadopago.com.ar → Tu negocio → Configuración → Notificaciones → Webhooks → Clave secreta, apuntando a `https://legal-tech-app-gdme.onrender.com/mercadopago/webhook`. Sin esta variable el webhook acepta todas las requests sin verificar firma.
+- `RESEND_API_KEY` — resend.com → API Keys. Sin esta variable el fallback a email en forgot-password no funciona (WhatsApp sigue andando normalmente).
+- `GEMINI_API_KEY` — Google AI Studio. Sin esta variable el Copilot IA y el análisis de PDFs no funcionan en producción.
+- `FRONTEND_URL` — `https://legal-tech-app-woad.vercel.app`. Necesario para que el `back_url` de MercadoPago apunte correctamente en producción.
+- `VAPID_PUBLIC_KEY` — generada con `npx web-push generate-vapid-keys`. Sin esta variable el backend genera claves efímeras en cada restart, invalidando todas las suscripciones push.
+- `VAPID_PRIVATE_KEY` — clave privada correspondiente. Guardar también en `.env` local.
+
+### B) Migración SQL de la entidad Subscription (una sola vez, después del próximo deploy)
+
+Los campos `subscriptionStatus`, `subscriptionExpiresAt` y `mpSubscriptionId` fueron extraídos de la tabla `user` a una tabla `subscription` separada. El código ya está actualizado. La migración de datos debe ejecutarse manualmente porque TypeORM `synchronize:true` crea tablas pero nunca mueve datos.
+
+**Secuencia de deploy:**
+
+1. **Push a `main`** → Render bootea → TypeORM crea la tabla `subscription` automáticamente.
+
+2. **Ejecutar en Render → PostgreSQL → psql:**
+
+```sql
+INSERT INTO "subscription" (
+  "userId", "subscriptionStatus", "subscriptionExpiresAt", "mpSubscriptionId", "createdAt", "updatedAt"
+)
+SELECT
+  id,
+  COALESCE("subscriptionStatus", 'trial'),
+  "subscriptionExpiresAt",
+  "mpSubscriptionId",
+  NOW(), NOW()
+FROM "user"
+ON CONFLICT ("userId") DO NOTHING;
+
+-- Verificar: ambos counts deben coincidir
+SELECT COUNT(*) AS total_users FROM "user";
+SELECT COUNT(*) AS total_subscriptions FROM "subscription";
+```
+
+3. **Verificar** que el login y el dashboard cargan sin errores 403/500.
+
+4. **Cuando todo esté estable** (opcional): eliminar las columnas viejas de `user`:
+
+```sql
+ALTER TABLE "user" DROP COLUMN IF EXISTS "subscriptionStatus";
+ALTER TABLE "user" DROP COLUMN IF EXISTS "subscriptionExpiresAt";
+ALTER TABLE "user" DROP COLUMN IF EXISTS "mpSubscriptionId";
+```
 

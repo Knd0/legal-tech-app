@@ -63,17 +63,17 @@ export class ClientsService {
   async create(client: Partial<Client>, userId: string): Promise<Client> {
     const newClient = this.clientsRepository.create({ ...client, userId });
     const savedClient = await this.clientsRepository.save(newClient);
-    await this.auditLogsService.log(userId, 'CREATE', 'CLIENT', savedClient.id, `Created client ${savedClient.nombre} ${savedClient.apellido}`);
+    void this.auditLogsService.log(userId, 'CREATE', 'CLIENT', savedClient.id, `Created client ${savedClient.nombre} ${savedClient.apellido}`).catch(err => console.error('Audit log failed:', err));
     return savedClient;
   }
 
   async update(id: string, client: Partial<Client>, userId: string): Promise<void> {
     await this.clientsRepository.update({ id, userId }, client);
-    await this.auditLogsService.log(userId, 'UPDATE', 'CLIENT', id, `Updated client`);
+    void this.auditLogsService.log(userId, 'UPDATE', 'CLIENT', id, `Updated client`).catch(err => console.error('Audit log failed:', err));
   }
 
   async remove(id: string, userId: string): Promise<void> {
     await this.clientsRepository.delete({ id, userId });
-    await this.auditLogsService.log(userId, 'DELETE', 'CLIENT', id, `Deleted client`);
+    void this.auditLogsService.log(userId, 'DELETE', 'CLIENT', id, `Deleted client`).catch(err => console.error('Audit log failed:', err));
   }
 }

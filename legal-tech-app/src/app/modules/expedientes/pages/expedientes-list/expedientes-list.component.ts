@@ -4,6 +4,7 @@ import { Expediente } from '../../../../core/models/expediente.model';
 import { ExcelService } from '../../../../core/services/excel.service';
 import { LoadingService } from '../../../../core/services/loading.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { SubscriptionService } from '../../../../core/services/subscription.service';
 import Swal from 'sweetalert2';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -16,6 +17,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 })
 export class ExpedientesListComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
+  subscriptionService = inject(SubscriptionService);
   expedienteService = inject(ExpedienteService);
   excelService = inject(ExcelService);
   loadingService = inject(LoadingService);

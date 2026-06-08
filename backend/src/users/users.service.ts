@@ -142,4 +142,12 @@ export class UsersService implements OnModuleInit {
         throw new NotFoundException('User not found');
     }
   }
+
+  async updateSubscription(id: string, data: {
+    subscriptionStatus?: string;
+    subscriptionExpiresAt?: Date;
+    mpSubscriptionId?: string;
+  }): Promise<void> {
+    await this.usersRepository.update(id, data);
+  }
 }

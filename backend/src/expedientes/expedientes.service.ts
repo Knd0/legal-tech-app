@@ -71,17 +71,17 @@ export class ExpedientesService {
   async create(expediente: Partial<Expediente>, userId: string): Promise<Expediente> {
     const newExpediente = this.expedientesRepository.create({ ...expediente, userId });
     const savedExpediente = await this.expedientesRepository.save(newExpediente);
-    await this.auditLogsService.log(userId, 'CREATE', 'EXPEDIENTE', savedExpediente.id, `Created expediente ${savedExpediente.caratula}`);
+    void this.auditLogsService.log(userId, 'CREATE', 'EXPEDIENTE', savedExpediente.id, `Created expediente ${savedExpediente.caratula}`).catch(err => console.error('Audit log failed:', err));
     return savedExpediente;
   }
 
   async update(id: string, expediente: Partial<Expediente>, userId: string): Promise<void> {
     await this.expedientesRepository.update({ id, userId }, expediente);
-    await this.auditLogsService.log(userId, 'UPDATE', 'EXPEDIENTE', id, `Updated expediente`);
+    void this.auditLogsService.log(userId, 'UPDATE', 'EXPEDIENTE', id, `Updated expediente`).catch(err => console.error('Audit log failed:', err));
   }
 
   async remove(id: string, userId: string): Promise<void> {
     await this.expedientesRepository.delete({ id, userId });
-    await this.auditLogsService.log(userId, 'DELETE', 'EXPEDIENTE', id, `Deleted expediente`);
+    void this.auditLogsService.log(userId, 'DELETE', 'EXPEDIENTE', id, `Deleted expediente`).catch(err => console.error('Audit log failed:', err));
   }
 }

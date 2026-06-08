@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MercadoPagoConfig, PreApprovalPlan, PreApproval, Payment } from 'mercadopago';
+import { MercadoPagoConfig, PreApproval, Payment } from 'mercadopago';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
@@ -18,32 +18,6 @@ export class MercadopagoService {
     } else {
       this.logger.warn('MP_ACCESS_TOKEN not configured.');
     }
-  }
-
-  async createSubscriptionPlan(planData: any) {
-    if (!this.client) throw new Error("MercadoPago not configured");
-    const preApprovalPlan = new PreApprovalPlan(this.client);
-
-    return preApprovalPlan.create({
-      body: {
-        reason: planData.reason || 'Suscripción Themis',
-        auto_recurring: {
-          frequency: 1,
-          frequency_type: 'months',
-          billing_day: 10,
-          billing_day_proportional: false,
-          transaction_amount: planData.amount || 15000,
-          currency_id: 'ARS',
-        },
-        payment_methods_allowed: {
-          payment_types: [
-            { id: 'credit_card' },
-            { id: 'debit_card' }
-          ],
-        },
-        back_url: `${this.configService.get<string>('FRONTEND_URL', 'https://legal-tech-app-woad.vercel.app')}/subscription/success`,
-      }
-    });
   }
 
   async createSubscriptionForUser(userId: string, payerEmail: string) {

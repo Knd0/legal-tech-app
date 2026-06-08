@@ -46,10 +46,6 @@ export class UsersService implements OnModuleInit {
     return this.usersRepository.findOne({ where: { email } });
   }
 
-  async findOneByPhone(phoneNumber: string): Promise<User | undefined> {
-    return this.usersRepository.findOne({ where: { phoneNumber } });
-  }
-
   async findOneById(id: string): Promise<User | undefined> {
     return this.usersRepository.findOne({ where: { id } });
   }
@@ -57,10 +53,6 @@ export class UsersService implements OnModuleInit {
   async create(user: Partial<User>): Promise<User> {
     const newUser = this.usersRepository.create(user);
     return this.usersRepository.save(newUser);
-  }
-
-  async updatePhoneNumber(id: string, phoneNumber: string): Promise<void> {
-    await this.usersRepository.update(id, { phoneNumber });
   }
 
   async updateProfile(id: string, data: Partial<User>): Promise<User> {

@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -15,6 +15,44 @@ export class AuthService {
   // Signals for reactive state
   currentUser = signal<any>(null);
   isAuthenticated = signal<boolean>(false);
+
+  // Subscription Signals
+  isSubscriptionExpired = computed(() => {
+    const user = this.currentUser();
+    if (!user || user.role === 'ADMIN') return false;
+    if (!user.subscriptionExpiresAt) return false;
+    return new Date(user.subscriptionExpiresAt).getTime() < Date.now();
+  });
+
+  isProUser = computed(() => {
+    const user = this.currentUser();
+    if (!user) return false;
+    if (user.role === 'ADMIN') return true;
+    return (user.subscriptionStatus === 'active' && user.subscriptionPlan !== 'basic') || user.subscriptionStatus === 'trial';
+  });
+
+  isGracePeriod = computed(() => {
+    const user = this.currentUser();
+    if (!user || user.role === 'ADMIN') return false;
+    if (!user.subscriptionExpiresAt) return false;
+    const expiry = new Date(user.subscriptionExpiresAt).getTime();
+    const now = Date.now();
+    const gracePeriodEnd = expiry + (7 * 24 * 60 * 60 * 1000); // 7 days
+    return now > expiry && now <= gracePeriodEnd;
+  });
+
+  isCreationBlocked = computed(() => {
+    const user = this.currentUser();
+    if (!user || user.role === 'ADMIN') return false;
+    
+    // If status is not active/trial, it's blocked
+    if (user.subscriptionStatus !== 'active' && user.subscriptionStatus !== 'trial') {
+        return true;
+    }
+
+    // If it's expired (even in grace period), block creation
+    return this.isSubscriptionExpired();
+  });
 
   constructor(private http: HttpClient, private router: Router) {
     this.loadUserFromToken();
@@ -76,6 +114,7 @@ export class AuthService {
                 phoneNumber: decoded.phoneNumber,
                 fullName: decoded.fullName,
                 subscriptionStatus: decoded.subscriptionStatus,
+                subscriptionPlan: decoded.subscriptionPlan || 'pro',
                 subscriptionExpiresAt: decoded.subscriptionExpiresAt
             });
         } else {

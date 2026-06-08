@@ -8,6 +8,7 @@ import { UsersService } from '../users/users.service';
 @Injectable()
 export class FacturasService {
   private afip: any;
+  private afipClients = new Map<string, any>();
 
   constructor(
     @InjectRepository(Factura)
@@ -15,7 +16,7 @@ export class FacturasService {
     private configService: ConfigService,
     private usersService: UsersService
   ) {
-    // Initialize AFIP SDK
+    // Initialize global system AFIP SDK as fallback
     try {
         const fs = require('fs');
         const path = require('path');
@@ -49,9 +50,9 @@ export class FacturasService {
 
             certPath = tmpCertPath;
             keyPath = tmpKeyPath;
-            console.log('AFIP Certs loaded from ENV and written to temp:', certPath);
+            console.log('Global AFIP Certs loaded from ENV and written to temp:', certPath);
         } else {
-             console.log('AFIP Certs using local files (Dev mode):', certPath);
+             console.log('Global AFIP Certs using local files (Dev mode):', certPath);
         }
 
         const isProduction = this.configService.get('AFIP_PRODUCTION') === 'true';
@@ -64,10 +65,50 @@ export class FacturasService {
             res_folder: path.dirname(certPath) // Force using the same dir as certs
         });
         
-        console.log('AFIP Service Initialized with res_folder:', path.dirname(certPath));
+        console.log('Global AFIP Service Initialized with res_folder:', path.dirname(certPath));
 
-    } catch (e) {
-        console.warn('AFIP SDK not initialized (Missing certs or dependecy):', e.message);
+    } catch (e: any) {
+        console.warn('Global AFIP SDK not initialized (Missing certs or dependency):', e.message);
+    }
+  }
+
+  async getAfipInstanceForUser(userId: string): Promise<any> {
+    if (this.afipClients.has(userId)) {
+      return this.afipClients.get(userId);
+    }
+
+    const user = await this.usersService.findOneById(userId);
+    if (!user || !user.cuit || !user.afipCert || !user.afipKey) {
+      return null; // Fallback to global or simulation mode
+    }
+
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const os = require('os');
+      const Afip = require('@afipsdk/afip.js');
+
+      const tmpDir = os.tmpdir();
+      const certPath = path.join(tmpDir, `cert_${userId}.crt`);
+      const keyPath = path.join(tmpDir, `key_${userId}.key`);
+
+      // Write files
+      fs.writeFileSync(certPath, user.afipCert);
+      fs.writeFileSync(keyPath, user.afipKey);
+
+      const client = new Afip({
+        CUIT: user.cuit.replace(/\D/g, ''), // Ensure no dashes or spaces
+        cert: certPath,
+        key: keyPath,
+        production: user.afipProduction || false,
+        res_folder: tmpDir
+      });
+
+      this.afipClients.set(userId, client);
+      return client;
+    } catch (e: any) {
+      console.error(`Failed to initialize AFIP client for user ${userId}:`, e.message);
+      return null;
     }
   }
 
@@ -75,8 +116,14 @@ export class FacturasService {
     const user = await this.usersService.findOneById(userId);
     const puntoVenta = (user && user.puntoVenta) ? user.puntoVenta : 1;
 
+    // Get the dynamic AFIP instance for this user
+    const afipClient = await this.getAfipInstanceForUser(userId);
+    
+    // Fall back to global system AFIP if user-level config is missing
+    const activeAfip = afipClient || this.afip;
+
     // SIMULATION MODE if AFIP is not configured
-    if (!this.afip) {
+    if (!activeAfip) {
         console.warn('AFIP Service not configured. Using SIMULATION MODE.');
         
         const mockFactura = this.facturasRepository.create({
@@ -96,7 +143,6 @@ export class FacturasService {
     }
 
     const date = new Date(Date.now() - ((new Date()).getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-
     const totalAmount = parseFloat(data.total);
 
     let payload = {
@@ -121,11 +167,11 @@ export class FacturasService {
 
     try {
         // Retrieve Last Voucher to set CbteDesde/Hasta correctly using user's configured puntoVenta
-        const lastVoucher = await this.afip.ElectronicBilling.getLastVoucher(puntoVenta, 11);
+        const lastVoucher = await activeAfip.ElectronicBilling.getLastVoucher(puntoVenta, 11);
         payload['CbteDesde'] = lastVoucher + 1;
         payload['CbteHasta'] = lastVoucher + 1;
 
-        const res = await this.afip.ElectronicBilling.createVoucher(payload);
+        const res = await activeAfip.ElectronicBilling.createVoucher(payload);
         
         // Save to DB
         const factura = this.facturasRepository.create({
@@ -143,7 +189,7 @@ export class FacturasService {
 
         return (await this.facturasRepository.save(factura)) as Factura;
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error AFIP', error);
         throw new BadRequestException('Error creating invoice with AFIP: ' + error.message);
     }

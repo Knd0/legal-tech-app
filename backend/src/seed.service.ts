@@ -58,7 +58,8 @@ export class SeedService implements OnApplicationBootstrap {
         fullName: 'Franco de Iriondo',
         role: 'USER',
         isActive: true,
-        subscriptionStatus: 'active'
+        subscriptionStatus: 'active',
+        subscriptionPlan: 'pro'
       });
       userId = user.id;
       this.logger.log(`Test user created with ID: ${userId}`);
@@ -67,9 +68,9 @@ export class SeedService implements OnApplicationBootstrap {
       this.logger.log(`Test user already exists with ID: ${userId}`);
       
       // Ensure subscription is active so the user can test
-      if (user.subscription?.subscriptionStatus !== 'active') {
-        await this.usersService.updateSubscription(userId, { subscriptionStatus: 'active' });
-        this.logger.log(`Updated test user subscription status to active.`);
+      if (user.subscription?.subscriptionStatus !== 'active' || user.subscription?.subscriptionPlan !== 'pro') {
+        await this.usersService.updateSubscription(userId, { subscriptionStatus: 'active', subscriptionPlan: 'pro' });
+        this.logger.log(`Updated test user subscription status to active with pro plan.`);
       }
     }
 

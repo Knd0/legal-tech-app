@@ -5,6 +5,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WhatsappSession } from './whatsapp-session.entity';
 import { WhatsappDbStore } from './whatsapp-db-store';
+import { Client as ClientEntity } from '../clients/client.entity';
+import { Expediente } from '../expedientes/expediente.entity';
+import { Deadline } from '../deadlines/deadline.entity';
+import { Movimiento } from '../movimientos/entities/movimiento.entity';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const qrcodeTerminal = require('qrcode-terminal');
 
@@ -35,6 +39,14 @@ export class WhatsappService implements OnModuleInit {
   constructor(
     @InjectRepository(WhatsappSession)
     private readonly sessionRepository: Repository<WhatsappSession>,
+    @InjectRepository(ClientEntity)
+    private readonly clientRepository: Repository<ClientEntity>,
+    @InjectRepository(Expediente)
+    private readonly expedienteRepository: Repository<Expediente>,
+    @InjectRepository(Deadline)
+    private readonly deadlineRepository: Repository<Deadline>,
+    @InjectRepository(Movimiento)
+    private readonly movimientoRepository: Repository<Movimiento>,
   ) {
     const store = new WhatsappDbStore(this.sessionRepository);
     this.client = new Client({
@@ -97,6 +109,14 @@ export class WhatsappService implements OnModuleInit {
         this.logger.warn('WhatsApp Client Disconnected', reason);
         this.isReady = false;
         this.qrCodeImage = null;
+    });
+
+    this.client.on('message', async (msg) => {
+      try {
+        await this.handleIncomingMessage(msg);
+      } catch (err) {
+        this.logger.error('Error handling incoming WhatsApp message', err);
+      }
     });
   }
 
@@ -237,5 +257,182 @@ export class WhatsappService implements OnModuleInit {
       })();
 
       return { success: true, message: 'Restart triggered in background' };
+  }
+
+  private async handleIncomingMessage(msg: any) {
+    // Ignore messages from groups or from status updates
+    if (msg.from.endsWith('@g.us') || msg.key?.fromMe) {
+      return;
+    }
+
+    const cleanIncoming = msg.from.replace(/\D/g, ''); // E.g. "5491123456789"
+    
+    // Find matching clients in DB
+    const clients = await this.clientRepository.find();
+    const matchingClients = clients.filter(c => {
+      if (!c.telefono) return false;
+      const cleanDb = c.telefono.replace(/\D/g, '');
+      if (cleanDb.length < 6) return false;
+      // Match the last 8 digits (or fewer if DB number is shorter)
+      const len = Math.min(cleanDb.length, cleanIncoming.length, 8);
+      const subDb = cleanDb.substring(cleanDb.length - len);
+      const subIncoming = cleanIncoming.substring(cleanIncoming.length - len);
+      return subDb === subIncoming;
+    });
+
+    if (matchingClients.length === 0) {
+      // Not a registered client. Reply with polite help message.
+      const welcomeMsg = `¡Hola! Gracias por comunicarte con el *Estudio Jurídico*.
+Este número es una línea automatizada para consultas exclusivas de clientes.
+Si sos cliente, asegurate de escribir desde el número de teléfono registrado en nuestro sistema.
+Si querés realizar una consulta o iniciar una causa, por favor indicanos tu nombre y nos contactaremos a la brevedad. ¡Muchas gracias!`;
+      await this.client.sendMessage(msg.from, welcomeMsg);
+      return;
+    }
+
+    // Client found! If multiple clients matched (e.g. sharing same number, or family), we can query details for all of them.
+    const clientIds = matchingClients.map(c => c.id);
+    const clientNames = matchingClients.map(c => `${c.nombre} ${c.apellido}`).join(', ');
+
+    const bodyText = (msg.body || '').trim().toLowerCase();
+
+    // Command menu handler
+    if (['hola', 'menu', 'menú', 'ayuda', 'hola!', 'buenas', 'buen día', 'buenas tardes'].includes(bodyText)) {
+      const menuMsg = `¡Hola *${clientNames}*! Bienvenido al Asistente Virtual del *Estudio Jurídico (Themis)*.
+      
+Por favor, respondé con el número de la opción que querés consultar:
+
+*1.* 📂 Consultar el estado de mis expedientes.
+*2.* 📅 Ver mis próximas audiencias y compromisos.
+*3.* 💰 Ver mi saldo y cuenta corriente.
+
+Escribí *menu* en cualquier momento para volver a ver estas opciones.`;
+      await this.client.sendMessage(msg.from, menuMsg);
+      return;
+    }
+
+    if (bodyText === '1' || bodyText.includes('expediente') || bodyText.includes('estado')) {
+      // Fetch expedientes
+      const expedientes = await this.expedienteRepository.createQueryBuilder('expediente')
+        .where('expediente.clienteId IN (:...clientIds)', { clientIds })
+        .getMany();
+
+      if (expedientes.length === 0) {
+        await this.client.sendMessage(msg.from, 'No registramos expedientes activos asociados a tu número de teléfono.');
+        return;
+      }
+
+      let response = `📂 *Tus Expedientes:*`;
+      for (const exp of expedientes) {
+        response += `\n\n• *Expediente:* ${exp.nroExpediente}
+  *Carátula:* ${exp.caratula}
+  *Fuero:* ${exp.fuero}
+  *Juzgado:* ${exp.juzgado}
+  *Estado:* _${exp.estado}_`;
+      }
+      response += `\n\nEscribí *menu* para volver al menú principal.`;
+      await this.client.sendMessage(msg.from, response);
+      return;
+    }
+
+    if (bodyText === '2' || bodyText.includes('audiencia') || bodyText.includes('compromiso') || bodyText.includes('vencimiento')) {
+      // Fetch deadlines (vencimientos / audiencias) for these client's expedientes
+      const expedientes = await this.expedienteRepository.createQueryBuilder('expediente')
+        .where('expediente.clienteId IN (:...clientIds)', { clientIds })
+        .getMany();
+
+      if (expedientes.length === 0) {
+        await this.client.sendMessage(msg.from, 'No tenés audiencias o vencimientos próximos programados.');
+        return;
+      }
+
+      const expIds = expedientes.map(e => e.id);
+      const deadlines = await this.deadlineRepository.createQueryBuilder('deadline')
+        .where('deadline.expedienteId IN (:...expIds)', { expIds })
+        .andWhere('deadline.fechaVencimiento >= :today', { today: new Date().toISOString().split('T')[0] })
+        .orderBy('deadline.fechaVencimiento', 'ASC')
+        .getMany();
+
+      if (deadlines.length === 0) {
+        await this.client.sendMessage(msg.from, 'No tenés audiencias o vencimientos programados para los próximos días.');
+        return;
+      }
+
+      let response = `📅 *Tus Próximas Audiencias y Vencimientos:*`;
+      for (const d of deadlines) {
+        const dateParts = new Date(d.fechaVencimiento).toISOString().split('T')[0].split('-');
+        const dateFormatted = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+        response += `\n\n• *Compromiso:* ${d.titulo}
+  *Tipo:* ${d.tipo || 'Audiencia'}
+  *Fecha:* ${dateFormatted} a las ${d.horaVencimiento || '00:00'} hs.
+  *Detalle:* _${d.descripcion || 'Sin descripción.'}_`;
+      }
+      response += `\n\nEscribí *menu* para volver al menú principal.`;
+      await this.client.sendMessage(msg.from, response);
+      return;
+    }
+
+    if (bodyText === '3' || bodyText.includes('saldo') || bodyText.includes('movimiento') || bodyText.includes('pago') || bodyText.includes('cuenta')) {
+      // Fetch financial movements
+      const movements = await this.movimientoRepository.createQueryBuilder('movimiento')
+        .where('movimiento.clientId IN (:...clientIds)', { clientIds })
+        .orderBy('movimiento.fecha', 'DESC')
+        .getMany();
+
+      if (movements.length === 0) {
+        await this.client.sendMessage(msg.from, 'No registramos movimientos financieros asociados a tu cuenta.');
+        return;
+      }
+
+      let totalHonorarios = 0;
+      let totalGastos = 0;
+      let totalPagado = 0;
+
+      for (const m of movements) {
+        const amount = Number(m.monto);
+        if (m.tipo === 'HONORARIO') {
+          totalHonorarios += amount;
+          if (m.estado === 'PAGADO') totalPagado += amount;
+        } else if (m.tipo === 'GASTO') {
+          totalGastos += amount;
+          if (m.estado === 'PAGADO') totalPagado += amount;
+        } else if (m.tipo === 'PAGO') {
+          totalPagado += amount;
+        }
+      }
+
+      const totalDeuda = (totalHonorarios + totalGastos) - totalPagado;
+      const fmtCurrency = (val: number) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(val);
+
+      let response = `💰 *Resumen de tu Cuenta Corriente:*
+      
+• *Honorarios Totales:* ${fmtCurrency(totalHonorarios)}
+• *Gastos Totales:* ${fmtCurrency(totalGastos)}
+• *Total Pagado / Acreditado:* ${fmtCurrency(totalPagado)}
+• *Saldo Pendiente:* *${fmtCurrency(Math.max(0, totalDeuda))}*
+
+*Últimos movimientos:*`;
+
+      const recent = movements.slice(0, 5);
+      for (const r of recent) {
+        const dateParts = new Date(r.fecha).toISOString().split('T')[0].split('-');
+        const dateFormatted = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+        response += `\n- [${r.estado}] ${dateFormatted} - ${r.descripcion}: ${fmtCurrency(Number(r.monto))}`;
+      }
+
+      response += `\n\nEscribí *menu* para volver al menú principal.`;
+      await this.client.sendMessage(msg.from, response);
+      return;
+    }
+
+    // Default fallback
+    const defaultMsg = `No entendí tu consulta. Por favor, seleccioná una de las opciones del menú:
+
+*1.* 📂 Consultar el estado de mis expedientes.
+*2.* 📅 Ver mis próximas audiencias y compromisos.
+*3.* 💰 Ver mi saldo y cuenta corriente.
+
+Escribí *menu* para ver la lista completa.`;
+    await this.client.sendMessage(msg.from, defaultMsg);
   }
 }

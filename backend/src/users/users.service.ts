@@ -93,7 +93,7 @@ export class UsersService implements OnModuleInit {
   }
 
   async createUser(userData: any): Promise<User> {
-    const { subscriptionStatus, subscriptionExpiresAt, mpSubscriptionId, password, ...rest } = userData;
+    const { subscriptionStatus, subscriptionExpiresAt, mpSubscriptionId, subscriptionPlan, password, ...rest } = userData;
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
 
@@ -110,6 +110,7 @@ export class UsersService implements OnModuleInit {
       this.subscriptionRepository.create({
         userId: savedUser.id,
         subscriptionStatus: subscriptionStatus ?? 'trial',
+        subscriptionPlan: subscriptionPlan ?? 'pro',
         subscriptionExpiresAt: subscriptionExpiresAt ?? null,
         mpSubscriptionId: mpSubscriptionId ?? null,
       })
@@ -151,6 +152,7 @@ export class UsersService implements OnModuleInit {
     subscriptionStatus?: string;
     subscriptionExpiresAt?: Date;
     mpSubscriptionId?: string;
+    subscriptionPlan?: string;
   }): Promise<void> {
     let sub = await this.subscriptionRepository.findOne({ where: { userId: id } });
     if (!sub) {

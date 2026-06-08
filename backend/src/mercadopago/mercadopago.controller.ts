@@ -12,10 +12,13 @@ export class MercadopagoController {
 
   @UseGuards(JwtAuthGuard)
   @Post('create-subscription')
-  async createSubscription(@Req() req, @Res() res: Response) {
+  async createSubscription(@Req() req, @Body('plan') plan: string, @Res() res: Response) {
     try {
       const user = req.user;
-      const result = await this.mpService.createSubscriptionForUser(user.userId, user.username);
+      const targetPlan = plan === 'basic' ? 'basic' : 'pro';
+      const amount = targetPlan === 'basic' ? 20000 : 35000;
+      const planName = targetPlan === 'basic' ? 'Themis Básico' : 'Themis Pro';
+      const result = await this.mpService.createSubscriptionForUser(user.userId, user.username, planName, amount);
       return res.status(200).json({ preapprovalLink: result.init_point });
     } catch (error) {
       return res.status(500).json({ message: error.message });
@@ -68,9 +71,10 @@ export class MercadopagoController {
 
   @UseGuards(JwtAuthGuard)
   @Post('simulate-payment')
-  async simulatePayment(@Req() req, @Res() res: Response) {
+  async simulatePayment(@Req() req, @Body('plan') plan: string, @Res() res: Response) {
     try {
-      const result = await this.mpService.simulateSubscriptionPayment(req.user.userId);
+      const targetPlan = plan === 'basic' ? 'basic' : 'pro';
+      const result = await this.mpService.simulateSubscriptionPayment(req.user.userId, targetPlan);
       return res.status(200).json(result);
     } catch (error) {
       return res.status(500).json({ message: error.message });

@@ -42,7 +42,8 @@ export class AuthService {
       role: user.role,
       phoneNumber: user.phoneNumber,
       fullName: user.fullName,
-      subscriptionStatus: user.subscription?.subscriptionStatus,
+      subscriptionStatus: user.subscription?.subscriptionStatus || 'trial',
+      subscriptionPlan: user.subscription?.subscriptionPlan || 'pro',
       subscriptionExpiresAt: user.subscription?.subscriptionExpiresAt
     };
     return {

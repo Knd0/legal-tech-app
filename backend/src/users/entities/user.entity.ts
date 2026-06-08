@@ -50,6 +50,15 @@ export class User {
   @Column({ nullable: true, default: 'Resp. Monotributo' })
   condicionIva: string;
 
+  @Column({ type: 'text', nullable: true })
+  afipCert: string;
+
+  @Column({ type: 'text', nullable: true })
+  afipKey: string;
+
+  @Column({ default: false })
+  afipProduction: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

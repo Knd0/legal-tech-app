@@ -20,19 +20,19 @@ export class MercadopagoService {
     }
   }
 
-  async createSubscriptionForUser(userId: string, payerEmail: string) {
+  async createSubscriptionForUser(userId: string, payerEmail: string, planName: string = 'Themis Pro', amount: number = 35000) {
     if (!this.client) throw new Error("MercadoPago not configured");
 
     const preApproval = new PreApproval(this.client);
     return preApproval.create({
       body: {
-        reason: 'Themis Pro',
+        reason: planName,
         external_reference: userId,
         payer_email: payerEmail,
         auto_recurring: {
           frequency: 1,
           frequency_type: 'months',
-          transaction_amount: 15000,
+          transaction_amount: amount,
           currency_id: 'ARS',
         },
         back_url: `${this.configService.get<string>('FRONTEND_URL', 'https://legal-tech-app-woad.vercel.app')}/subscription/success`,
@@ -48,6 +48,7 @@ export class MercadopagoService {
       status: user.subscription?.subscriptionStatus,
       expiresAt: user.subscription?.subscriptionExpiresAt,
       mpSubscriptionId: user.subscription?.mpSubscriptionId,
+      subscriptionPlan: user.subscription?.subscriptionPlan,
     };
   }
 
@@ -105,20 +106,21 @@ export class MercadopagoService {
     return { success: true };
   }
 
-  async simulateSubscriptionPayment(userId: string): Promise<{ success: boolean }> {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
+  async simulateSubscriptionPayment(userId: string, plan: string = 'pro'): Promise<{ success: boolean }> {
+    const user = await this.usersService.findOneById(userId);
     if (!user) throw new Error('User not found');
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30); // 30 days from now
 
-    await this.usersRepository.update(userId, {
+    await this.usersService.updateSubscription(userId, {
       subscriptionStatus: 'active',
+      subscriptionPlan: plan,
       subscriptionExpiresAt: expiresAt,
-      mpSubscriptionId: 'mock_sub_simulated_' + Math.floor(Math.random() * 1000000)
+      mpSubscriptionId: 'mock_sub_simulated_' + plan + '_' + Math.floor(Math.random() * 1000000)
     });
 
-    this.logger.log(`Simulated active subscription for user ${userId}`);
+    this.logger.log(`Simulated active subscription for user ${userId} on plan ${plan}`);
     return { success: true };
   }
 
@@ -135,6 +137,8 @@ export class MercadopagoService {
 
         const userId = subscription.external_reference;
         const status = subscription.status;
+        const reason = (subscription.reason || '').toLowerCase();
+        const plan = reason.includes('básico') || reason.includes('basic') ? 'basic' : 'pro';
 
         if (userId) {
           let mappedStatus = 'trial';
@@ -145,8 +149,9 @@ export class MercadopagoService {
           await this.usersService.updateSubscription(userId, {
             mpSubscriptionId: preapprovalId,
             subscriptionStatus: mappedStatus,
+            subscriptionPlan: plan,
           });
-          this.logger.log(`Updated user ${userId} subscription status to ${mappedStatus}`);
+          this.logger.log(`Updated user ${userId} subscription status to ${mappedStatus} and plan to ${plan}`);
         }
       } catch (error) {
         this.logger.error(`Error processing webhook: ${error}`);

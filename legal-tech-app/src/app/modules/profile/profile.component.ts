@@ -10,6 +10,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { RouterModule } from '@angular/router';
 import Swal from 'sweetalert2';
 import { AuthService } from '../../core/services/auth.service';
+import { SubscriptionService } from '../../core/services/subscription.service';
 import { NotificationService } from '../../core/services/notification.service';
 
 import { environment } from '../../../environments/environment';
@@ -24,6 +25,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   fb = inject(FormBuilder);
   http = inject(HttpClient);
   authService = inject(AuthService);
+  subscriptionService = inject(SubscriptionService);
   notificationService = inject(NotificationService);
   private ngZone = inject(NgZone);
 

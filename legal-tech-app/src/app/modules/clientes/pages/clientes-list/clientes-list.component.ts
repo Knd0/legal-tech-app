@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { AuthService } from '../../../../core/services/auth.service';
+import { SubscriptionService } from '../../../../core/services/subscription.service';
 import { ClientService } from '../../../../core/services/client.service';
 import { Cliente } from '../../../../core/models/cliente.model';
 import { ExcelService } from '../../../../core/services/excel.service';
@@ -21,6 +22,7 @@ export class ClientesListComponent implements OnInit, OnDestroy {
   notificationService = inject(NotificationService);
   loadingService = inject(LoadingService);
   authService = inject(AuthService);
+  subscriptionService = inject(SubscriptionService);
 
   searchTerm = signal<string>('');
   clientes = signal<Cliente[]>([]);

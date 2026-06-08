@@ -17,6 +17,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { DeadlineService } from '../../../../core/services/deadline.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { SubscriptionService } from '../../../../core/services/subscription.service';
 import { ExpedienteService } from '../../../../core/services/expediente.service';
 import { CalendarEventService } from '../../../../core/services/calendar-event.service';
 import { Vencimiento } from '../../../../core/models/vencimiento.model';
@@ -48,6 +49,7 @@ export class CalendarioViewComponent {
   deadlineService = inject(DeadlineService);
   notificationService = inject(NotificationService);
   authService = inject(AuthService);
+  subscriptionService = inject(SubscriptionService);
   expedienteService = inject(ExpedienteService);
   calendarEventService = inject(CalendarEventService);
 

@@ -2,6 +2,7 @@ import { Component, OnInit, signal, inject, computed, effect } from '@angular/co
 import { NotificationService } from './core/services/notification.service';
 import { DeadlineService } from './core/services/deadline.service';
 import { AuthService } from './core/services/auth.service';
+import { SubscriptionService } from './core/services/subscription.service';
 import { ThemeService } from './core/services/theme.service';
 import { PwaUpdateService } from './core/services/pwa-update.service';
 import { LoadingService } from './core/services/loading.service';
@@ -33,6 +34,7 @@ export class AppComponent implements OnInit {
 
   deadlineService = inject(DeadlineService);
   authService = inject(AuthService);
+  subscriptionService = inject(SubscriptionService);
   themeService = inject(ThemeService);
   
   // Calculate distinct urgent deadlines (< 3 days)

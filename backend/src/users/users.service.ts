@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { Subscription } from './entities/subscription.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -9,12 +10,13 @@ export class UsersService implements OnModuleInit {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(Subscription)
+    private subscriptionRepository: Repository<Subscription>,
   ) {}
 
   async onModuleInit() {
     const adminPassword = process.env.ADMIN_PASSWORD;
     if (adminPassword) {
-      // Check if admin already exists
       const existingAdmin = await this.findOneByEmail('admin@themis.com');
       if (!existingAdmin) {
         const salt = await bcrypt.genSalt();
@@ -25,19 +27,12 @@ export class UsersService implements OnModuleInit {
           passwordHash,
           role: 'ADMIN',
           isActive: true,
-          subscriptionStatus: 'active'
-        } as any);
-        await this.usersRepository.save(adminUser);
+        } as unknown as User);
+        const saved = await this.usersRepository.save(adminUser) as User;
+        await this.subscriptionRepository.save(
+          this.subscriptionRepository.create({ userId: saved.id, subscriptionStatus: 'active' })
+        );
         console.log('Seeded default Super Admin account (admin@themis.com).');
-      } else {
-        // Option: we could also force update the password here, but usually seeder only creates it
-        // If we want to strictly allow overriding the password via env, we can uncomment below:
-        /*
-        const salt = await bcrypt.genSalt();
-        existingAdmin.passwordHash = await bcrypt.hash(adminPassword, salt);
-        await this.usersRepository.save(existingAdmin);
-        console.log('Updated Super Admin password from env.');
-        */
       }
     }
   }
@@ -46,21 +41,17 @@ export class UsersService implements OnModuleInit {
     return this.usersRepository.findOne({ where: { email } });
   }
 
-  async findOneByPhone(phoneNumber: string): Promise<User | undefined> {
-    return this.usersRepository.findOne({ where: { phoneNumber } });
-  }
-
   async findOneById(id: string): Promise<User | undefined> {
     return this.usersRepository.findOne({ where: { id } });
   }
 
   async create(user: Partial<User>): Promise<User> {
     const newUser = this.usersRepository.create(user);
-    return this.usersRepository.save(newUser);
-  }
-
-  async updatePhoneNumber(id: string, phoneNumber: string): Promise<void> {
-    await this.usersRepository.update(id, { phoneNumber });
+    const saved = await this.usersRepository.save(newUser);
+    await this.subscriptionRepository.save(
+      this.subscriptionRepository.create({ userId: saved.id, subscriptionStatus: 'trial' })
+    );
+    return this.findOneById(saved.id);
   }
 
   async updateProfile(id: string, data: Partial<User>): Promise<User> {
@@ -81,7 +72,8 @@ export class UsersService implements OnModuleInit {
   }
 
   async findAllPaginated(page: number, limit: number, search?: string, status?: string): Promise<{ data: User[]; total: number; page: number; limit: number }> {
-    const query = this.usersRepository.createQueryBuilder('user');
+    const query = this.usersRepository.createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscription', 'subscription');
 
     if (search) {
       query.where(
@@ -91,7 +83,7 @@ export class UsersService implements OnModuleInit {
     }
 
     if (status) {
-      query.andWhere('user.subscriptionStatus = :status', { status });
+      query.andWhere('subscription.subscriptionStatus = :status', { status });
     }
 
     query.orderBy('user.createdAt', 'DESC').skip((page - 1) * limit).take(limit);
@@ -101,23 +93,35 @@ export class UsersService implements OnModuleInit {
   }
 
   async createUser(userData: any): Promise<User> {
+    const { subscriptionStatus, subscriptionExpiresAt, mpSubscriptionId, password, ...rest } = userData;
     const salt = await bcrypt.genSalt();
-    const passwordHash = await bcrypt.hash(userData.password, salt);
+    const passwordHash = await bcrypt.hash(password, salt);
 
     const newUser = this.usersRepository.create({
-      ...userData,
+      ...rest,
       passwordHash,
       isActive: true,
-      role: userData.role || 'USER'
-    } as unknown as User); // Force cast to avoid ambiguous overload
-    
-    return (await this.usersRepository.save(newUser)) as User; // Force cast return checking
+      role: rest.role || 'USER'
+    } as unknown as User);
+
+    const savedUser = await this.usersRepository.save(newUser) as User;
+
+    await this.subscriptionRepository.save(
+      this.subscriptionRepository.create({
+        userId: savedUser.id,
+        subscriptionStatus: subscriptionStatus ?? 'trial',
+        subscriptionExpiresAt: subscriptionExpiresAt ?? null,
+        mpSubscriptionId: mpSubscriptionId ?? null,
+      })
+    );
+
+    return this.findOneById(savedUser.id);
   }
 
   async toggleStatus(id: string): Promise<User> {
     const user = await this.findOneById(id);
     if (!user) throw new NotFoundException('User not found');
-    
+
     user.isActive = !user.isActive;
     return this.usersRepository.save(user);
   }
@@ -141,5 +145,18 @@ export class UsersService implements OnModuleInit {
     if (result.affected === 0) {
         throw new NotFoundException('User not found');
     }
+  }
+
+  async updateSubscription(id: string, data: {
+    subscriptionStatus?: string;
+    subscriptionExpiresAt?: Date;
+    mpSubscriptionId?: string;
+  }): Promise<void> {
+    let sub = await this.subscriptionRepository.findOne({ where: { userId: id } });
+    if (!sub) {
+      sub = this.subscriptionRepository.create({ userId: id, subscriptionStatus: 'trial' });
+    }
+    Object.assign(sub, data);
+    await this.subscriptionRepository.save(sub);
   }
 }

@@ -1,9 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MercadoPagoConfig, PreApprovalPlan, PreApproval, Payment } from 'mercadopago';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from '../users/entities/user.entity';
+import { MercadoPagoConfig, PreApproval, Payment } from 'mercadopago';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class MercadopagoService {
@@ -12,8 +10,7 @@ export class MercadopagoService {
 
   constructor(
     private configService: ConfigService,
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private usersService: UsersService,
   ) {
     const accessToken = this.configService.get<string>('MP_ACCESS_TOKEN');
     if (accessToken) {
@@ -23,77 +20,46 @@ export class MercadopagoService {
     }
   }
 
-  // PreApprovalPlans are the blueprints for subscriptions
-  async createSubscriptionPlan(planData: any) {
+  async createSubscriptionForUser(userId: string, payerEmail: string) {
     if (!this.client) throw new Error("MercadoPago not configured");
-    const preApprovalPlan = new PreApprovalPlan(this.client);
-    
-    return preApprovalPlan.create({
+
+    const preApproval = new PreApproval(this.client);
+    return preApproval.create({
       body: {
-        reason: planData.reason || 'Suscripción Themis',
+        reason: 'Themis Pro',
+        external_reference: userId,
+        payer_email: payerEmail,
         auto_recurring: {
           frequency: 1,
           frequency_type: 'months',
-          billing_day: 10,
-          billing_day_proportional: false,
-          transaction_amount: planData.amount || 15000,
+          transaction_amount: 15000,
           currency_id: 'ARS',
         },
-        payment_methods_allowed: {
-          payment_types: [
-            { id: 'credit_card' },
-            { id: 'debit_card' }
-          ],
-        },
         back_url: `${this.configService.get<string>('FRONTEND_URL', 'https://legal-tech-app-woad.vercel.app')}/subscription/success`,
+        status: 'pending',
       }
     });
   }
 
-  // A PreApproval is an actual subscription of a client to a plan
-  async createSubscriptionForUser(userId: string, payerEmail: string) {
-      if (!this.client) throw new Error("MercadoPago not configured");
-
-      const preApproval = new PreApproval(this.client);
-      const request = {
-          body: {
-             reason: 'Themis Pro',
-             external_reference: userId,
-             payer_email: payerEmail,
-             auto_recurring: {
-                 frequency: 1,
-                 frequency_type: 'months',
-                 transaction_amount: 15000,
-                 currency_id: 'ARS',
-             },
-             back_url: `${this.configService.get<string>('FRONTEND_URL', 'https://legal-tech-app-woad.vercel.app')}/subscription/success`,
-             status: 'pending'
-          }
-      };
-
-      const result = await preApproval.create(request);
-      return result;
-  }
-
   async getSubscriptionStatus(userId: string) {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    const user = await this.usersService.findOneById(userId);
     if (!user) throw new Error('User not found');
     return {
-      status: user.subscriptionStatus,
-      expiresAt: user.subscriptionExpiresAt,
-      mpSubscriptionId: user.mpSubscriptionId,
+      status: user.subscription?.subscriptionStatus,
+      expiresAt: user.subscription?.subscriptionExpiresAt,
+      mpSubscriptionId: user.subscription?.mpSubscriptionId,
     };
   }
 
   async cancelSubscription(userId: string) {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    const user = await this.usersService.findOneById(userId);
     if (!user) throw new Error('User not found');
 
-    if (user.mpSubscriptionId && this.client) {
+    if (user.subscription?.mpSubscriptionId && this.client) {
       try {
         const preApproval = new PreApproval(this.client);
         await preApproval.update({
-          id: user.mpSubscriptionId,
+          id: user.subscription.mpSubscriptionId,
           body: { status: 'cancelled' },
         });
       } catch (error) {
@@ -101,7 +67,7 @@ export class MercadopagoService {
       }
     }
 
-    await this.usersRepository.update(userId, { subscriptionStatus: 'cancelled' });
+    await this.usersService.updateSubscription(userId, { subscriptionStatus: 'cancelled' });
     return { success: true };
   }
 
@@ -129,13 +95,13 @@ export class MercadopagoService {
   }
 
   async reactivateSubscription(userId: string): Promise<{ success: boolean }> {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    const user = await this.usersService.findOneById(userId);
     if (!user) throw new Error('User not found');
-    if (!user.mpSubscriptionId || !this.client) throw new Error('No hay suscripción para reactivar');
+    if (!user.subscription?.mpSubscriptionId || !this.client) throw new Error('No hay suscripción para reactivar');
 
     const preApproval = new PreApproval(this.client);
-    await preApproval.update({ id: user.mpSubscriptionId, body: { status: 'authorized' } as any });
-    await this.usersRepository.update(userId, { subscriptionStatus: 'active' });
+    await preApproval.update({ id: user.subscription.mpSubscriptionId, body: { status: 'authorized' } as any });
+    await this.usersService.updateSubscription(userId, { subscriptionStatus: 'active' });
     return { success: true };
   }
 
@@ -158,36 +124,33 @@ export class MercadopagoService {
 
   async handleWebhook(data: any): Promise<void> {
     this.logger.log(`Received Webhook: ${JSON.stringify(data)}`);
-    
-    // Check if it's a subscription update
-    if (data.type === 'subscription_preapproval') {
-        const preapprovalId = data.data.id;
-        const preApprovalAPI = new PreApproval(this.client);
-        
-        try {
-            const subscriptionParams = { id: preapprovalId };
-            // In SDK v2, getting a preapproval looks something like this:
-            const subscription = await preApprovalAPI.get(subscriptionParams);
-            this.logger.log(`Subscription details: ${JSON.stringify(subscription)}`);
-            
-            const userId = subscription.external_reference;
-            const status = subscription.status; // 'authorized', 'paused', 'cancelled'
-            
-            if (userId) {
-               let mappedStatus = 'trial';
-               if (status === 'authorized') mappedStatus = 'active';
-               else if (status === 'paused') mappedStatus = 'paused';
-               else if (status === 'cancelled') mappedStatus = 'cancelled';
 
-               await this.usersRepository.update(userId, {
-                   mpSubscriptionId: preapprovalId,
-                   subscriptionStatus: mappedStatus
-               });
-               this.logger.log(`Updated user ${userId} subscription status to ${mappedStatus}`);
-            }
-        } catch (error) {
-            this.logger.error(`Error processing webhook: ${error}`);
+    if (data.type === 'subscription_preapproval') {
+      const preapprovalId = data.data.id;
+      const preApprovalAPI = new PreApproval(this.client);
+
+      try {
+        const subscription = await preApprovalAPI.get({ id: preapprovalId });
+        this.logger.log(`Subscription details: ${JSON.stringify(subscription)}`);
+
+        const userId = subscription.external_reference;
+        const status = subscription.status;
+
+        if (userId) {
+          let mappedStatus = 'trial';
+          if (status === 'authorized') mappedStatus = 'active';
+          else if (status === 'paused') mappedStatus = 'paused';
+          else if (status === 'cancelled') mappedStatus = 'cancelled';
+
+          await this.usersService.updateSubscription(userId, {
+            mpSubscriptionId: preapprovalId,
+            subscriptionStatus: mappedStatus,
+          });
+          this.logger.log(`Updated user ${userId} subscription status to ${mappedStatus}`);
         }
+      } catch (error) {
+        this.logger.error(`Error processing webhook: ${error}`);
+      }
     }
   }
 }

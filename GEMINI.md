@@ -97,13 +97,13 @@ Todos los gaps de seguridad conocidos están cerrados (JWT guards, filtros por u
 ## 🧩 Patterns & Gotchas
 
 - **Signals vs RxJS**: Usar `signal()` y `computed()` para nuevo estado en el frontend. Suscribirse a Observables HTTP con `.subscribe()` está bien, pero no crear `BehaviorSubject` nuevos — convertir a signal en el `tap`/`next`.
-- **Audit logging**: Los módulos clients/expedientes/movimientos hacen audit logging de forma asíncrona sin `await` ni `try/catch` — puede fallar silenciosamente. No agregar awaits sin manejar el error.
+- **Audit logging**: Los módulos clients/expedientes/movimientos usan `void this.auditLogsService.log(...).catch(err => console.error('Audit log failed:', err))`. Fallos de DB no se propagan al usuario. Al agregar nuevos calls de audit log, usar el mismo patrón fire-and-forget con `.catch()`.
 - **SeedService**: Crea `admin@themis.com` automáticamente al iniciar si no existe. Contraseña desde env `ADMIN_PASSWORD`.
 - **synchronize:true en prod**: TypeORM crea/altera tablas al iniciar. Cambios de columna pueden perder datos. No usar para eliminar columnas — hacerlo manualmente en la DB.
 - **Hardcoded values a recordar**:
   - MercadoPago: monto `15000 ARS` en `mercadopago.service.ts`
   - Expedientes: límite de 30 en plan básico hardcodeado en el template frontend
-  - Grace period: `7 * 24 * 60 * 60 * 1000` ms en `subscription.guard.ts` y `auth.service.ts` — mantener en sync
+  - Grace period: `GRACE_PERIOD_MS = 7 * 24 * 60 * 60 * 1000` definido una sola vez en `SubscriptionService` (`core/services/subscription.service.ts`). No duplicar.
   - CORS: origins hardcodeados en `backend/src/main.ts`
 - **Tests**: Suite Jest agregada para paginación de clientes, activación/fallback de IA y persistencia de OTPs en DB. Ejecutar `npx jest --verbose` en carpeta `backend` (todos los 10 tests pasan).
 - **OTP con crypto.randomInt**: Los OTPs usan `import { randomInt } from 'crypto'` (no `Math.random()`). Límite de 5 intentos fallidos antes de invalidar — guardados en tabla `otps` de PostgreSQL.
@@ -120,6 +120,44 @@ Todos los gaps de seguridad conocidos están cerrados (JWT guards, filtros por u
 - Borrar o tachar el ítem de Known Bugs / Security Gaps
 - Actualizar el porcentaje y próximo paso en Module Completeness
 - Nunca dejar referencias a problemas ya resueltos sin aclarar su estado
+
+---
+
+## 🗄️ Subscription Entity Migration — Post-Deploy SQL
+
+Los campos `subscriptionStatus`, `subscriptionExpiresAt` y `mpSubscriptionId` fueron extraídos de la tabla `user` a una tabla `subscription` separada. El código está actualizado; para producción (Render) hay que ejecutar SQL manual **después del deploy**.
+
+### Secuencia de deploy
+
+1. **Push a main** → Render bootea → TypeORM crea tabla `subscription` automáticamente.
+2. **Ejecutar en psql de Render** (panel PostgreSQL → psql):
+
+```sql
+INSERT INTO "subscription" (
+  "userId", "subscriptionStatus", "subscriptionExpiresAt", "mpSubscriptionId", "createdAt", "updatedAt"
+)
+SELECT
+  id,
+  COALESCE("subscriptionStatus", 'trial'),
+  "subscriptionExpiresAt",
+  "mpSubscriptionId",
+  NOW(), NOW()
+FROM "user"
+ON CONFLICT ("userId") DO NOTHING;
+
+-- Verificar: deben coincidir
+SELECT COUNT(*) FROM "user";
+SELECT COUNT(*) FROM "subscription";
+```
+
+3. **Verificar** que el login y el dashboard funcionan sin errores 403/500.
+4. **Cuando todo esté estable** (opcional): limpiar las columnas viejas de `user`:
+
+```sql
+ALTER TABLE "user" DROP COLUMN IF EXISTS "subscriptionStatus";
+ALTER TABLE "user" DROP COLUMN IF EXISTS "subscriptionExpiresAt";
+ALTER TABLE "user" DROP COLUMN IF EXISTS "mpSubscriptionId";
+```
 
 ---
 

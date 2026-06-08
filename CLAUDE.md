@@ -63,7 +63,7 @@ Each feature is a NestJS module under `backend/src/`. Key modules:
 - **deadlines** — Judicial vencimientos. Exposes `/deadlines` and `/deadlines/analyze-pdf` to upload a judicial notification PDF and extract/schedule upcoming deadline calendar events using Gemini 2.5 Flash by default. A daily cron job runs at 9 AM to send WhatsApp alerts.
 - **calendar** — Empty module. Google Calendar integration was removed. Controller has no endpoints.
 - **documents** — **File uploads are persisted in Cloudinary** (avoiding local ephemeral filesystem issues on Render). Safe streaming view/download endpoints are protected by `JwtAuthGuard` to mask public Cloudinary URLs.
-- **mercadopago** — Recurring subscriptions (`PreApproval`). Webhook at `POST /mercadopago/webhook` updates `subscriptionStatus` and `subscriptionExpiresAt` on the User entity.
+- **mercadopago** — Recurring subscriptions (`PreApproval`). Webhook at `POST /mercadopago/webhook` updates `subscriptionStatus` and `subscriptionExpiresAt` via `UsersService.updateSubscription()`, which writes to the `Subscription` entity.
 - **whatsapp** — `whatsapp-web.js` session with RemoteAuth. Session stored in PostgreSQL (`whatsapp_sessions` table) to prevent Render ephemeral restarts from wiping authentication. Initializes 8 seconds after app start.
 - **facturas** — AFIP/ARCA e-invoicing. Uses `os.tmpdir()` for cross-platform (Windows dev / Linux prod) temp certificate writing, and reads `AFIP_PRODUCTION` env variable dynamically to switch between homologation (false/default) and production. Falls back to simulation mode if `AFIP_CERT`/`AFIP_KEY` env vars are missing.
 - **movimientos** — Financial movements per client (honorarios, gastos, pagos) with JUS/UMA unit support.
@@ -92,10 +92,10 @@ Frontend deployed on Vercel: `https://legal-tech-app-woad.vercel.app`
 
 7-day grace period enforced in two places:
 
-1. `subscriptionGuard` (`core/guards/subscription.guard.ts`) — controls route access
-2. `authService.isCreationBlocked()` — component-level gate on create/edit actions
+1. `subscriptionGuard` (`core/guards/subscription.guard.ts`) — controls route access, delegates to `SubscriptionService.canAccessApp()`
+2. `subscriptionService.isCreationBlocked()` — component-level gate on create/edit actions
 
-`ADMIN` role bypasses all subscription checks.
+Subscription state (`isSubscriptionExpired`, `isGracePeriod`, `isCreationBlocked`, `canAccessApp`) lives in `SubscriptionService` (`core/services/subscription.service.ts`), not in `AuthService`. `ADMIN` role bypasses all subscription checks.
 
 ### Environment Variables
 
@@ -189,14 +189,14 @@ Todos los gaps de seguridad conocidos han sido corregidos. Pendientes únicament
 ## Patterns & Gotchas
 
 - **Signals vs RxJS**: Usar `signal()` y `computed()` para nuevo estado en el frontend. Suscribirse a Observables HTTP con `.subscribe()` está bien, pero no crear `BehaviorSubject` nuevos — convertir a signal en el `tap`/`next`.
-- **Audit logging**: Los módulos clients/expedientes/movimientos hacen audit logging de forma asíncrona sin `await` ni `try/catch` — puede fallar silenciosamente. No agregar awaits sin manejar el error.
+- **Audit logging**: Los módulos clients/expedientes/movimientos usan `void this.auditLogsService.log(...).catch(err => console.error('Audit log failed:', err))`. Fallos de DB no se propagan al usuario. Al agregar nuevos calls de audit log, usar el mismo patrón fire-and-forget con `.catch()`.
 - **SeedService**: Creates `admin@themis.com` automatically on startup if it does not exist. Password from env `ADMIN_PASSWORD`.
 - **Storage efímero en Render**: Cloudinary handles document uploads. WhatsApp auth session is now persisted in PostgreSQL via a custom `WhatsappDbStore` with `RemoteAuth` under key `RemoteAuth-themis-session`, solving the Render ephemeral restarts issue.
 - **synchronize:true en prod**: TypeORM crea/altera tablas al iniciar. Cambios de columna pueden perder datos. No usar para eliminar columnas — hacerlo manualmente en la DB.
 - **Hardcoded values a recordar**:
   - MercadoPago: monto `15000 ARS` en `mercadopago.service.ts`
   - Expedientes: límite de 30 en plan básico hardcodeado en el template frontend
-  - Grace period: `7 * 24 * 60 * 60 * 1000` ms en `subscription.guard.ts` y `auth.service.ts` — mantener en sync
+  - Grace period: `GRACE_PERIOD_MS = 7 * 24 * 60 * 60 * 1000` definido una sola vez en `SubscriptionService` (`core/services/subscription.service.ts`). No duplicar.
   - CORS: origins hardcodeados en `backend/src/main.ts`
 - **Tests**: Jest unit test suite has been added for clients pagination, AI activation/fallback logic, and database OTP persistence. Run `npx jest --verbose` in `backend` folder to execute (all 10 tests passing).
 - **whatsapp-auth/ in .gitignore**: `backend/whatsapp-auth/` is ignored by `.gitignore` in the repository root to prevent committing chromium session cache.
@@ -206,6 +206,61 @@ Todos los gaps de seguridad conocidos han sido corregidos. Pendientes únicament
 - **chart.js instalado**: `legal-tech-app` tiene `chart.js ^4.5.1` + `ChartModule` de PrimeNG para el dashboard.
 - **Auth endpoints públicos**: `/auth/forgot-password` y `/auth/reset-password` no requieren JWT. OTPs keyed por `forgot_<email>` para no colisionar con los del perfil.
 - **Local DB dev setup**: PostgreSQL en `localhost:5432`, user `postgres`, password `1234`, database `legal_tech_db`. Cuentas de test sembradas (contraseña `password123`): `multifranco0@gmail.com` (2 clientes, 2 expedientes), `admin@estudio.com` (1 cliente, 2 expedientes).
+
+---
+
+## Subscription Entity Migration — Post-Deploy SQL
+
+Los campos `subscriptionStatus`, `subscriptionExpiresAt` y `mpSubscriptionId` fueron extraídos de la tabla `user` a una tabla `subscription` separada (`Subscription` entity en `backend/src/users/entities/subscription.entity.ts`).
+
+El código ya está actualizado. Para que funcione en **Render** (producción) hay que ejecutar el siguiente SQL **después de hacer deploy** del nuevo código. TypeORM crea la tabla `subscription` automáticamente al bootear; después hay que migrar los datos existentes.
+
+### Paso 1 — Deploy del código
+
+Hacer push a `main` y esperar que Render termine el deploy. TypeORM creará la tabla `subscription` automáticamente con la columna `userId` (FK + UNIQUE a `user.id`).
+
+### Paso 2 — Migrar datos existentes
+
+En el panel de Render → tu servicio PostgreSQL → **psql** (o conectarse con cualquier cliente):
+
+```sql
+-- Migrar datos de suscripción desde user → subscription para usuarios existentes
+INSERT INTO "subscription" (
+  "userId",
+  "subscriptionStatus",
+  "subscriptionExpiresAt",
+  "mpSubscriptionId",
+  "createdAt",
+  "updatedAt"
+)
+SELECT
+  id                                       AS "userId",
+  COALESCE("subscriptionStatus", 'trial')  AS "subscriptionStatus",
+  "subscriptionExpiresAt",
+  "mpSubscriptionId",
+  NOW(),
+  NOW()
+FROM "user"
+ON CONFLICT ("userId") DO NOTHING;
+
+-- Verificar: ambos counts deben coincidir
+SELECT COUNT(*) AS total_users FROM "user";
+SELECT COUNT(*) AS total_subscriptions FROM "subscription";
+```
+
+### Paso 3 — Verificar que la app funciona
+
+Loguearse con una cuenta existente y confirmar que el dashboard carga sin errores 403/500. Revisar los logs de Render buscando errores de TypeORM.
+
+### Paso 4 — Eliminar columnas viejas (opcional, cuando todo esté estable)
+
+**No hacer esto hasta confirmar que el paso 3 está OK.** TypeORM no las dropea automáticamente.
+
+```sql
+ALTER TABLE "user" DROP COLUMN IF EXISTS "subscriptionStatus";
+ALTER TABLE "user" DROP COLUMN IF EXISTS "subscriptionExpiresAt";
+ALTER TABLE "user" DROP COLUMN IF EXISTS "mpSubscriptionId";
+```
 
 ---
 

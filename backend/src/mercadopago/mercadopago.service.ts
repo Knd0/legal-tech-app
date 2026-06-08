@@ -45,9 +45,9 @@ export class MercadopagoService {
     const user = await this.usersService.findOneById(userId);
     if (!user) throw new Error('User not found');
     return {
-      status: user.subscriptionStatus,
-      expiresAt: user.subscriptionExpiresAt,
-      mpSubscriptionId: user.mpSubscriptionId,
+      status: user.subscription?.subscriptionStatus,
+      expiresAt: user.subscription?.subscriptionExpiresAt,
+      mpSubscriptionId: user.subscription?.mpSubscriptionId,
     };
   }
 
@@ -55,11 +55,11 @@ export class MercadopagoService {
     const user = await this.usersService.findOneById(userId);
     if (!user) throw new Error('User not found');
 
-    if (user.mpSubscriptionId && this.client) {
+    if (user.subscription?.mpSubscriptionId && this.client) {
       try {
         const preApproval = new PreApproval(this.client);
         await preApproval.update({
-          id: user.mpSubscriptionId,
+          id: user.subscription.mpSubscriptionId,
           body: { status: 'cancelled' },
         });
       } catch (error) {
@@ -97,10 +97,10 @@ export class MercadopagoService {
   async reactivateSubscription(userId: string): Promise<{ success: boolean }> {
     const user = await this.usersService.findOneById(userId);
     if (!user) throw new Error('User not found');
-    if (!user.mpSubscriptionId || !this.client) throw new Error('No hay suscripción para reactivar');
+    if (!user.subscription?.mpSubscriptionId || !this.client) throw new Error('No hay suscripción para reactivar');
 
     const preApproval = new PreApproval(this.client);
-    await preApproval.update({ id: user.mpSubscriptionId, body: { status: 'authorized' } as any });
+    await preApproval.update({ id: user.subscription.mpSubscriptionId, body: { status: 'authorized' } as any });
     await this.usersService.updateSubscription(userId, { subscriptionStatus: 'active' });
     return { success: true };
   }

@@ -25,4 +25,18 @@ export class AiService {
   analyzeRisk(expedienteId: string): Observable<{ riskAnalysis: string, successProbability: number, weakPoints: string[], strongPoints: string[] }> {
     return this.http.post<any>(`${this.apiUrl}/analyze-risk`, { expedienteId });
   }
+
+  analyzeCosts(data: {
+    montoReclamo: number;
+    jurisdiccion: string;
+    tipoProceso: string;
+    requiereMediacion: boolean;
+    requierePerito: boolean;
+    cantidadNotificaciones: number;
+    extraDetails?: string;
+    valorJus: number;
+    valorUma: number;
+  }): Observable<{ analysis: string }> {
+    return this.http.post<{ analysis: string }>(`${this.apiUrl}/analyze-costs`, data);
+  }
 }

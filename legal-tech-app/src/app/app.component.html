@@ -201,7 +201,8 @@
   </div>
 
   <main [class.pt-24]="authService.isAuthenticated()"
-    class="container mx-auto px-4 md:px-6 max-w-7xl flex-grow relative">
+    [ngClass]="authService.isAuthenticated() ? 'container mx-auto px-4 md:px-6 max-w-[1600px]' : 'w-full'"
+    class="flex-grow relative">
     <router-outlet></router-outlet>
   </main>
 

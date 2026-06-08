@@ -105,6 +105,23 @@ export class MercadopagoService {
     return { success: true };
   }
 
+  async simulateSubscriptionPayment(userId: string): Promise<{ success: boolean }> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30); // 30 days from now
+
+    await this.usersRepository.update(userId, {
+      subscriptionStatus: 'active',
+      subscriptionExpiresAt: expiresAt,
+      mpSubscriptionId: 'mock_sub_simulated_' + Math.floor(Math.random() * 1000000)
+    });
+
+    this.logger.log(`Simulated active subscription for user ${userId}`);
+    return { success: true };
+  }
+
   async handleWebhook(data: any): Promise<void> {
     this.logger.log(`Received Webhook: ${JSON.stringify(data)}`);
 

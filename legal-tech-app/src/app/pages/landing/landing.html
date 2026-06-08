@@ -1,24 +1,29 @@
-<div class="bg-slate-50 dark:bg-slate-900 transition-colors scroll-smooth selection:bg-blue-300 selection:text-blue-900 overflow-x-hidden">
+<div class="bg-slate-50 dark:bg-slate-900 transition-colors selection:bg-blue-300 selection:text-blue-900 relative">
   
-  <!-- Navigation Header -->
-  <header *ngIf="!authService.isAuthenticated()" class="absolute inset-x-0 top-0 z-50 animate-fade-in">
-    <nav class="flex items-center justify-between p-6 lg:px-8 max-w-7xl mx-auto" aria-label="Global">
-      <div class="flex lg:flex-1">
-        <a href="#" class="-m-1.5 p-1.5 flex items-center gap-3 group">
-          <span class="sr-only">Themis</span>
-          <img class="h-16 w-auto rounded-xl shadow-md group-hover:scale-105 transition-transform" src="favicon.png" alt="Themis Logo">
-          <span class="text-3xl font-black tracking-tight text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">Themis</span>
+  <!-- Floating background glow bubbles -->
+  <div class="glow-bubble glow-bubble-1"></div>
+  <div class="glow-bubble glow-bubble-2"></div>
+  <div class="glow-bubble glow-bubble-3"></div>
+
+  <!-- Sticky Glassmorphic Navbar -->
+  <header *ngIf="!authService.isAuthenticated()" class="fixed top-4 inset-x-0 z-50 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <nav class="glass-nav rounded-full px-6 py-3 flex items-center justify-between shadow-lg shadow-slate-100/50 dark:shadow-none" aria-label="Global">
+      <div class="flex items-center gap-2">
+        <a href="#" class="flex items-center gap-3 group">
+          <img class="h-10 w-auto rounded-xl shadow-md group-hover:rotate-6 transition-transform" src="favicon.png" alt="Themis Logo">
+          <span class="text-2xl font-black tracking-tight text-slate-950 dark:text-white group-hover:text-blue-600 transition-colors">Themis</span>
         </a>
       </div>
-      <div class="hidden lg:flex lg:gap-x-12">
-        <a href="#features" class="text-sm font-semibold leading-6 text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Funcionalidades</a>
-        <a href="#pricing" class="text-sm font-semibold leading-6 text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Planes y Precios</a>
+      <div class="hidden md:flex gap-x-8 items-center">
+        <a href="#features" class="text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Funcionalidades</a>
+        <a href="#preview" class="text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Demo Interactiva</a>
+        <a href="#pricing" class="text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Precios</a>
       </div>
-      <div class="hidden lg:flex lg:flex-1 lg:justify-end gap-x-6 items-center">
-        <a routerLink="/auth/login" class="text-sm font-semibold leading-6 text-slate-800 dark:text-slate-200 hover:text-blue-600 transition-colors">
+      <div class="flex items-center gap-x-4">
+        <a routerLink="/auth/login" class="text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 transition-colors px-3 py-1.5">
           Ingresar
         </a>
-        <a routerLink="/auth/register" class="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+        <a routerLink="/auth/register" class="rounded-full bg-blue-600 px-5 py-2 text-sm font-bold text-white shadow-md shadow-blue-500/20 hover:bg-blue-500 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all">
           Probar Gratis
         </a>
       </div>
@@ -26,188 +31,780 @@
   </header>
 
   <!-- Hero Section -->
-  <div class="relative isolate pt-14 flex flex-col justify-center overflow-hidden">
-    <!-- Beautiful gradient blur background -->
-    <div class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80" aria-hidden="true">
-      <div class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#9089fc] to-[#4f46e5] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"></div>
+  <section class="relative isolate pt-32 pb-16 flex flex-col justify-center items-center">
+    <div class="mx-auto max-w-4xl px-6 lg:px-8 text-center mt-12 animate-fade-in">
+      
+      <!-- AI Alert Badge -->
+      <div class="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold leading-6 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-700/10 dark:ring-indigo-300/30 bg-indigo-50/50 dark:bg-indigo-950/30 backdrop-blur-md mb-8 hover:scale-105 transition-transform cursor-pointer">
+        <span class="flex h-2 w-2 rounded-full bg-indigo-500 animate-ping"></span>
+        <span class="font-bold flex items-center gap-1">
+          <i class="pi pi-sparkles text-indigo-500"></i> Copilot IA 2.5 Flash
+        </span>
+        <span class="text-slate-500 dark:text-slate-400">redacción de escritos y resúmenes procesales</span>
+      </div>
+
+      <!-- Headline -->
+      <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-6xl lg:text-7xl leading-none text-balance">
+        Todo el poder de tu <span class="text-gradient-primary">Estudio Jurídico</span> en un solo lugar
+      </h1>
+      
+      <!-- Subparagraph -->
+      <p class="mt-8 text-lg sm:text-xl leading-8 text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium text-pretty">
+        Organizá expedientes, automatizá notificaciones por WhatsApp a clientes, y emití facturas AFIP al instante. Una plataforma moderna, ágil y con copiloto de IA.
+      </p>
+
+      <!-- Action buttons -->
+      <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
+        <a [routerLink]="authService.isAuthenticated() ? '/dashboard' : '/auth/register'" 
+           class="rounded-full bg-blue-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-blue-500/20 hover:bg-blue-500 hover:shadow-blue-500/40 hover:-translate-y-1 transition-all">
+          {{ authService.isAuthenticated() ? 'Ir a mi Panel de Control' : 'Crear Cuenta Gratis (14 días)' }}
+        </a>
+        <a href="#preview" class="rounded-full bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-6 py-4 text-base font-bold border border-slate-200 dark:border-slate-700 shadow-md hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors flex items-center gap-2 group">
+          Ver Demo en Vivo
+          <i class="pi pi-arrow-down group-hover:translate-y-1 transition-transform"></i>
+        </a>
+      </div>
     </div>
-    
-    <div class="mx-auto max-w-4xl py-24 sm:py-32 lg:pb-24 lg:pt-32 text-center animate-fade-in-up">
-      <div class="hidden sm:mb-10 sm:flex sm:justify-center">
-        <div class="relative rounded-full px-4 py-1.5 text-sm leading-6 text-slate-600 dark:text-slate-300 ring-1 ring-slate-900/10 dark:ring-white/20 hover:ring-slate-900/20 hover:scale-105 transition-all bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm cursor-pointer shadow-sm">
-          <span class="font-semibold text-blue-600 dark:text-blue-400 mr-2">¡Novedad!</span>
-          Ahora con IA para redacción automática. 
-          <a routerLink="/auth/register" class="font-semibold text-slate-900 dark:text-white ml-2">
-            <span class="absolute inset-0" aria-hidden="true"></span>Saber más <span aria-hidden="true">&rarr;</span>
-          </a>
+  </section>
+
+  <!-- Live Platform Preview Workspace Shell -->
+  <section id="preview" class="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto relative z-10 animate-fade-in" style="animation-delay: 0.2s;">
+    <div class="text-center mb-8">
+      <h2 class="text-xs font-bold leading-7 text-blue-600 dark:text-blue-400 tracking-widest uppercase">Explorá la aplicación</h2>
+      <p class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl mt-1">Hacé clic en las pestañas para probar Themis</p>
+    </div>
+
+    <!-- The Shell Container -->
+    <div class="platform-shell shadow-2xl">
+      <!-- Shell Header (Browser Header Mock) -->
+      <div class="bg-slate-100 dark:bg-slate-800/80 px-4 py-3 flex items-center border-b border-slate-200 dark:border-slate-700 gap-3">
+        <div class="flex gap-1.5">
+          <span class="w-3.5 h-3.5 rounded-full bg-rose-500 inline-block shadow-sm"></span>
+          <span class="w-3.5 h-3.5 rounded-full bg-amber-400 inline-block shadow-sm"></span>
+          <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 inline-block shadow-sm"></span>
+        </div>
+        <div class="flex-1 max-w-lg mx-auto bg-white dark:bg-slate-900/60 rounded-lg py-1 px-3 text-xs text-slate-400 dark:text-slate-500 border border-slate-200/50 dark:border-slate-800 flex items-center justify-between">
+          <span class="flex items-center gap-1.5 truncate">
+            <i class="pi pi-lock text-[10px] text-emerald-500"></i> https://themis.app/dashboard
+          </span>
+          <i class="pi pi-refresh text-[10px]"></i>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-xs font-bold text-slate-500 hidden sm:inline">Modo Demo</span>
         </div>
       </div>
-      <h1 class="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-7xl leading-tight">
-        Todo el poder de tu <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">Estudio Jurídico</span> en un solo lugar
-      </h1>
-      <p class="mt-8 text-xl leading-8 text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium">
-        Organizá tus expedientes, automatizá los avisos a tus clientes por WhatsApp y llevá el control real de tus cobros. Olvidate de los papeles y las planillas complicadas.
-      </p>
-      <div class="mt-10 flex items-center justify-center gap-x-6">
-        <a [routerLink]="authService.isAuthenticated() ? '/dashboard' : '/auth/register'" 
-           class="rounded-full bg-blue-600 px-6 py-3.5 text-base font-bold text-white shadow-xl shadow-blue-500/40 hover:bg-blue-500 hover:-translate-y-1 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-          {{ authService.isAuthenticated() ? 'Ir a mi Panel de Control' : 'Comienza tu prueba de 14 días' }}
-        </a>
-        <a href="#features" class="text-base font-semibold leading-6 text-slate-900 dark:text-white hover:text-blue-600 transition-colors flex items-center gap-2 group">
-          Ver funcionalidades
-          <i class="pi pi-arrow-right group-hover:translate-x-1 transition-transform text-sm"></i>
-        </a>
+
+      <!-- Shell Layout -->
+      <div class="flex flex-col md:flex-row min-h-[460px] bg-white dark:bg-slate-950">
+        
+        <!-- Mock Sidebar Navigation -->
+        <aside class="w-full md:w-60 bg-slate-50 dark:bg-slate-900/40 p-4 border-r border-slate-200/60 dark:border-slate-800 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-x-visible">
+          
+          <button (click)="setPreviewTab('dashboard')"
+                  [class.sidebar-item-active]="activePreviewTab() === 'dashboard'"
+                  class="flex-1 md:flex-initial flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800/40 transition-colors whitespace-nowrap">
+            <i class="pi pi-home text-base"></i>
+            <span class="hidden md:inline">Resumen General</span>
+          </button>
+          
+          <button (click)="setPreviewTab('kanban')"
+                  [class.sidebar-item-active]="activePreviewTab() === 'kanban'"
+                  class="flex-1 md:flex-initial flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800/40 transition-colors whitespace-nowrap">
+            <i class="pi pi-th-large text-base"></i>
+            <span class="hidden md:inline">Expedientes (Kanban)</span>
+          </button>
+
+          <button (click)="setPreviewTab('copilot')"
+                  [class.sidebar-item-active]="activePreviewTab() === 'copilot'"
+                  class="flex-1 md:flex-initial flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800/40 transition-colors whitespace-nowrap relative">
+            <i class="pi pi-sparkles text-base text-violet-500"></i>
+            <span class="hidden md:inline">Copilot IA</span>
+            <span class="absolute top-1 right-2 bg-indigo-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-black hidden lg:inline animate-pulse">PRO</span>
+          </button>
+
+          <button (click)="setPreviewTab('afip')"
+                  [class.sidebar-item-active]="activePreviewTab() === 'afip'"
+                  class="flex-1 md:flex-initial flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800/40 transition-colors whitespace-nowrap">
+            <i class="pi pi-file-pdf text-base text-emerald-500"></i>
+            <span class="hidden md:inline">Facturas AFIP</span>
+          </button>
+
+          <button (click)="setPreviewTab('whatsapp')"
+                  [class.sidebar-item-active]="activePreviewTab() === 'whatsapp'"
+                  class="flex-1 md:flex-initial flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800/40 transition-colors whitespace-nowrap">
+            <i class="pi pi-whatsapp text-base text-green-500"></i>
+            <span class="hidden md:inline">WhatsApp Alerts</span>
+          </button>
+
+        </aside>
+
+        <!-- Mock Active Tab Panel View -->
+        <main class="flex-1 p-6 bg-slate-50/50 dark:bg-slate-900/10 overflow-y-auto">
+          
+          <!-- TAB 1: DASHBOARD MOCKUP -->
+          <div *ngIf="activePreviewTab() === 'dashboard'" class="space-y-6 animate-fade-in">
+            <!-- Stats Row -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 shadow-sm simulated-card">
+                <span class="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">Expedientes</span>
+                <p class="text-2xl font-black text-slate-800 dark:text-white mt-1">142</p>
+                <span class="text-[10px] text-emerald-500 font-bold"><i class="pi pi-arrow-up"></i> +12% este mes</span>
+              </div>
+              <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 shadow-sm simulated-card">
+                <span class="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">Clientes</span>
+                <p class="text-2xl font-black text-slate-800 dark:text-white mt-1">84</p>
+                <span class="text-[10px] text-blue-500 font-bold">3 ingresados hoy</span>
+              </div>
+              <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 shadow-sm simulated-card">
+                <span class="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">Vencimientos Hoy</span>
+                <p class="text-2xl font-black text-rose-500 mt-1">3</p>
+                <span class="text-[10px] text-rose-400 font-bold">2 ya notificados</span>
+              </div>
+              <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 shadow-sm simulated-card">
+                <span class="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">Facturación</span>
+                <p class="text-2xl font-black text-slate-800 dark:text-white mt-1">$340K</p>
+                <span class="text-[10px] text-emerald-500 font-bold"><i class="pi pi-arrow-up"></i> +24% vs mayo</span>
+              </div>
+            </div>
+
+            <!-- Dashboard Charts Mock -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Income Chart Mock -->
+              <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 shadow-sm">
+                <h4 class="text-sm font-bold text-slate-800 dark:text-white mb-4">Evolución de Ingresos (Honorarios)</h4>
+                <div class="flex items-end justify-between h-40 pt-4 px-2">
+                  <div class="flex flex-col items-center gap-2 w-12">
+                    <div class="w-full bg-blue-100 dark:bg-blue-950/40 rounded-t-lg h-20"></div>
+                    <span class="text-[10px] text-slate-400">Mar</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-2 w-12">
+                    <div class="w-full bg-blue-200 dark:bg-blue-900/30 rounded-t-lg h-24"></div>
+                    <span class="text-[10px] text-slate-400">Abr</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-2 w-12">
+                    <div class="w-full bg-blue-500 dark:bg-blue-600 rounded-t-lg h-32"></div>
+                    <span class="text-[10px] text-slate-400">May</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-2 w-12">
+                    <div class="w-full bg-gradient-to-t from-blue-600 to-indigo-500 rounded-t-lg h-36 relative">
+                      <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] px-1 py-0.5 rounded font-bold whitespace-nowrap">$340k</div>
+                    </div>
+                    <span class="text-[10px] font-bold text-blue-600 dark:text-blue-400">Jun (Actual)</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recent Activity List Mock -->
+              <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 shadow-sm">
+                <h4 class="text-sm font-bold text-slate-800 dark:text-white mb-4">Actividad del Estudio</h4>
+                <div class="space-y-3">
+                  <div class="flex items-start gap-3 text-xs">
+                    <span class="w-2 h-2 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></span>
+                    <div class="flex-1">
+                      <p class="font-bold text-slate-700 dark:text-slate-300">WhatsApp enviado automáticamente</p>
+                      <p class="text-[10px] text-slate-400">Aviso de vencimiento enviado a Juan Pérez (Causa Daños)</p>
+                    </div>
+                    <span class="text-[10px] text-slate-400">Hace 15m</span>
+                  </div>
+                  <div class="flex items-start gap-3 text-xs">
+                    <span class="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></span>
+                    <div class="flex-1">
+                      <p class="font-bold text-slate-700 dark:text-slate-300">Escrito generado con Copilot IA</p>
+                      <p class="text-[10px] text-slate-400">Contestación de demanda redactada exitosamente</p>
+                    </div>
+                    <span class="text-[10px] text-slate-400">Hace 1h</span>
+                  </div>
+                  <div class="flex items-start gap-3 text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0"></span>
+                    <div class="flex-1">
+                      <p class="font-bold text-slate-700 dark:text-slate-300">Factura Electrónica C emitida</p>
+                      <p class="text-[10px] text-slate-400">Factura N° 0001-00000214 emitida a Consorcio Avellaneda</p>
+                    </div>
+                    <span class="text-[10px] text-slate-400">Hace 3h</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: KANBAN MOCKUP -->
+          <div *ngIf="activePreviewTab() === 'kanban'" class="space-y-4 animate-fade-in">
+            <h4 class="text-sm font-bold text-slate-800 dark:text-white mb-2">Tablero de Expedientes (Seguimiento Procesal)</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              <!-- Column 1 -->
+              <div class="bg-slate-100/60 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-200/50 dark:border-slate-800">
+                <div class="flex justify-between items-center mb-3">
+                  <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Iniciados</span>
+                  <span class="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] px-2 py-0.5 rounded-full font-bold">2</span>
+                </div>
+                <div class="space-y-2.5">
+                  <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-700 simulated-card">
+                    <span class="bg-blue-150 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase">Civil</span>
+                    <h5 class="text-xs font-bold text-slate-700 dark:text-slate-200 mt-1.5">Pérez c/ Gómez s/ Daños</h5>
+                    <p class="text-[10px] text-slate-450 dark:text-slate-400 mt-1">Juzg. Civil 3 - Apertura de trámite</p>
+                    <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-100 dark:border-slate-700/50">
+                      <span class="text-[9px] text-rose-500 font-bold"><i class="pi pi-calendar"></i> Hoy</span>
+                      <span class="text-[9px] text-slate-400">Exp. 7412/26</span>
+                    </div>
+                  </div>
+                  <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-700 simulated-card">
+                    <span class="bg-purple-150 text-purple-600 dark:bg-purple-950/40 dark:text-purple-300 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase">Familia</span>
+                    <h5 class="text-xs font-bold text-slate-700 dark:text-slate-200 mt-1.5">Sánchez s/ Divorcio</h5>
+                    <p class="text-[10px] text-slate-450 dark:text-slate-400 mt-1">Juzg. Familia 2 - Convenio regulador</p>
+                    <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-100 dark:border-slate-700/50">
+                      <span class="text-[9px] text-slate-450 dark:text-slate-450"><i class="pi pi-calendar"></i> 15 Jun</span>
+                      <span class="text-[9px] text-slate-400">Exp. 9534/26</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Column 2 -->
+              <div class="bg-slate-100/60 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-200/50 dark:border-slate-800">
+                <div class="flex justify-between items-center mb-3">
+                  <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">En Prueba</span>
+                  <span class="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 text-[10px] px-2 py-0.5 rounded-full font-bold">1</span>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-700 simulated-card">
+                  <span class="bg-emerald-150 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase">Laboral</span>
+                  <h5 class="text-xs font-bold text-slate-700 dark:text-slate-200 mt-1.5">Rodríguez c/ FastFood S.A.</h5>
+                  <p class="text-[10px] text-slate-450 dark:text-slate-400 mt-1">Trib. Trabajo 1 - Oficios a contestar</p>
+                  <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-100 dark:border-slate-700/50">
+                    <span class="text-[9px] text-amber-500 font-bold"><i class="pi pi-calendar"></i> Mañana</span>
+                    <span class="text-[9px] text-slate-400">Exp. 2489/25</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Column 3 -->
+              <div class="bg-slate-100/60 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-200/50 dark:border-slate-800">
+                <div class="flex justify-between items-center mb-3">
+                  <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Para Sentencia</span>
+                  <span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-bold">1</span>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-700 simulated-card">
+                  <span class="bg-blue-150 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase">Civil</span>
+                  <h5 class="text-xs font-bold text-slate-700 dark:text-slate-200 mt-1.5">Consorcio c/ Martínez</h5>
+                  <p class="text-[10px] text-slate-450 dark:text-slate-400 mt-1">Juzg. Civil 12 - Autos para sentencia</p>
+                  <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-100 dark:border-slate-700/50">
+                    <span class="text-[9px] text-emerald-500 font-bold"><i class="pi pi-check"></i> Sentencia firme</span>
+                    <span class="text-[9px] text-slate-400">Exp. 4110/24</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- TAB 3: COPILOT IA -->
+          <div *ngIf="activePreviewTab() === 'copilot'" class="space-y-4 animate-fade-in flex flex-col h-full justify-between">
+            <div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+              <i class="pi pi-sparkles text-violet-500 text-lg"></i>
+              <div>
+                <h4 class="text-sm font-bold text-slate-850 dark:text-white">Copiloto IA Themis</h4>
+                <p class="text-[10px] text-slate-400">Escribí tus instrucciones y la IA redactará el texto por vos</p>
+              </div>
+            </div>
+
+            <!-- Chat simulation -->
+            <div class="space-y-3 flex-1 overflow-y-auto max-h-[300px] py-2">
+              <!-- User Message -->
+              <div class="flex justify-end">
+                <div class="bg-blue-600 text-white rounded-2xl rounded-tr-none px-4 py-2 text-xs max-w-[80%] shadow-sm">
+                  Copilot, redactá una carta documento intimando al inquilino Carlos García a pagar expensas de la unidad 4B, adeudando los meses de marzo, abril y mayo de 2026.
+                </div>
+              </div>
+              
+              <!-- Copilot response -->
+              <div class="flex gap-2">
+                <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white flex-shrink-0 shadow-md">
+                  <i class="pi pi-sparkles text-xs"></i>
+                </div>
+                <div class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-2xl rounded-tl-none px-4 py-3 text-xs max-w-[85%] border border-slate-200/80 dark:border-slate-700 shadow-sm relative">
+                  <p class="font-bold text-[10px] text-indigo-500 mb-1">CARTA DOCUMENTO REDACTADA:</p>
+                  <pre class="font-mono text-[9px] overflow-x-auto bg-slate-50 dark:bg-slate-900 p-2.5 rounded-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-full">
+En mi carácter de Letrado Apoderado de la Administración del Consorcio de Propietarios Calle Falsa 123, INTIMO a usted en su carácter de locatario de la Unidad Funcional 4B, al perentorio plazo de diez (10) días corridos de recibida la presente, a abonar la suma de $150.000, en concepto de expensas adeudadas por los meses de marzo, abril y mayo del corriente año. Todo bajo apercibimiento de iniciar las acciones legales correspondientes.</pre>
+                  
+                  <!-- Fake actions inside bubble -->
+                  <div class="mt-3 flex gap-2">
+                    <button class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-3 py-1.5 rounded-lg text-[9px] font-bold text-slate-700 dark:text-slate-350 flex items-center gap-1">
+                      <i class="pi pi-copy text-[8px]"></i> Copiar
+                    </button>
+                    <button class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-bold flex items-center gap-1">
+                      <i class="pi pi-file-word text-[8px]"></i> Descargar Word
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 4: AFIP BILLING -->
+          <div *ngIf="activePreviewTab() === 'afip'" class="space-y-4 animate-fade-in">
+            <h4 class="text-sm font-bold text-slate-800 dark:text-white mb-2">Simulación de Factura Electrónica AFIP</h4>
+            
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-250 dark:border-slate-700/80 shadow-md text-slate-700 dark:text-slate-300 max-w-lg mx-auto">
+              <!-- Invoice Header -->
+              <div class="flex justify-between items-start border-b border-slate-200 dark:border-slate-700 pb-4">
+                <div>
+                  <h5 class="text-lg font-black text-slate-900 dark:text-white">FACTURA C</h5>
+                  <p class="text-[10px] text-slate-400 mt-0.5">ORIGINAL</p>
+                  <p class="text-[10px] text-slate-400">Cod. Autorización: 011</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-[10px] font-bold">N° 0001-00000452</p>
+                  <p class="text-[10px] text-slate-400 mt-0.5">Fecha Emisión: 06/06/2026</p>
+                  <p class="text-[10px] text-slate-400">Punto de Venta: 1</p>
+                </div>
+              </div>
+
+              <!-- Invoice details -->
+              <div class="py-4 text-xs space-y-2 border-b border-slate-100 dark:border-slate-700/50">
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Emisor CUIT:</span>
+                  <span class="font-semibold text-slate-800 dark:text-slate-250">20-34567890-9</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Razón Social:</span>
+                  <span class="font-semibold text-slate-800 dark:text-slate-250">Estudio Jurídico Themis</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Receptor:</span>
+                  <span class="font-semibold text-slate-800 dark:text-slate-250">García, Carlos (CUIT: 27-23847596-3)</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Condición IVA:</span>
+                  <span class="font-semibold text-slate-800 dark:text-slate-250">Consumidor Final</span>
+                </div>
+              </div>
+
+              <!-- concept list -->
+              <div class="py-3 text-xs border-b border-slate-100 dark:border-slate-700/50">
+                <table class="w-full">
+                  <thead>
+                    <tr class="text-left text-slate-400 text-[10px] uppercase">
+                      <th class="pb-2">Concepto / Detalle</th>
+                      <th class="pb-2 text-right">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="py-1 text-slate-800 dark:text-slate-200">Honorarios Prof. - Causa Pérez c/ Gómez</td>
+                      <td class="py-1 text-right font-bold text-slate-900 dark:text-white">$75.000,00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Total & CAE -->
+              <div class="pt-4 flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4">
+                <!-- AFIP Valid Sticker -->
+                <div class="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-350 border border-emerald-250 dark:border-emerald-900/60 px-3.5 py-1.5 rounded-xl flex items-center gap-2 shadow-sm text-[10px] font-bold">
+                  <i class="pi pi-check-circle text-xs text-emerald-500"></i>
+                  <div>
+                    <p>CAE AUTORIZADO: 76238491823746</p>
+                    <p class="text-[9px] text-slate-400 font-normal mt-0.5">Vencimiento: 16/06/2026</p>
+                  </div>
+                </div>
+                
+                <div class="text-right">
+                  <span class="text-xs text-slate-400">TOTAL FACTURADO:</span>
+                  <p class="text-2xl font-black text-slate-900 dark:text-white">$75.000,00</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- TAB 5: WHATSAPP NOTIFICATION -->
+          <div *ngIf="activePreviewTab() === 'whatsapp'" class="space-y-4 animate-fade-in flex justify-center">
+            
+            <!-- Phone wrapper layout -->
+            <div class="w-72 bg-slate-950 rounded-[36px] p-3 shadow-2xl border-4 border-slate-800 relative">
+              <div class="absolute top-4 left-1/2 -translate-x-1/2 bg-black h-4 w-28 rounded-full z-20"></div>
+              
+              <!-- Screen content -->
+              <div class="bg-[#efeae2] dark:bg-slate-900 rounded-[28px] overflow-hidden flex flex-col h-[340px] text-xs">
+                
+                <!-- Phone top bar -->
+                <div class="bg-[#005c4b] dark:bg-slate-800 text-white px-4 py-2.5 pt-5 flex items-center gap-2 shadow-sm">
+                  <i class="pi pi-angle-left text-sm cursor-pointer"></i>
+                  <div class="w-6 h-6 rounded-full bg-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-700">JP</div>
+                  <div>
+                    <p class="font-bold text-[10px]">Juan Pérez (Cliente)</p>
+                    <p class="text-[8px] text-slate-200">En línea</p>
+                  </div>
+                </div>
+
+                <!-- Chat history -->
+                <div class="flex-1 p-3 space-y-2.5 overflow-y-auto">
+                  <!-- System alert template -->
+                  <div class="bg-white dark:bg-slate-850 p-2.5 rounded-xl rounded-tl-none shadow-sm border border-slate-200/50 dark:border-slate-800 text-[10px] leading-relaxed max-w-[85%] text-slate-800 dark:text-slate-200">
+                    <p class="font-black text-green-600 dark:text-green-400 mb-0.5"><i class="pi pi-whatsapp"></i> Recordatorio Automático</p>
+                    Estimado Juan Pérez, le recordamos que su cuota N° 2 ($15.000) por el expediente "Pérez c/ Gómez" vence el día 10/06. Puede realizar su pago en el siguiente link de MercadoPago: 
+                    <a href="#" class="text-blue-500 hover:underline block mt-1 font-bold">https://themis.app/p/pay_98a7s</a>
+                  </div>
+
+                  <!-- Client response -->
+                  <div class="flex justify-end">
+                    <div class="bg-[#d9fdd3] dark:bg-[#005c4b]/50 p-2.5 rounded-xl rounded-tr-none shadow-sm text-[10px] leading-relaxed max-w-[85%] text-slate-800 dark:text-slate-200">
+                      Hola Dr. Excelente, muchas gracias por avisar. Ya acabo de pagar en el link, me llegó la confirmación de pago de MercadoPago. ¡Saludos!
+                    </div>
+                  </div>
+
+                  <!-- Automatic payment acknowledgment -->
+                  <div class="bg-white dark:bg-slate-850 p-2.5 rounded-xl rounded-tl-none shadow-sm border border-slate-200/50 dark:border-slate-800 text-[10px] leading-relaxed max-w-[85%] text-slate-800 dark:text-slate-200">
+                    <p class="font-black text-green-600 dark:text-green-400 mb-0.5"><i class="pi pi-whatsapp"></i> Pago Recibido</p>
+                    ¡Hemos registrado su pago de $15.000! Su nuevo saldo de cuenta corriente es de $0. Se ha generado la Factura C correspondiente y está disponible en su perfil. ¡Gracias!
+                  </div>
+                </div>
+
+                <!-- Chat input placeholder -->
+                <div class="bg-slate-100 dark:bg-slate-800/80 p-2 border-t border-slate-200/40 dark:border-slate-700/60 flex items-center gap-2">
+                  <div class="flex-1 bg-white dark:bg-slate-900 rounded-full py-1 px-3 text-[9px] text-slate-400">Mensaje...</div>
+                  <i class="pi pi-send text-[#005c4b] dark:text-emerald-500 text-xs mr-1"></i>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </main>
       </div>
     </div>
-    
-    <!-- Hero Mockup Image with floating effect -->
-    <div class="mx-auto max-w-7xl px-6 lg:px-8 mt-4 sm:mt-10 pb-20 animate-fade-in-up" style="animation-delay: 0.3s; animation-fill-mode: both;">
-      <div class="relative rounded-2xl bg-slate-900/5 p-2 ring-1 ring-inset ring-slate-900/10 lg:-m-4 lg:rounded-3xl lg:p-4 shadow-2xl backdrop-blur-3xl transform hover:-translate-y-2 transition-transform duration-500">
-        <img src="assets/lexsaas_dashboard_mockup.png" alt="App Dashboard Mockup" class="w-full rounded-xl shadow-2xl ring-1 ring-slate-900/10 dark:ring-white/10 mx-auto" />
-      </div>
-    </div>
-  </div>
+  </section>
 
   <!-- Divider -->
   <div class="w-full border-t border-slate-200 dark:border-slate-800"></div>
 
-  <!-- Features Section -->
-  <div id="features" class="py-24 sm:py-32 bg-white dark:bg-slate-900 relative overflow-hidden">
-    <!-- Abstract background shape -->
-    <div class="absolute right-0 top-0 -z-10 blur-3xl opacity-30">
-        <div class="aspect-square w-[50rem] rounded-full bg-gradient-to-br from-blue-400 to-indigo-200 translate-x-1/2 -translate-y-1/2"></div>
-    </div>
-
-    <div class="mx-auto max-w-7xl px-6 lg:px-8 animate-fade-in-up" style="animation-delay: 0.2s;">
-      <div class="mx-auto max-w-2xl text-center">
-        <h2 class="text-base font-bold leading-7 text-blue-600 dark:text-blue-400 tracking-wide uppercase">Diseñado para Abogados</h2>
+  <!-- Features Grid Section -->
+  <section id="features" class="py-24 bg-white dark:bg-slate-900 relative overflow-hidden">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      
+      <div class="mx-auto max-w-3xl text-center">
+        <h2 class="text-base font-bold leading-7 text-blue-600 dark:text-blue-400 tracking-widest uppercase">Diseñado para Abogados</h2>
         <p class="mt-2 text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-5xl">Trabajá más ordenado y con menos estrés</p>
         <p class="mt-6 text-lg leading-8 text-slate-600 dark:text-slate-400 font-medium">
-          Sabemos que el tiempo es tu recurso más valioso. Themis te ayuda a centralizar la información para que encuentres todo al instante.
+          Sabemos que el tiempo es tu recurso más valioso. Themis centraliza toda la actividad de tus juicios y tus finanzas en una plataforma moderna y fluida.
         </p>
       </div>
       
       <div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-        <dl class="grid max-w-xl grid-cols-1 gap-x-12 gap-y-16 lg:max-w-none lg:grid-cols-3">
+        <dl class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-12 lg:max-w-none lg:grid-cols-3">
           
           <!-- Feature 1 -->
-          <div class="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:border-blue-200 dark:hover:border-blue-900 transition-all hover:-translate-y-1">
+          <div class="flex flex-col p-8 rounded-3xl glass-card">
             <dt class="flex flex-col gap-y-4 text-xl font-bold leading-7 text-slate-900 dark:text-white">
-              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg">
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20">
                 <i class="pi pi-folder-open text-xl"></i>
               </div>
               Tus Expedientes al Día
             </dt>
-            <dd class="mt-4 flex flex-auto flex-col text-base leading-7 text-slate-600 dark:text-slate-400">
-              <p class="flex-auto">Tené a mano los datos de caratula, juzgado, clientes y contrarios. Subí todos los escritos y escaneos sin preocuparte por el espacio. El buscador rápido te salva cuando estás en mesa de entradas.</p>
+            <dd class="mt-4 flex flex-auto flex-col text-sm leading-7 text-slate-600 dark:text-slate-400">
+              <p class="flex-auto">Tené a mano datos de carátula, radicación, clientes y contrarios. Subí todos los escritos y escaneos a la nube sin preocuparte por el espacio. El buscador rápido te salva en mesa de entradas.</p>
             </dd>
           </div>
 
           <!-- Feature 2 -->
-          <div class="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:border-green-200 dark:hover:border-green-900 transition-all hover:-translate-y-1">
+          <div class="flex flex-col p-8 rounded-3xl glass-card">
             <dt class="flex flex-col gap-y-4 text-xl font-bold leading-7 text-slate-900 dark:text-white">
-              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500 text-white shadow-lg">
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500 text-white shadow-lg shadow-green-500/20">
                 <i class="pi pi-whatsapp text-xl"></i>
               </div>
-              Avisos Automáticos por WhatsApp
+              Avisos por WhatsApp
             </dt>
-            <dd class="mt-4 flex flex-auto flex-col text-base leading-7 text-slate-600 dark:text-slate-400">
-              <p class="flex-auto">¿Cansado de mandar el mismo mensaje a todos? Configurá el sistema para que le recuerde automáticamente a tus clientes sobre sus saldos o fechas importantes directamente a sus teléfonos.</p>
+            <dd class="mt-4 flex flex-auto flex-col text-sm leading-7 text-slate-600 dark:text-slate-400">
+              <p class="flex-auto">Vinculá tu WhatsApp Web al sistema. Enviá recordatorios de cobro y novedades procesales automáticamente. Ahorrá horas de llamadas repetitivas y mantené a tus clientes contentos.</p>
             </dd>
           </div>
 
           <!-- Feature 3 -->
-          <div class="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:border-purple-200 dark:hover:border-purple-900 transition-all hover:-translate-y-1">
+          <div class="flex flex-col p-8 rounded-3xl glass-card">
             <dt class="flex flex-col gap-y-4 text-xl font-bold leading-7 text-slate-900 dark:text-white">
-              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-600 text-white shadow-lg">
-                <i class="pi pi-chart-line text-xl"></i>
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-500/20">
+                <i class="pi pi-sparkles text-xl"></i>
               </div>
-              Cobros y Facturación Simples
+              Copiloto Judicial con IA
             </dt>
-            <dd class="mt-4 flex flex-auto flex-col text-base leading-7 text-slate-600 dark:text-slate-400">
-              <p class="flex-auto">Llevá el registro exacto de los ingresos de cada expediente. Generá e imprimí recibos profesionales en segundos y armá planes de cuotas claros para que vos y tu cliente tengan previsibilidad.</p>
+            <dd class="mt-4 flex flex-auto flex-col text-sm leading-7 text-slate-600 dark:text-slate-400">
+              <p class="flex-auto">Analizá documentos extensos, resumí notificaciones de juzgados, estimá probabilidades de éxito de pleitos, y generá borradores de escritos en segundos con nuestro modelo Gemini premium integrado.</p>
+            </dd>
+          </div>
+
+          <!-- Feature 4 -->
+          <div class="flex flex-col p-8 rounded-3xl glass-card">
+            <dt class="flex flex-col gap-y-4 text-xl font-bold leading-7 text-slate-900 dark:text-white">
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20">
+                <i class="pi pi-file-pdf text-xl"></i>
+              </div>
+              Facturas AFIP en 1 Clic
+            </dt>
+            <dd class="mt-4 flex flex-auto flex-col text-sm leading-7 text-slate-600 dark:text-slate-400">
+              <p class="flex-auto">Generá facturas autorizadas por AFIP de manera directa sin salir del sistema. Configura tu CUIT, certificado de homologación o producción y facturá automáticamente los honorarios a tus clientes.</p>
+            </dd>
+          </div>
+
+          <!-- Feature 5 -->
+          <div class="flex flex-col p-8 rounded-3xl glass-card">
+            <dt class="flex flex-col gap-y-4 text-xl font-bold leading-7 text-slate-900 dark:text-white">
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500 text-white shadow-lg shadow-amber-500/20">
+                <i class="pi pi-calendar text-xl"></i>
+              </div>
+              Agenda & Notificaciones PWA
+            </dt>
+            <dd class="mt-4 flex flex-auto flex-col text-sm leading-7 text-slate-600 dark:text-slate-400">
+              <p class="flex-auto">Seguimiento de audiencias, términos y vencimientos. Alertamos a tu teléfono y computadora mediante notificaciones push en tiempo real para que nunca más se te venza un plazo legal.</p>
+            </dd>
+          </div>
+
+          <!-- Feature 6 -->
+          <div class="flex flex-col p-8 rounded-3xl glass-card">
+            <dt class="flex flex-col gap-y-4 text-xl font-bold leading-7 text-slate-900 dark:text-white">
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-500 text-white shadow-lg shadow-rose-500/20">
+                <i class="pi pi-shield text-xl"></i>
+              </div>
+              Seguridad & Auditorías
+            </dt>
+            <dd class="mt-4 flex flex-auto flex-col text-sm leading-7 text-slate-600 dark:text-slate-400">
+              <p class="flex-auto">Los datos de tu estudio y tus clientes están encriptados. Cada movimiento de dinero y modificación de expediente queda registrado en un log de auditoría permanente para tu tranquilidad.</p>
             </dd>
           </div>
           
         </dl>
       </div>
+    </div>
+  </section>
 
-      <div class="mx-auto max-w-5xl mt-24">
-         <div class="relative rounded-2xl p-2 lg:p-4 shadow-2xl overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 group">
-            <img src="assets/lexsaas_cases_mockup.png" alt="Gestión de Expedientes" class="w-full rounded-xl shadow-inner group-hover:scale-105 transition-transform duration-700 ease-out" />
-            <!-- Overlay gradient to give it a pop -->
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent pointer-events-none rounded-2xl"></div>
-         </div>
+  <!-- Metric Statistics Grid Section -->
+  <section class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white py-20 relative overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.1),transparent)] pointer-events-none"></div>
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="grid grid-cols-1 gap-x-8 gap-y-16 text-center lg:grid-cols-3">
+        <div class="flex flex-col items-center gap-y-3">
+          <span class="text-5xl font-black tracking-tight text-blue-400">+10.000</span>
+          <span class="text-sm font-semibold uppercase tracking-widest text-slate-400">Expedientes Gestionados</span>
+        </div>
+        <div class="flex flex-col items-center gap-y-3">
+          <span class="text-5xl font-black tracking-tight text-emerald-450">99.98%</span>
+          <span class="text-sm font-semibold uppercase tracking-widest text-slate-400">Tiempo de Actividad Online</span>
+        </div>
+        <div class="flex flex-col items-center gap-y-3">
+          <span class="text-5xl font-black tracking-tight text-purple-400">80%</span>
+          <span class="text-sm font-semibold uppercase tracking-widest text-slate-400">Reducción de Tiempo de Gestión</span>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
 
   <!-- Pricing Section -->
-  <div id="pricing" class="py-24 sm:py-32 bg-slate-900 text-white">
-    <div class="mx-auto max-w-7xl px-6 lg:px-8 text-center animate-fade-in-up">
-      <div class="mx-auto max-w-2xl sm:text-center">
-        <h2 class="text-3xl font-extrabold tracking-tight sm:text-5xl">Planes transparentes que crecen con vos</h2>
-        <p class="mt-6 text-xl leading-8 text-slate-300">
-          Probá la plataforma full sin límites hoy mismo. Sin poner la tarjeta y sin compromisos raros.
+  <section id="pricing" class="py-24 bg-slate-950 text-white relative">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
+      
+      <div class="mx-auto max-w-3xl text-center">
+        <h2 class="text-xs font-bold leading-7 text-blue-400 tracking-widest uppercase">Precios Simples</h2>
+        <p class="mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl">Planes transparentes que crecen con vos</p>
+        <p class="mt-6 text-lg leading-8 text-slate-400">
+          Probá la plataforma full sin límites hoy mismo. Sin requerir tarjetas y con toda la tranquilidad del soporte local.
         </p>
+
+        <!-- Billing Interval Switcher -->
+        <div class="mt-10 flex items-center justify-center gap-4">
+          <span [class.switch-label-active]="billingCycle() === 'monthly'" class="text-sm font-bold text-slate-400 transition-colors">Mensual</span>
+          <button (click)="toggleBillingCycle()" 
+                  class="w-14 h-8 bg-slate-800 hover:bg-slate-700 rounded-full p-1 transition-colors relative flex items-center">
+            <span [class.translate-x-6]="billingCycle() === 'yearly'" 
+                  class="w-6 h-6 bg-blue-600 rounded-full shadow-md transition-transform duration-300 block transform"></span>
+          </button>
+          <span [class.switch-label-active]="billingCycle() === 'yearly'" class="text-sm font-bold text-slate-400 transition-colors flex items-center gap-1.5">
+            Anual <span class="bg-emerald-500 text-slate-950 text-[10px] px-2 py-0.5 rounded-full font-black uppercase">Ahorrá 20%</span>
+          </span>
+        </div>
       </div>
-      <div class="mx-auto mt-16 grid max-w-lg grid-cols-1 items-stretch gap-8 sm:mt-20 lg:max-w-4xl lg:grid-cols-2 text-left">
+
+      <!-- Pricing cards -->
+      <div class="mx-auto mt-16 grid max-w-lg grid-cols-1 items-stretch gap-8 sm:mt-20 lg:max-w-4xl lg:grid-cols-2">
         
         <!-- Básico -->
-        <div class="flex flex-col justify-between rounded-3xl bg-slate-800 p-8 ring-1 ring-slate-700 xl:p-10 hover:ring-blue-500/50 transition-shadow hover:shadow-2xl hover:shadow-blue-900/20">
+        <div class="flex flex-col justify-between rounded-3xl bg-slate-900 p-8 ring-1 ring-slate-800 xl:p-10 hover:ring-slate-700 transition-all">
           <div>
             <div class="flex items-center justify-between gap-x-4">
-              <h3 class="text-xl font-semibold leading-8 text-white">Plan Básico</h3>
+              <h3 class="text-xl font-bold leading-8 text-white">Plan Básico</h3>
             </div>
-            <p class="mt-4 text-sm leading-6 text-slate-400">Perfecto para abogados independientes construyendo su cartera.</p>
+            <p class="mt-4 text-xs leading-6 text-slate-400">Perfecto para abogados independientes e inicio de cartera.</p>
             <p class="mt-6 flex items-baseline gap-x-1">
-              <span class="text-5xl font-bold tracking-tight text-white">Gratis</span>
+              <span class="text-5xl font-black tracking-tight text-white">Gratis</span>
             </p>
-            <ul role="list" class="mt-8 space-y-3 text-sm leading-6 text-slate-300">
-              <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-blue-400 text-lg"></i> CRM de Clientes Completo</li>
-              <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-blue-400 text-lg"></i> Límite de 30 Expedientes Activos</li>
-              <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-blue-400 text-lg"></i> Agenda Básica</li>
-              <li class="flex gap-x-3 items-center opacity-50"><i class="pi pi-times-circle text-slate-500 text-lg"></i> Sin Bot de WhatsApp</li>
+            <ul role="list" class="mt-8 space-y-3.5 text-xs leading-6 text-slate-300">
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check text-blue-400 font-bold"></i> CRM de Clientes Completo</li>
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check text-blue-400 font-bold"></i> Límite de 30 Expedientes Activos</li>
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check text-blue-400 font-bold"></i> Agenda e Historial Básico</li>
+              <li class="flex gap-x-3 items-center opacity-50"><i class="pi pi-times text-slate-600 font-bold"></i> Sin Alertas por WhatsApp</li>
+              <li class="flex gap-x-3 items-center opacity-50"><i class="pi pi-times text-slate-600 font-bold"></i> Sin Copiloto de IA</li>
             </ul>
           </div>
           <a [routerLink]="authService.isAuthenticated() ? '/dashboard' : '/auth/register'" 
-             class="mt-8 block rounded-xl py-3 px-3 text-center text-sm font-bold leading-6 text-white ring-1 ring-inset ring-slate-600 hover:bg-slate-700 transition-colors">
+             class="mt-8 block rounded-2xl py-3 px-3 text-center text-xs font-bold leading-6 text-white bg-slate-800 hover:bg-slate-700 transition-colors">
             {{ authService.isAuthenticated() ? 'Volver al Dashboard' : 'Crear Cuenta Gratis' }}
           </a>
         </div>
 
-        <!-- Pro -->
-        <div class="flex flex-col justify-between rounded-3xl bg-blue-600 p-8 shadow-2xl shadow-blue-900/50 ring-1 ring-blue-500 relative xl:p-10 transform lg:-translate-y-4 hover:-translate-y-6 transition-transform">
-          <div class="absolute -top-4 right-8 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 text-xs font-black uppercase px-3 py-1 rounded-full shadow-md animate-bounce-slow">
+        <!-- Pro (Highlighted) -->
+        <div class="flex flex-col justify-between rounded-3xl bg-blue-600/90 p-8 ring-1 ring-blue-500 relative xl:p-10 pricing-card-pro shadow-2xl transition-all">
+          <div class="absolute -top-4 right-8 bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-950 text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-md">
             Recomendado
           </div>
           <div>
-            <h3 class="text-xl font-semibold leading-8 text-white">Estudio Pro</h3>
-            <p class="mt-4 text-sm leading-6 text-blue-100">La tranquilidad de tener todo tu estudio digitalizado, sin restricciones.</p>
-            <p class="mt-6 flex items-baseline gap-x-1">
-              <span class="text-5xl font-bold tracking-tight text-white">$15.000</span>
+            <h3 class="text-xl font-bold leading-8 text-white">Estudio Pro</h3>
+            <p class="mt-4 text-xs leading-6 text-blue-100">La tranquilidad de digitalizar todo tu estudio jurídico, sin restricciones.</p>
+            
+            <p class="mt-6 flex items-baseline gap-x-1" *ngIf="billingCycle() === 'monthly'">
+              <span class="text-5xl font-black tracking-tight text-white">$15.000</span>
               <span class="text-sm font-semibold leading-6 text-blue-200">ARS / mes</span>
             </p>
-            <ul role="list" class="mt-8 space-y-3 text-sm leading-6 text-blue-50">
-              <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-white text-lg drop-shadow-sm"></i> Expedientes y Clientes Ilimitados</li>
-              <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-white text-lg drop-shadow-sm"></i> Notificaciones por WhatsApp Automáticas</li>
-              <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-white text-lg drop-shadow-sm"></i> Facturación y Reportes Avanzados</li>
-              <li class="flex gap-x-3 items-center"><i class="pi pi-check-circle text-white text-lg drop-shadow-sm"></i> Soporte Prioritario 24/7</li>
+            <p class="mt-6 flex items-baseline gap-x-1" *ngIf="billingCycle() === 'yearly'">
+              <span class="text-5xl font-black tracking-tight text-white">$12.000</span>
+              <span class="text-sm font-semibold leading-6 text-blue-200">ARS / mes</span>
+            </p>
+            <span class="text-[10px] text-teal-350 font-bold mt-1 block" *ngIf="billingCycle() === 'yearly'">
+              Facturado anualmente ($144.000 ARS/año)
+            </span>
+
+            <ul role="list" class="mt-8 space-y-3.5 text-xs leading-6 text-blue-50">
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check text-white font-bold drop-shadow-sm"></i> Expedientes y Clientes Ilimitados</li>
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check text-white font-bold drop-shadow-sm"></i> Notificaciones de WhatsApp Automáticas</li>
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check text-white font-bold drop-shadow-sm"></i> Copiloto de IA Integral</li>
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check text-white font-bold drop-shadow-sm"></i> Facturación AFIP & Reportes Avanzados</li>
+              <li class="flex gap-x-3 items-center"><i class="pi pi-check text-white font-bold drop-shadow-sm"></i> Notificaciones Push & Alertas Prioritarias</li>
             </ul>
           </div>
           <a [routerLink]="authService.isAuthenticated() ? '/dashboard' : '/auth/register'" 
-             class="mt-8 block rounded-xl bg-white px-3 py-3 text-center text-sm font-bold leading-6 text-blue-600 hover:bg-slate-50 shadow-md transition-colors">
-            {{ authService.isAuthenticated() ? 'Ir al Dashboard Pro' : 'Empezar el Trial de 14 Días' }}
+             class="mt-8 block rounded-2xl bg-white px-3 py-3 text-center text-xs font-bold leading-6 text-blue-600 hover:bg-slate-50 shadow-md transition-colors">
+            {{ authService.isAuthenticated() ? 'Ir a mi Panel de Control' : 'Empezar el Trial de 14 Días' }}
           </a>
         </div>
 
       </div>
+
+      <!-- MOCK PAYMENT SIMULATOR WIDGET (ONLY IN DEVELOPMENT / TESTING) -->
+      <div *ngIf="authService.isAuthenticated()" class="max-w-4xl mx-auto mt-16 p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white text-xl shadow-md">
+            <i class="pi pi-credit-card"></i>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-white">Simulación de Pago de Prueba</h4>
+            <p class="text-xs text-slate-400">¿Estás testeando el flujo en desarrollo? Podés simular el pago con un solo clic.</p>
+          </div>
+        </div>
+        <button (click)="setPreviewTab('dashboard')" routerLink="/subscription/pricing" 
+                class="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 px-6 rounded-xl text-xs transition-colors flex items-center justify-center gap-2">
+          <i class="pi pi-credit-card"></i> Simular Pago de Suscripción
+        </button>
+      </div>
+
     </div>
-  </div>
+  </section>
+
+  <!-- Frequently Asked Questions Section -->
+  <section class="py-24 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-350">
+    <div class="mx-auto max-w-4xl px-6 lg:px-8">
+      <h2 class="text-center text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-12">Preguntas Frecuentes</h2>
+      
+      <div class="space-y-6">
+        
+        <details class="group rounded-2xl border border-slate-200 dark:border-slate-800 p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer bg-slate-50/50 dark:bg-slate-800/10">
+          <summary class="flex justify-between items-center font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+            <span>¿Es seguro almacenar escritos y expedientes en la nube?</span>
+            <span class="ml-1.5 flex-shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 p-1.5 text-slate-900 dark:text-white group-open:rotate-180 transition-transform">
+              <i class="pi pi-chevron-down text-xs"></i>
+            </span>
+          </summary>
+          <p class="mt-4 text-xs sm:text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+            Sí. Todos los archivos se guardan utilizando servicios de almacenamiento en la nube encriptados de alta seguridad (Cloudinary/AWS). Las URLs públicas de los archivos están enmascaradas mediante JWT guards, por lo que nadie fuera de tu estudio puede visualizar o descargar tus escritos jurídicos.
+          </p>
+        </details>
+
+        <details class="group rounded-2xl border border-slate-200 dark:border-slate-800 p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer bg-slate-50/50 dark:bg-slate-800/10">
+          <summary class="flex justify-between items-center font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+            <span>¿Cómo se vincula Themis con WhatsApp?</span>
+            <span class="ml-1.5 flex-shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 p-1.5 text-slate-900 dark:text-white group-open:rotate-180 transition-transform">
+              <i class="pi pi-chevron-down text-xs"></i>
+            </span>
+          </summary>
+          <p class="mt-4 text-xs sm:text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+            Desde tu perfil de usuario en la aplicación, simplemente escaneás un código QR con la cámara de tu celular, exactamente igual que como iniciás sesión en WhatsApp Web. La sesión de autenticación queda guardada de forma segura en nuestra base de datos para resistir reinicios del servidor.
+          </p>
+        </details>
+
+        <details class="group rounded-2xl border border-slate-200 dark:border-slate-800 p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer bg-slate-50/50 dark:bg-slate-800/10">
+          <summary class="flex justify-between items-center font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+            <span>¿La facturación de AFIP sirve para Monotributistas y Responsables Inscriptos?</span>
+            <span class="ml-1.5 flex-shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 p-1.5 text-slate-900 dark:text-white group-open:rotate-180 transition-transform">
+              <i class="pi pi-chevron-down text-xs"></i>
+            </span>
+          </summary>
+          <p class="mt-4 text-xs sm:text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+            Sí. Podés cargar tu CUIT, certificado .crt y clave privada .key desde la configuración del perfil. Funciona en modo homologación (pruebas) por defecto, y podés pasarlo a modo producción con un solo clic una vez que asocies tu punto de venta en AFIP. Es compatible con facturas tipo A, B y C.
+          </p>
+        </details>
+
+        <details class="group rounded-2xl border border-slate-200 dark:border-slate-800 p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer bg-slate-50/50 dark:bg-slate-800/10">
+          <summary class="flex justify-between items-center font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+            <span>¿Cómo funciona el Copiloto de IA?</span>
+            <span class="ml-1.5 flex-shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 p-1.5 text-slate-900 dark:text-white group-open:rotate-180 transition-transform">
+              <i class="pi pi-chevron-down text-xs"></i>
+            </span>
+          </summary>
+          <p class="mt-4 text-xs sm:text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+            Utilizamos la API de Google Gemini 2.5 Flash para potenciar el análisis y redacción judicial. El sistema te permite redactar cartas documento, contestaciones de demanda, resúmenes procesales y analizar riesgos legales o calcular tasas de justicia. Todo de forma integrada en el panel lateral.
+          </p>
+        </details>
+
+      </div>
+    </div>
+  </section>
 
   <!-- Footer -->
-  <footer class="bg-slate-950 py-12 text-center text-slate-500 text-sm">
-    <p>&copy; 2026 Themis App. Todos los derechos reservados.</p>
+  <footer class="bg-slate-950 py-16 text-slate-500 text-sm relative z-10 border-t border-slate-900">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8 text-left mb-12">
+      <div class="space-y-4">
+        <div class="flex items-center gap-3">
+          <img class="h-8 w-auto rounded-lg" src="favicon.png" alt="Themis Logo">
+          <span class="text-xl font-black tracking-tight text-white">Themis</span>
+        </div>
+        <p class="text-xs leading-relaxed text-slate-500">Gestión jurídica integral impulsada por inteligencia artificial para abogados en Argentina.</p>
+      </div>
+      <div>
+        <h4 class="text-white font-bold text-xs uppercase tracking-wider mb-4">Funciones</h4>
+        <ul class="space-y-2 text-xs">
+          <li><a href="#preview" (click)="setPreviewTab('kanban')" class="hover:text-white transition-colors">Seguimiento de Causas</a></li>
+          <li><a href="#preview" (click)="setPreviewTab('copilot')" class="hover:text-white transition-colors">Copiloto IA</a></li>
+          <li><a href="#preview" (click)="setPreviewTab('whatsapp')" class="hover:text-white transition-colors">Alertas por WhatsApp</a></li>
+          <li><a href="#preview" (click)="setPreviewTab('afip')" class="hover:text-white transition-colors">Facturación Electrónica</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-bold text-xs uppercase tracking-wider mb-4">Empresa</h4>
+        <ul class="space-y-2 text-xs">
+          <li><a href="#features" class="hover:text-white transition-colors">Acerca de nosotros</a></li>
+          <li><a href="#pricing" class="hover:text-white transition-colors">Precios y Planes</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Contacto</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-bold text-xs uppercase tracking-wider mb-4">Soporte y Legal</h4>
+        <ul class="space-y-2 text-xs">
+          <li><a href="#" class="hover:text-white transition-colors">Términos del Servicio</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Políticas de Privacidad</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Ayuda y Soporte</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-slate-900 pt-8 max-w-7xl mx-auto px-6 lg:px-8 text-center text-xs">
+      <p>&copy; 2026 Themis App. Todos los derechos reservados. Diseñado y desarrollado en Argentina.</p>
+    </div>
   </footer>
 
 </div>

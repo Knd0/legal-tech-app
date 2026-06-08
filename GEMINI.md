@@ -34,12 +34,13 @@ Actualmente la aplicación se encuentra en un estado muy avanzado (~99% global):
 | **Expedientes** | **99%** | Seguimiento de causas. Tabla con **paginación server-side, filtro de estado, debouncer y borrado con SweetAlert2**. Kanban interactivo funcional. |
 | **Calendario** | **99%** | Vista interactiva en frontend (mensual/semanal/diario). Módulo backend (Calendar BE) implementado con eventos en base de datos. Integrado sistema de alertas pop-up nativas (PC/Celular) y en la misma app (SweetAlert2) para eventos y vencimientos de hoy/próximos. |
 | **Profile** | **100%** | Edición de perfil, configuración de alertas, vinculación de WhatsApp (QR/Código) y AFIP. **Persistencia de sesión de WhatsApp Web en PostgreSQL (`whatsapp_sessions`) usando RemoteAuth.** |
-| **Subscription UI**| **99%** | Verificación real del pago en success page: llama a `GET /mercadopago/subscription`, actualiza el signal de auth, muestra estados success/pending/failure con botón de reintento. |
+| **Subscription UI**| **100%** | Verificación real del pago en success page: llama a `GET /mercadopago/subscription`, actualiza el signal de auth, muestra estados success/pending/failure con botón de reintento. **Agregada simulación completa de pago en local/desarrollo** con bypass de MercadoPago en controller/service y widget disparador en grilla. |
 | **Dashboard** | **99%** | Estadísticas y métricas financieras usando PrimeNG Charts y Chart.js (`chart.js ^4.5.1`). |
 | **Admin/Users** | **99%** | Listado de usuarios, suspensión y borrado estilizado con SweetAlert2. |
 | **Documents UI** | **99%** | Carga de archivos integrada con **persistencia real en la nube usando Cloudinary**. Streaming seguro (view/download) y preview interactivo de imágenes y PDFs. |
-| **Copilot** | **100%** | Módulo de IA premium: análisis de textos, redactor de escritos judiciales, resúmenes procesales, análisis de riesgo/probabilidad de éxito. Gemini 2.5 Flash por defecto, fallback a OpenAI. |
-| **Facturas y Auditorías**| **99%** | Paginación server-side en facturas y audit logs. |
+| **Copilot** | **100%** | Módulo de IA premium: análisis de textos, redactor de escritos judiciales, resúmenes procesales, análisis de riesgo/probabilidad de éxito, y calculadora interactiva de costos y análisis predictivo de viabilidad con reportes en PDF/Word. Gemini 2.5 Flash por defecto, fallback a OpenAI. |
+| **Facturas y Auditorías**| **100%** | Paginación server-side en facturas y audit logs. **Implementado soporte dinámico para múltiples Puntos de Venta en AFIP** (configurados en el perfil de cada usuario, por defecto 1). |
+| **Landing Page** | **100%** | Rediseño premium de Landing Page con barra de navegación glassmorphic, gradientes Outfit, selector de ciclo mensual/anual y un **Live Platform Preview Shell** interactivo para simular el Dashboard, Kanban, Copilot IA, Facturas AFIP y Notificaciones WhatsApp en tiempo real. |
 
 ---
 
@@ -127,9 +128,7 @@ Todos los gaps de seguridad conocidos están cerrados (JWT guards, filtros por u
 
 1. **Configurar la API Key del Copilot en Producción (Render):**
    El módulo está 100% desarrollado. Para activarlo de forma gratuita en producción, obtenga una API key en Google AI Studio (https://aistudio.google.com/) y configúrela como variable de entorno `GEMINI_API_KEY` en Render.
-2. **Soporte para múltiples Puntos de Venta en AFIP:**
-   Permitir a los usuarios configurar diferentes números de Punto de Venta directamente en su perfil de configuración para mayor flexibilidad en la emisión de facturas.
-3. **Paginación Server-Side en listados de Movimientos (Cuenta Corriente):**
+2. **Paginación Server-Side en listados de Movimientos (Cuenta Corriente):**
    Si la cantidad de transacciones por cliente se incrementa fuertemente, se puede aplicar paginación diferida en la lista principal de movimientos del cliente.
 
 ---

@@ -57,6 +57,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   otpSent = false;
   
   whatsappError = signal<string | null>(null);
+  whatsappBotReady = signal<boolean>(false);
 
   private apiUrl = `${environment.apiUrl}/users/profile`;
 
@@ -436,6 +437,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                       Swal.fire('Desconectado', 'Sesión cerrada.', 'success');
                       this.qrCodeUrl.set(null);
                       this.configWhatsappNumber = '';
+                      this.whatsappBotReady.set(false);
                       this.notificationService.updateAlertSettings(this.configDays, this.configHours, this.configWhatsapp, '', this.configDesktop);
                       if (this.configWhatsapp) this.startQrPolling();
                   },
@@ -443,6 +445,18 @@ export class ProfileComponent implements OnInit, OnDestroy {
               });
           }
       });
+  }
+
+  onWhatsappToggle() {
+      if (this.configWhatsapp) {
+          this.startQrPolling();
+      } else {
+          this.stopQrPolling();
+          this.qrCodeUrl.set(null);
+          this.pairingCode.set(null);
+          this.whatsappError.set(null);
+          this.whatsappBotReady.set(false);
+      }
   }
 
   loadingQr = signal<boolean>(false);
@@ -498,7 +512,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       
       // If we don't have a connected number and we aren't pairing with a code or already scanned,
       // let's show the loading/generating QR state from the start!
-      if (!this.configWhatsappNumber && !this.pairingCode() && !this.scannedAndProcessing()) {
+      if ((!this.configWhatsappNumber || !this.whatsappBotReady()) && !this.pairingCode() && !this.scannedAndProcessing()) {
           this.loadingQr.set(true);
       }
 
@@ -506,28 +520,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
       const maxPolls = Math.ceil(120_000 / intervalMs);
       let pollCount = 0;
 
-      this.ngZone.runOutsideAngular(() => {
-        this.qrPollInterval = setInterval(() => {
-          if (++pollCount > maxPolls) {
-            this.ngZone.run(() => {
-              this.stopQrPolling();
-              this.loadingQr.set(false);
-              this.scannedAndProcessing.set(false);
-              this.whatsappError.set('Tiempo de espera agotado. Intentá de nuevo.');
-            });
-            return;
-          }
-
+      const performPoll = () => {
           this.notificationService.getWhatsappStatus().subscribe({
             next: (status: any) => {
               this.ngZone.run(() => {
                 consecutiveErrors = 0;
 
-                if (status.qr) {
-                  this.qrCodeUrl.set(status.qr);
-                  this.loadingQr.set(false);
-                  this.scannedAndProcessing.set(false);
-                } else if (status.ready) {
+                if (status.ready) {
+                  this.whatsappBotReady.set(true);
                   const wasLinking = this.loadingQr() || this.scannedAndProcessing() || this.loadingPairingCode() || this.pairingCode();
                   
                   this.qrCodeUrl.set(null);
@@ -537,7 +537,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   this.scannedAndProcessing.set(false);
                   this.stopQrPolling();
 
-                  if (status.number && !this.configWhatsappNumber) {
+                  if (status.number && this.configWhatsappNumber !== status.number) {
                     this.configWhatsappNumber = status.number;
                     this.notificationService.updateAlertSettings(
                       this.configDays,
@@ -557,18 +557,26 @@ export class ProfileComponent implements OnInit, OnDestroy {
                       showConfirmButton: false
                     });
                   }
-                } else if (status.error) {
-                  this.whatsappError.set(status.error);
-                  this.loadingQr.set(false);
-                  this.scannedAndProcessing.set(false);
-                  this.stopQrPolling();
                 } else {
-                  // status.qr is null AND status.ready is false
-                  // If we had a QR code showing, it means it was scanned!
-                  if (this.qrCodeUrl()) {
-                    this.qrCodeUrl.set(null);
-                    this.scannedAndProcessing.set(true);
+                  this.whatsappBotReady.set(false);
+
+                  if (status.qr) {
+                    this.qrCodeUrl.set(status.qr);
                     this.loadingQr.set(false);
+                    this.scannedAndProcessing.set(false);
+                  } else if (status.error) {
+                    this.whatsappError.set(status.error);
+                    this.loadingQr.set(false);
+                    this.scannedAndProcessing.set(false);
+                    this.stopQrPolling();
+                  } else {
+                    // status.qr is null AND status.ready is false AND status.error is null
+                    // If we had a QR code showing, it means it was scanned!
+                    if (this.qrCodeUrl()) {
+                      this.qrCodeUrl.set(null);
+                      this.scannedAndProcessing.set(true);
+                      this.loadingQr.set(false);
+                    }
                   }
                 }
               });
@@ -597,6 +605,23 @@ export class ProfileComponent implements OnInit, OnDestroy {
               });
             }
           });
+      };
+
+      // Perform first poll immediately
+      performPoll();
+
+      this.ngZone.runOutsideAngular(() => {
+        this.qrPollInterval = setInterval(() => {
+          if (++pollCount > maxPolls) {
+            this.ngZone.run(() => {
+              this.stopQrPolling();
+              this.loadingQr.set(false);
+              this.scannedAndProcessing.set(false);
+              this.whatsappError.set('Tiempo de espera agotado. Intentá de nuevo.');
+            });
+            return;
+          }
+          performPoll();
         }, intervalMs);
       });
   }

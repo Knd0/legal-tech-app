@@ -122,6 +122,48 @@ Frontend: `environment.ts` → `http://localhost:3000`; `environment.prod.ts` �
 
 ---
 
+## 🎨 Organic Design System Guidelines (Frontend)
+
+To maintain design consistency and prevent bugs (like icon distortion or broken images), all new UI components and modifications MUST adhere to these rules:
+
+1. **Warm Palette Colors (CSS Variables)**:
+   - Always reference the defined HSL/Hex variables in `styles.scss` instead of hardcoding cold Tailwind grays/blues:
+     - Background: `var(--bg-app)` (Sand: `#E8DCC7`)
+     - Cards/Surfaces: `var(--bg-surface)` (Warm Cream: `#FAF6F0`)
+     - Primary accents: `var(--accent-terracotta)` (`#C66B3D`)
+     - Secondary accents: `var(--accent-moss)` (`#606C38`), `var(--accent-sage)` (`#8B9D83`)
+     - Text: `var(--text-main)` / `var(--text-earth)` (`#2B2521`)
+     - Borders: `var(--border-color)` / `var(--border-organic)`
+
+2. **Typography**:
+   - Headers/Titles: Use `font-family: 'Fraunces', serif !important;` (already applied to `h1-h6`, `.p-dialog-title`, `.p-column-title`).
+   - Body/Controls/Inputs: Use `font-family: 'Epilogue', sans-serif !important;`.
+
+3. **PrimeNG & Button Overrides (Crucial)**:
+   - **DO NOT** use the PrimeNG component `<p-button>` for row action icons or basic text buttons, as global pill-shape overrides will distort their paddings and make them render as solid pills.
+   - **DO** use the native directive `<button pButton>` with explicit Tailwind and PrimeNG styling:
+     - *Row actions (edit, delete)*: Use `.p-button-rounded .p-button-text .p-button-sm` with target text colors (e.g., `text-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta)]/10`).
+     - *Primary buttons*: Use `.p-button-rounded .p-button-sm .p-button-primary`.
+     - *Secondary/Cancel buttons*: Use `.p-button-rounded .p-button-text .p-button-sm text-slate-500 hover:bg-slate-100`.
+
+4. **Dialogs & Modals**:
+   - Modals use the `.p-dialog` container class. We have styled it globally to have `border-radius: 20px !important`, `overflow: hidden`, and custom organic borders/shadows.
+   - All input controls inside dialog forms must have `class="w-full"` or `styleClass="w-full"` and `[style]="{'width':'100%'}"` to ensure they stretch cleanly to the width of the dialog.
+
+5. **Icon Preservation**:
+   - Since global text rules apply `Epilogue` font to standard elements with `!important`, we have locked the PrimeIcons font on the `.pi` class:
+     ```css
+     .pi {
+         font-family: 'primeicons' !important;
+     }
+     ```
+     Never remove this override, otherwise all PrimeIcons will render as empty boxes.
+
+6. **Absolute Asset Paths**:
+   - Always refer to application assets using absolute paths (e.g., `src="/favicon.png"`) instead of relative paths (e.g., `src="favicon.png"`). Relative paths break when navigating to nested routes like `/admin/users`.
+
+---
+
 ## Known Bugs
 
 ### Críticos (bloquean producción)

@@ -181,6 +181,7 @@ Para mantener la consistencia estética y evitar regresiones visuales (como dist
 
 6. **Rutas de Archivos Estáticos Absolutas**:
    - Al referenciar el logo o cualquier archivo estático, usar siempre rutas absolutas (ej: `src="/favicon.png"`) en lugar de relativas (`src="favicon.png"`). Las rutas relativas devuelven error 404 al navegar en rutas anidadas como `/admin/users`.
+   - **Logotipo de la marca (Balanza)**: Para la landing page pública y secciones estéticas clave se utiliza el logotipo de balanza SVG en línea premium, estilizado dinámicamente con `style="color: var(--accent-terracotta)"`.
 
 ---
 

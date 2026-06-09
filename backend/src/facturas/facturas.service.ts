@@ -92,9 +92,9 @@ export class FacturasService {
       const certPath = path.join(tmpDir, `cert_${userId}.crt`);
       const keyPath = path.join(tmpDir, `key_${userId}.key`);
 
-      // Write files
-      fs.writeFileSync(certPath, user.afipCert);
-      fs.writeFileSync(keyPath, user.afipKey);
+      // Write files with owner-only permissions (prevents other OS users from reading credentials)
+      fs.writeFileSync(certPath, user.afipCert, { mode: 0o600 });
+      fs.writeFileSync(keyPath, user.afipKey, { mode: 0o600 });
 
       const client = new Afip({
         CUIT: user.cuit.replace(/\D/g, ''), // Ensure no dashes or spaces

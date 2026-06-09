@@ -131,13 +131,27 @@ export class UsersService implements OnModuleInit {
     const user = await this.findOneById(id);
     if (!user) throw new NotFoundException('User not found');
 
-    if (updateData.password) {
+    const { subscriptionStatus, subscriptionExpiresAt, mpSubscriptionId, subscriptionPlan, password, ...rest } = updateData;
+
+    if (password) {
         const salt = await bcrypt.genSalt();
-        updateData.passwordHash = await bcrypt.hash(updateData.password, salt);
-        delete updateData.password;
+        rest.passwordHash = await bcrypt.hash(password, salt);
     }
 
-    await this.usersRepository.update(id, updateData);
+    if (Object.keys(rest).length > 0) {
+        await this.usersRepository.update(id, rest);
+    }
+
+    const subData: any = {};
+    if (subscriptionStatus !== undefined) subData.subscriptionStatus = subscriptionStatus;
+    if (subscriptionExpiresAt !== undefined) subData.subscriptionExpiresAt = subscriptionExpiresAt;
+    if (subscriptionPlan !== undefined) subData.subscriptionPlan = subscriptionPlan;
+    if (mpSubscriptionId !== undefined) subData.mpSubscriptionId = mpSubscriptionId;
+
+    if (Object.keys(subData).length > 0) {
+        await this.updateSubscription(id, subData);
+    }
+
     return this.findOneById(id);
   }
 

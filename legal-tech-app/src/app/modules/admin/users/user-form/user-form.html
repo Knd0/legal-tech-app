@@ -1,58 +1,59 @@
-<form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
-    <div class="flex flex-col gap-2">
-        <label for="fullName" class="font-semibold text-slate-700">Nombre Completo</label>
-        <input pInputText id="fullName" formControlName="fullName" placeholder="Ej. Juan Pérez" />
-        <small class="text-red-500" *ngIf="userForm.get('fullName')?.invalid && userForm.get('fullName')?.touched">
+<form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4 p-2">
+    <div class="flex flex-col gap-1">
+        <label for="fullName" class="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1">Nombre Completo</label>
+        <input pInputText id="fullName" formControlName="fullName" placeholder="Ej. Juan Pérez" class="w-full" />
+        <small class="text-red-500 text-xs mt-1" *ngIf="userForm.get('fullName')?.invalid && userForm.get('fullName')?.touched">
             Requerido
         </small>
     </div>
 
-    <div class="flex flex-col gap-2">
-        <label for="email" class="font-semibold text-slate-700">Email</label>
-        <input pInputText id="email" type="email" formControlName="email" placeholder="email@ejemplo.com" />
-        <small class="text-red-500" *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+    <div class="flex flex-col gap-1">
+        <label for="email" class="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1">Email</label>
+        <input pInputText id="email" type="email" formControlName="email" placeholder="email@ejemplo.com" class="w-full" />
+        <small class="text-red-500 text-xs mt-1" *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
             Email válido requerido
         </small>
     </div>
 
-    <div class="flex flex-col gap-2">
-        <label for="password" class="block text-sm font-medium text-slate-700 mb-1">Contraseña {{ userToEdit ?
-            '(Opcional)' : '' }}</label>
+    <div class="flex flex-col gap-1">
+        <label for="password" class="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1">
+            Contraseña {{ userToEdit ? '(Opcional)' : '' }}
+        </label>
         <input pInputText id="password" type="password" formControlName="password" class="w-full"
             [placeholder]="userToEdit ? 'Dejar en blanco para mantener' : '******'" />
-        <small class="text-red-500" *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+        <small class="text-red-500 text-xs mt-1" *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
             Mínimo 6 caracteres
         </small>
     </div>
 
-    <div class="flex flex-col gap-2">
-        <label for="role" class="font-semibold text-slate-700">Rol</label>
+    <div class="flex flex-col gap-1">
+        <label for="role" class="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1">Rol</label>
         <p-select [options]="roles" formControlName="role" optionLabel="label" optionValue="value"
-            [style]="{'width':'100%'}"></p-select>
+            styleClass="w-full" [style]="{'width':'100%'}"></p-select>
     </div>
 
     <!-- Modificadores de Suscripción -->
-    <div class="flex flex-col gap-2 border-t pt-4 mt-2 border-slate-200">
-        <label class="font-semibold text-slate-800 text-lg">Control de Suscripción</label>
-        <p class="text-sm text-slate-500 mb-2">Modificar manualmente el estado de un usuario para soporte.</p>
+    <div class="flex flex-col gap-2 border-t pt-4 mt-2 border-[var(--border-color)]">
+        <label class="font-bold text-[var(--accent-terracotta)] text-lg">Control de Suscripción</label>
+        <p class="text-xs text-[var(--text-muted)] mb-2">Modificar manualmente el estado de un usuario para soporte.</p>
         
-        <label for="subscriptionStatus" class="font-semibold text-slate-700">Estado de Plan</label>
-        <p-select [options]="subscriptionStatuses" formControlName="subscriptionStatus" optionLabel="label" optionValue="value"
-            [style]="{'width':'100%'}"></p-select>
+        <div class="flex flex-col gap-1">
+            <label for="subscriptionStatus" class="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1">Estado de Plan</label>
+            <p-select [options]="subscriptionStatuses" formControlName="subscriptionStatus" optionLabel="label" optionValue="value"
+                styleClass="w-full" [style]="{'width':'100%'}"></p-select>
+        </div>
     </div>
 
-    <div class="flex flex-col gap-2">
-        <label for="subscriptionExpiresAt" class="font-semibold text-slate-700">Vencimiento Manual</label>
-        <input pInputText type="date" id="subscriptionExpiresAt" formControlName="subscriptionExpiresAt" />
-        <small class="text-slate-500">
+    <div class="flex flex-col gap-1">
+        <label for="subscriptionExpiresAt" class="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1">Vencimiento Manual</label>
+        <input pInputText type="date" id="subscriptionExpiresAt" formControlName="subscriptionExpiresAt" class="w-full" />
+        <small class="text-[var(--text-muted)] text-xs mt-1">
             Dejar en blanco para mantener dinámico o indefinido.
         </small>
     </div>
 
-    <div class="flex justify-end gap-2 mt-6">
-        <p-button label="Cancelar" styleClass="p-button-secondary p-button-text"
-            (onClick)="userForm.reset()"></p-button>
-        <p-button [label]="userToEdit ? 'Guardar Cambios' : 'Crear Usuario'" [loading]="loading" (onClick)="onSubmit()"
-            [disabled]="userForm.invalid"></p-button>
+    <div class="flex justify-end gap-3 mt-6">
+        <button pButton type="button" label="Cancelar" class="p-button-rounded p-button-text p-button-sm text-[var(--text-muted)] hover:bg-[var(--accent-terracotta)]/10" (click)="onCancel()"></button>
+        <button pButton type="submit" [label]="userToEdit ? 'Guardar Cambios' : 'Crear Usuario'" [loading]="loading" [disabled]="userForm.invalid" class="p-button-rounded p-button-sm p-button-primary"></button>
     </div>
 </form>

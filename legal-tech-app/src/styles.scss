@@ -219,6 +219,49 @@ body, .bg-slate-50, .bg-gray-50, .bg-slate-100, .bg-gray-100 {
     }
 }
 
+// Sub-classes overrides to prevent distortion
+.p-button.p-button-text {
+    background: transparent !important;
+    border-color: transparent !important;
+    color: var(--text-main) !important;
+    box-shadow: none !important;
+    padding: 0.5rem !important;
+    border-radius: 9999px !important;
+    text-transform: none !important;
+    font-size: inherit !important;
+    
+    &:enabled:hover {
+        background: rgba(198, 107, 61, 0.08) !important;
+        border-color: transparent !important;
+        transform: none !important;
+        box-shadow: none !important;
+        color: var(--accent-terracotta) !important;
+    }
+}
+.dark .p-button.p-button-text:enabled:hover {
+    background: rgba(232, 220, 199, 0.08) !important;
+    color: var(--accent-terracotta) !important;
+}
+
+.p-button.p-button-icon-only {
+    padding: 0 !important;
+    width: 2.25rem !important;
+    height: 2.25rem !important;
+    justify-content: center !important;
+    align-items: center !important;
+    display: inline-flex !important;
+}
+
+.p-button.p-button-sm {
+    padding: 0.45rem 1rem !important;
+    font-size: 10px !important;
+}
+.p-button.p-button-sm.p-button-icon-only {
+    padding: 0 !important;
+    width: 2rem !important;
+    height: 2rem !important;
+}
+
 // 4. Authenticated Navigation Header override
 nav.fixed.top-0 {
     background: rgba(250, 246, 240, 0.9) !important; // semi-transparent sand
@@ -271,6 +314,13 @@ nav.fixed.top-0 {
 // =========================================
 // PRIMENG GLOBAL OVERRIDES (LIGHT & DARK)
 // =========================================
+.p-dialog {
+    border-radius: 20px !important;
+    overflow: hidden;
+    border: 1.5px solid var(--border-color) !important;
+    box-shadow: 0 10px 40px -10px rgba(43, 37, 33, 0.15) !important;
+}
+
 .p-dialog .p-dialog-content,
 .p-dialog .p-dialog-header,
 .p-dialog .p-dialog-footer,

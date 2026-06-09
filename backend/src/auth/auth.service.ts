@@ -46,9 +46,19 @@ export class AuthService {
       subscriptionPlan: user.subscription?.subscriptionPlan || 'pro',
       subscriptionExpiresAt: user.subscription?.subscriptionExpiresAt
     };
+
+    const { passwordHash, subscription, ...userRest } = user;
+    const flattenedUser = {
+      ...userRest,
+      subscriptionStatus: subscription?.subscriptionStatus || 'trial',
+      subscriptionExpiresAt: subscription?.subscriptionExpiresAt || null,
+      mpSubscriptionId: subscription?.mpSubscriptionId || null,
+      subscriptionPlan: subscription?.subscriptionPlan || 'pro',
+    };
+
     return {
       access_token: this.jwtService.sign(payload),
-      user: user // user object from validateUser already has passwordHash removed
+      user: flattenedUser
     };
   }
 

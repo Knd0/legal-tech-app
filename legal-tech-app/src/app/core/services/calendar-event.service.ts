@@ -11,7 +11,9 @@ export class CalendarEventService {
   readonly events = this.eventsSignal.asReadonly();
 
   constructor(private http: HttpClient) {
-    this.loadEvents();
+    if (localStorage.getItem('auth_token')) {
+      this.loadEvents();
+    }
   }
 
   loadEvents() {

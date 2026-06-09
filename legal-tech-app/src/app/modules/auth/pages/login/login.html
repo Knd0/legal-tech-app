@@ -1,15 +1,15 @@
 <div
-    class="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors">
+    class="min-h-screen bg-[var(--surface-sand)] flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
         <div class="flex justify-center">
-            <div class="bg-blue-900 dark:bg-blue-800 text-white p-3 rounded-lg shadow-lg">
+            <div class="bg-[var(--accent-terracotta)] text-white p-4 rounded-full shadow-lg">
                 <i class="pi pi-briefcase text-3xl"></i>
             </div>
         </div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-slate-900 dark:text-white">
-            Estudio Jurídico
+        <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-[var(--text-earth)] font-serif-organic">
+            Themis
         </h2>
-        <p class="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
+        <p class="mt-2 text-center text-sm text-[var(--text-earth)]/80">
             Sistema de Gestión Integral
         </p>
     </div>
@@ -67,7 +67,7 @@
                 <!-- Submit -->
                 <div>
                     <button pButton type="submit" label="Iniciar Sesión" [loading]="loading" [disabled]="loading"
-                        class="w-full bg-blue-900 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-500 border-blue-900 dark:border-blue-600 disabled:opacity-70 disabled:cursor-not-allowed">
+                        class="w-full disabled:opacity-70 disabled:cursor-not-allowed">
                     </button>
                 </div>
             </form>
@@ -80,7 +80,7 @@
                     <div class="relative flex justify-center text-sm">
                         <span class="px-2 bg-white dark:bg-slate-800">
                             <a routerLink="/auth/forgot-password"
-                                class="text-blue-600 dark:text-blue-400 hover:underline font-medium text-sm">
+                                class="text-[var(--accent-terracotta)] hover:text-[var(--accent-moss)] transition-colors hover:underline font-medium text-sm">
                                 ¿Olvidaste tu contraseña?
                             </a>
                         </span>

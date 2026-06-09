@@ -13,6 +13,7 @@
   --border-organic: rgba(96, 60, 30, 0.08);
   --border-organic-strong: rgba(96, 60, 30, 0.16);
   --text-earth: #2B2521;
+  --logo-icon-color: #160E0A;
 }
 
 // Global elements within this component host
@@ -24,6 +25,10 @@
 h1, h2, h3, h4, .font-serif-organic {
   font-family: 'Fraunces', serif !important;
   color: var(--text-earth);
+}
+
+.font-caesar {
+  font-family: 'Caesar Dressing', cursive !important;
 }
 
 p, span, a, button, input, td, th, li, .font-sans-organic {
@@ -222,6 +227,7 @@ p, span, a, button, input, td, th, li, .font-sans-organic {
   --surface-sand: #1c1815; // Dark warm-earth
   --surface-oat: #292420;
   --text-earth: #E8DCC7;
+  --logo-icon-color: #C9B08A;
   --border-organic: rgba(232, 220, 199, 0.08);
   --border-organic-strong: rgba(232, 220, 199, 0.18);
 

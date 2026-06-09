@@ -525,8 +525,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
             next: (status: any) => {
               this.ngZone.run(() => {
                 consecutiveErrors = 0;
+                // Reset to faster polling if the server is responsive and we are currently polling slowly
+                if (intervalMs === 10_000) {
+                  this.startQrPolling(3000);
+                }
 
-                if (status.ready) {
+                if (status.ready && status.number) {
                   this.whatsappBotReady.set(true);
                   const wasLinking = this.loadingQr() || this.scannedAndProcessing() || this.loadingPairingCode() || this.pairingCode();
                   
@@ -537,7 +541,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   this.scannedAndProcessing.set(false);
                   this.stopQrPolling();
 
-                  if (status.number && this.configWhatsappNumber !== status.number) {
+                  if (this.configWhatsappNumber !== status.number) {
                     this.configWhatsappNumber = status.number;
                     this.notificationService.updateAlertSettings(
                       this.configDays,
@@ -551,7 +555,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   if (wasLinking) {
                     Swal.fire({
                       title: '¡Conectado!',
-                      text: status.number ? `Vinculado con ${status.number}` : 'El bot de WhatsApp está listo.',
+                      text: `Vinculado con ${status.number}`,
                       icon: 'success',
                       timer: 3000,
                       showConfirmButton: false
@@ -570,7 +574,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     this.scannedAndProcessing.set(false);
                     this.stopQrPolling();
                   } else {
-                    // status.qr is null AND status.ready is false AND status.error is null
+                    // status.qr is null AND status.ready is false AND status.error is null (or status.ready is true but status.number is null)
                     // If we had a QR code showing, it means it was scanned!
                     if (this.qrCodeUrl()) {
                       this.qrCodeUrl.set(null);
@@ -594,7 +598,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 consecutiveErrors++;
                 console.warn(`Polling error (${consecutiveErrors}):`, err);
 
-                if (consecutiveErrors >= 5) {
+                // Increase limit to 20 errors to survive CPU-intensive zipping on low-resource environments
+                if (consecutiveErrors >= 20) {
                   this.stopQrPolling();
                   this.loadingQr.set(false);
                   this.scannedAndProcessing.set(false);

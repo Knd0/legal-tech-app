@@ -69,7 +69,12 @@ export class WhatsappService implements OnModuleInit {
             '--no-zygote',
             '--single-process',
             '--disable-gpu',
-            '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' // Fix: Custom UA to reduce blocking
+            '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36', // Fix: Custom UA to reduce blocking
+            '--disable-application-cache',
+            '--disable-gpu-program-cache',
+            '--disable-gpu-shader-disk-cache',
+            '--disk-cache-size=1',
+            '--media-cache-size=1'
         ],
         timeout: 60000,
       }
@@ -103,6 +108,10 @@ export class WhatsappService implements OnModuleInit {
     this.client.on('authenticated', () => {
         this.logger.log('WhatsApp Authenticated');
         this.qrCodeImage = null;
+    });
+
+    this.client.on('remote-session-saved', () => {
+        this.logger.log('WhatsApp Remote Session Saved to database successfully!');
     });
 
     this.client.on('auth_failure', (msg: string) => {
@@ -187,7 +196,7 @@ export class WhatsappService implements OnModuleInit {
       return {
           ready: this.isReady,
           qr: this.qrCodeImage,
-          number: this.isReady ? this.client.info?.wid?.user : null,
+          number: this.isReady ? (this.client.info?.wid?.user || this.client.info?.me?.user) : null,
           error: this.initializationError // Expose error
       };
   }

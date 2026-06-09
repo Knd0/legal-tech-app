@@ -97,13 +97,15 @@ export class UsersService implements OnModuleInit {
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
 
-    const newUser = this.usersRepository.create({
-      ...rest,
-      passwordHash,
-      isActive: true,
-      role: rest.role || 'USER'
-    } as unknown as User);
+    const userColumns = this.usersRepository.metadata.columns.map(col => col.propertyName);
+    const userPayload: any = { passwordHash, isActive: true, role: rest.role || 'USER' };
+    for (const key of Object.keys(rest)) {
+        if (userColumns.includes(key)) {
+            userPayload[key] = rest[key];
+        }
+    }
 
+    const newUser = this.usersRepository.create(userPayload as unknown as User);
     const savedUser = await this.usersRepository.save(newUser) as User;
 
     await this.subscriptionRepository.save(
@@ -138,8 +140,16 @@ export class UsersService implements OnModuleInit {
         rest.passwordHash = await bcrypt.hash(password, salt);
     }
 
-    if (Object.keys(rest).length > 0) {
-        await this.usersRepository.update(id, rest);
+    const userColumns = this.usersRepository.metadata.columns.map(col => col.propertyName);
+    const updatePayload: any = {};
+    for (const key of Object.keys(rest)) {
+        if (userColumns.includes(key)) {
+            updatePayload[key] = rest[key];
+        }
+    }
+
+    if (Object.keys(updatePayload).length > 0) {
+        await this.usersRepository.update(id, updatePayload);
     }
 
     const subData: any = {};

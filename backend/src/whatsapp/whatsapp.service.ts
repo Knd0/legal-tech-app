@@ -78,8 +78,13 @@ export class WhatsappService implements OnModuleInit {
     // ... (rest of constructor logs)
     this.logger.log(`WhatsApp Service Initialized. Puppeteer Config: Headless=${true}, ExecutablePath=${process.env.PUPPETEER_EXECUTABLE_PATH || 'Auto-resolve'}`);
 
+    let lastQrLogTime = 0;
     this.client.on('qr', async (qr: string) => {
-      this.logger.log('QR Code received from WhatsApp Web.');
+      const now = Date.now();
+      if (now - lastQrLogTime > 120000) {
+        this.logger.log('QR Code received from WhatsApp Web (waiting for scan)...');
+        lastQrLogTime = now;
+      }
       try {
         const url = await QRCode.toDataURL(qr);
         this.qrCodeImage = url;

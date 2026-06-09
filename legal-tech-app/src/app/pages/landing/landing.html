@@ -627,9 +627,10 @@ En mi carácter de Letrado Apoderado de la Administración del Consorcio de Prop
         <div class="mt-8 flex items-center gap-4">
           <span [class.switch-label-active]="billingCycle() === 'monthly'" class="text-xs font-bold uppercase tracking-wider text-[var(--text-earth)] transition-colors">Mensual</span>
           <button (click)="toggleBillingCycle()" 
-                  class="w-12 h-6 bg-[var(--surface-oat)]/50 border border-[var(--text-earth)]/10 p-0.5 transition-colors relative flex items-center rounded-full">
-            <span [class.translate-x-6]="billingCycle() === 'yearly'" 
-                  class="w-4.5 h-4.5 bg-[#C66B3D] rounded-full shadow-sm transition-transform duration-300 block transform"></span>
+                  class="w-12 h-6 border transition-all duration-300 relative flex items-center rounded-full p-1 focus:outline-none cursor-pointer"
+                  [ngClass]="billingCycle() === 'yearly' ? 'bg-[#606C38]/40 border-[#606C38]/40' : 'bg-[var(--surface-oat)]/60 border-[var(--text-earth)]/10'">
+            <span class="w-4 h-4 bg-[#C66B3D] rounded-full shadow-md transition-transform duration-300 block transform"
+                  [class.translate-x-6]="billingCycle() === 'yearly'"></span>
           </button>
           <span [class.switch-label-active]="billingCycle() === 'yearly'" class="text-xs font-bold uppercase tracking-wider text-[var(--text-earth)] transition-colors flex items-center gap-1.5">
             Anual <span class="bg-[#606C38] text-white text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">Ahorrá 20%</span>

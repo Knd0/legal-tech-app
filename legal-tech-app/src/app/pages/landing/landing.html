@@ -27,6 +27,13 @@
         <a href="#pricing" class="text-xs font-bold uppercase tracking-wider text-[var(--text-earth)] hover:text-[#C66B3D] transition-colors">Precios</a>
       </div>
       <div class="flex items-center gap-x-4">
+        <!-- Theme Toggle Button -->
+        <button (click)="themeService.toggle()" 
+                class="w-10 h-10 rounded-full flex items-center justify-center text-[var(--text-earth)]/80 hover:text-[#C66B3D] hover:bg-[var(--surface-oat)]/20 transition-colors focus:outline-none"
+                title="Cambiar Tema">
+          <i class="pi text-base" [ngClass]="themeService.darkMode() ? 'pi-sun' : 'pi-moon'"></i>
+        </button>
+
         <a routerLink="/auth/login" class="text-xs font-bold uppercase tracking-wider text-[var(--text-earth)] hover:text-[#C66B3D] transition-colors px-3 py-1.5">
           Ingresar
         </a>
@@ -457,7 +464,7 @@ En mi carácter de Letrado Apoderado de la Administración del Consorcio de Prop
                 <!-- Chat history -->
                 <div class="flex-1 p-3 space-y-2.5 overflow-y-auto">
                   <!-- System alert template -->
-                  <div class="bg-[#E8DCC7] p-2.5 rounded-2xl rounded-tl-none shadow-sm border border-[var(--text-earth)]/5 text-[10px] leading-relaxed max-w-[85%] text-[var(--text-earth)]">
+                  <div class="bg-[#E8DCC7] p-2.5 rounded-2xl rounded-tl-none shadow-sm border border-[#2B2521]/5 text-[10px] leading-relaxed max-w-[85%] text-[#2B2521]">
                     <p class="font-bold text-[#606C38] mb-0.5"><i class="pi pi-whatsapp"></i> Recordatorio Automático</p>
                     Estimado Juan Pérez, le recordamos que su cuota N° 2 ($15.000) por el expediente "Pérez c/ Gómez" vence el día 10/06. Puede realizar su pago en el siguiente link de MercadoPago: 
                     <a href="#" class="text-[#C66B3D] hover:underline block mt-1 font-bold">https://themis.app/p/pay_98a7s</a>
@@ -465,21 +472,21 @@ En mi carácter de Letrado Apoderado de la Administración del Consorcio de Prop
 
                   <!-- Client response -->
                   <div class="flex justify-end">
-                    <div class="bg-[#D4B895] p-2.5 rounded-2xl rounded-tr-none shadow-sm text-[10px] leading-relaxed max-w-[85%] text-[var(--text-earth)]">
+                    <div class="bg-[#D4B895] p-2.5 rounded-2xl rounded-tr-none shadow-sm text-[10px] leading-relaxed max-w-[85%] text-[#2B2521]">
                       Hola Dr. Excelente, muchas gracias por avisar. Ya acabo de pagar en el link, me llegó la confirmación de pago de MercadoPago. ¡Saludos!
                     </div>
                   </div>
 
                   <!-- Automatic payment acknowledgment -->
-                  <div class="bg-[#E8DCC7] p-2.5 rounded-2xl rounded-tl-none shadow-sm border border-[var(--text-earth)]/5 text-[10px] leading-relaxed max-w-[85%] text-[var(--text-earth)]">
+                  <div class="bg-[#E8DCC7] p-2.5 rounded-2xl rounded-tl-none shadow-sm border border-[#2B2521]/5 text-[10px] leading-relaxed max-w-[85%] text-[#2B2521]">
                     <p class="font-bold text-[#606C38] mb-0.5"><i class="pi pi-whatsapp"></i> Pago Recibido</p>
                     ¡Hemos registrado su pago de $15.000! Su nuevo saldo de cuenta corriente es de $0. Se ha generado la Factura C correspondiente y está disponible en su perfil. ¡Gracias!
                   </div>
                 </div>
 
                 <!-- Chat input placeholder -->
-                <div class="bg-[#efeae2] p-2 border-t border-[var(--text-earth)]/5 flex items-center gap-2">
-                  <div class="flex-1 bg-[#E8DCC7] rounded-full py-1 px-3 text-[9px] text-[var(--text-earth)]">Mensaje...</div>
+                <div class="bg-[#efeae2] p-2 border-t border-[#2B2521]/5 flex items-center gap-2">
+                  <div class="flex-1 bg-[#E8DCC7] rounded-full py-1 px-3 text-[9px] text-[#2B2521]/60">Mensaje...</div>
                   <i class="pi pi-send text-[#606C38] text-xs mr-1"></i>
                 </div>
               </div>
@@ -727,7 +734,7 @@ En mi carácter de Letrado Apoderado de la Administración del Consorcio de Prop
   </section>
 
   <!-- Frequently Asked Questions Section (Organic Accordion) -->
-  <section class="py-24 bg-[#E8DCC7] border-b border-[var(--text-earth)]/15">
+  <section class="py-24 bg-[var(--surface-sand)] border-b border-[var(--text-earth)]/15">
     <div class="max-w-7xl mx-auto px-6">
       <div class="text-left mb-16 border-b border-[var(--text-earth)]/15 pb-6">
         <h2 class="text-xs font-bold leading-7 text-[#C66B3D] tracking-widest uppercase">FAQ</h2>
@@ -736,7 +743,7 @@ En mi carácter de Letrado Apoderado de la Administración del Consorcio de Prop
       
       <div class="space-y-4">
         
-        <details class="group rounded-3xl border border-[var(--text-earth)]/15 p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer bg-[var(--surface-oat)]/10 hover:bg-[var(--surface-oat)]/30 transition-colors">
+        <details class="group p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer glass-card">
           <summary class="flex justify-between items-center font-bold text-[var(--text-earth)] text-sm sm:text-base font-serif-organic">
             <span>¿Es seguro almacenar escritos y expedientes en la nube?</span>
             <span class="ml-1.5 flex-shrink-0 bg-[var(--surface-oat)]/40 p-1 text-[var(--text-earth)] rounded-full group-open:rotate-180 transition-transform">
@@ -747,8 +754,8 @@ En mi carácter de Letrado Apoderado de la Administración del Consorcio de Prop
             Sí. Todos los archivos se guardan utilizando servicios de almacenamiento en la nube encriptados de alta seguridad (Cloudinary/AWS). Las URLs públicas de los archivos están enmascaradas mediante JWT guards, por lo que nadie fuera de tu estudio puede visualizar o descargar tus escritos jurídicos.
           </p>
         </details>
-
-        <details class="group rounded-3xl border border-[var(--text-earth)]/15 p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer bg-[var(--surface-oat)]/10 hover:bg-[var(--surface-oat)]/30 transition-colors">
+ 
+        <details class="group p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer glass-card">
           <summary class="flex justify-between items-center font-bold text-[var(--text-earth)] text-sm sm:text-base font-serif-organic">
             <span>¿Cómo se vincula Themis con WhatsApp?</span>
             <span class="ml-1.5 flex-shrink-0 bg-[var(--surface-oat)]/40 p-1 text-[var(--text-earth)] rounded-full group-open:rotate-180 transition-transform">
@@ -759,8 +766,8 @@ En mi carácter de Letrado Apoderado de la Administración del Consorcio de Prop
             Desde tu perfil de usuario en la aplicación, simplemente escaneás un código QR con la cámara de tu celular, exactamente igual que como iniciás sesión en WhatsApp Web. La sesión de autenticación queda guardada de forma segura en nuestra base de datos para resistir reinicios del servidor.
           </p>
         </details>
-
-        <details class="group rounded-3xl border border-[var(--text-earth)]/15 p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer bg-[var(--surface-oat)]/10 hover:bg-[var(--surface-oat)]/30 transition-colors">
+ 
+        <details class="group p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer glass-card">
           <summary class="flex justify-between items-center font-bold text-[var(--text-earth)] text-sm sm:text-base font-serif-organic">
             <span>¿La facturación de AFIP sirve para Monotributistas y Responsables Inscriptos?</span>
             <span class="ml-1.5 flex-shrink-0 bg-[var(--surface-oat)]/40 p-1 text-[var(--text-earth)] rounded-full group-open:rotate-180 transition-transform">
@@ -771,8 +778,8 @@ En mi carácter de Letrado Apoderado de la Administración del Consorcio de Prop
             Sí. Podés cargar tu CUIT, certificado .crt y clave privada .key desde la configuración del perfil. Funciona en modo homologación (pruebas) por defecto, y podés pasarlo a modo producción con un solo clic una vez que asocies tu punto de venta en AFIP. Es compatible con facturas tipo A, B y C.
           </p>
         </details>
-
-        <details class="group rounded-3xl border border-[var(--text-earth)]/15 p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer bg-[var(--surface-oat)]/10 hover:bg-[var(--surface-oat)]/30 transition-colors">
+ 
+        <details class="group p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer glass-card">
           <summary class="flex justify-between items-center font-bold text-[var(--text-earth)] text-sm sm:text-base font-serif-organic">
             <span>¿Cómo funciona el Copiloto de IA?</span>
             <span class="ml-1.5 flex-shrink-0 bg-[var(--surface-oat)]/40 p-1 text-[var(--text-earth)] rounded-full group-open:rotate-180 transition-transform">
@@ -783,7 +790,7 @@ En mi carácter de Letrado Apoderado de la Administración del Consorcio de Prop
             Utilizamos la API de Google Gemini 2.5 Flash para potenciar el análisis y redacción judicial. El sistema te permite redactar cartas documento, contestaciones de demanda, resúmenes procesales y analizar riesgos legales o calcular tasas de justicia. Todo de forma integrada en el panel lateral.
           </p>
         </details>
-
+ 
       </div>
     </div>
   </section>

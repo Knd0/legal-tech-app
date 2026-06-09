@@ -2,6 +2,7 @@ import { Component, inject, signal, AfterViewInit, OnDestroy } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 interface Particle {
   x: number;
@@ -20,6 +21,7 @@ interface Particle {
 })
 export class Landing implements AfterViewInit, OnDestroy {
   authService = inject(AuthService);
+  themeService = inject(ThemeService);
   
   activePreviewTab = signal<'dashboard' | 'kanban' | 'copilot' | 'afip' | 'whatsapp'>('dashboard');
   billingCycle = signal<'monthly' | 'yearly'>('monthly');

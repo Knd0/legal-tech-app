@@ -1,6 +1,7 @@
 import { Injectable, OnApplicationBootstrap, Logger } from '@nestjs/common';
 import { UsersService } from './users/users.service';
 import { DataSource } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class SeedService implements OnApplicationBootstrap {
@@ -39,7 +40,11 @@ export class SeedService implements OnApplicationBootstrap {
       });
       this.logger.log(`Admin created: ${adminEmail} (Password: ${process.env.ADMIN_PASSWORD ? 'HIDDEN' : adminPassword})`);
     } else {
-      this.logger.log('Admin user already exists.');
+      this.logger.log('Admin user already exists. Syncing admin password with current configuration...');
+      const salt = await bcrypt.genSalt();
+      const passwordHash = await bcrypt.hash(adminPassword, salt);
+      await this.usersService.updatePassword(existingUser.id, passwordHash);
+      this.logger.log('Admin password synchronized successfully.');
     }
   }
 

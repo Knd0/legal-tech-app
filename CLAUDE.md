@@ -176,6 +176,8 @@ To maintain design consistency and prevent bugs (like icon distortion or broken 
 ~~- **`login.html`, `register.html`, `forgot-password.html`** — Botones migrados a `<button pButton>` con `[loading]` nativo de PrimeNG. ✓~~
 ~~- **`app.module.ts:37-40`** — `console.log` de debug eliminados del backend. ✓~~
 ~~- **`login.html`** — Campo de contraseña ahora muestra mensaje de error de validación con `<small>`. ✓~~
+~~- **`calendar-event.service.ts`, `deadline.service.ts`** — Toast "Error al cargar eventos/vencimientos" aparecía al abrir la app (incluso en login) porque los constructores disparaban HTTP antes de tener sesión. Corregido con guard `if (localStorage.getItem('auth_token'))` en ambos constructores. ✓~~
+~~- **`index.html`** — Favicon no aparecía en la tab del navegador porque `favicon.png` pesaba 1.5 MB y medía 2048 px. Corregido: ahora usa `icons/themis.svg` como primario y `favicon-64.png` (64×64 px, 6 KB) como fallback. ✓~~
 
 ### Media prioridad
 ~~- **`expediente.service.ts`, `client.service.ts`, `deadline.service.ts`, `calendar-event.service.ts`** — Reemplazados `console.error` con `Swal.fire` toast en todos los handlers de error HTTP. ✓~~
@@ -238,6 +240,9 @@ Todos los gaps de seguridad conocidos han sido corregidos en el código. Ver sec
 - **Kanban: detectar columna por referencia**: `this.columns.find(c => c.items === event.container.data)` es más robusto que `event.container.id` (CDK puede devolver ID interno).
 - **chart.js instalado**: `legal-tech-app` tiene `chart.js ^4.5.1` + `ChartModule` de PrimeNG para el dashboard.
 - **Auth endpoints públicos**: `/auth/forgot-password` y `/auth/reset-password` no requieren JWT. OTPs keyed por `forgot_<email>` para no colisionar con los del perfil.
+- **Servicios root inyectados en AppComponent**: `CalendarEventService` y `DeadlineService` son `providedIn: 'root'` e inyectados (directamente o vía `NotificationService`) en `AppComponent`, lo que los instancia antes de autenticación. Sus constructores deben guardar el arranque HTTP con `if (localStorage.getItem('auth_token'))`. `ClientService` y `ExpedienteService` tienen el mismo patrón de constructor pero solo se instancian en rutas lazy, por lo que no requieren el guard.
+- **Landing logo**: El logo del navbar/footer usa el SVG de `public/icons/themis.svg` inlineado con `fill="currentColor"`. El color se controla con la variable CSS `--logo-icon-color` definida en `landing.scss` (light: `#160E0A`, dark: `#C9B08A`). El texto "Themis" usa la fuente `Caesar Dressing` (clase `.font-caesar`).
+- **Favicon**: `public/favicon.png` original (1.5 MB, 2048 px) no era renderizado por los navegadores. `index.html` ahora apunta a `icons/themis.svg` (primario, SVG, soportado por Chrome/Firefox/Edge modernos) y `favicon-64.png` (64×64, 6 KB) como fallback.
 - **Local DB dev setup**: PostgreSQL en `localhost:5432`, user `postgres`, password `1234`, database `legal_tech_db`. Cuentas de test sembradas (contraseña `password123`): `multifranco0@gmail.com` (2 clientes, 2 expedientes), `admin@estudio.com` (1 cliente, 2 expedientes).
 
 ---

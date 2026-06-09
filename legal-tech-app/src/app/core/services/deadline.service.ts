@@ -16,7 +16,9 @@ export class DeadlineService {
   private readonly API_URL = `${environment.apiUrl}/deadlines`;
 
   constructor(private http: HttpClient) {
-    this.loadDeadlines();
+    if (localStorage.getItem('auth_token')) {
+      this.loadDeadlines();
+    }
   }
 
   loadDeadlines() {

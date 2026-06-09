@@ -266,18 +266,17 @@ export class WhatsappService implements OnModuleInit {
     }
 
     const cleanIncoming = msg.from.replace(/\D/g, ''); // E.g. "5491123456789"
-    
-    // Find matching clients in DB
+
+    // Find matching clients using strict full-number comparison.
+    // WhatsApp sends numbers with country code (e.g. 5491123456789) while the DB may store
+    // them without it (e.g. 1123456789). We accept a match only when one number is a suffix
+    // of the other AND the overlap is at least 10 digits, preventing false positives across tenants.
     const clients = await this.clientRepository.find();
     const matchingClients = clients.filter(c => {
       if (!c.telefono) return false;
       const cleanDb = c.telefono.replace(/\D/g, '');
-      if (cleanDb.length < 6) return false;
-      // Match the last 8 digits (or fewer if DB number is shorter)
-      const len = Math.min(cleanDb.length, cleanIncoming.length, 8);
-      const subDb = cleanDb.substring(cleanDb.length - len);
-      const subIncoming = cleanIncoming.substring(cleanIncoming.length - len);
-      return subDb === subIncoming;
+      if (cleanDb.length < 10 || cleanIncoming.length < 10) return false;
+      return cleanIncoming.endsWith(cleanDb) || cleanDb.endsWith(cleanIncoming);
     });
 
     if (matchingClients.length === 0) {
@@ -290,7 +289,13 @@ Si querés realizar una consulta o iniciar una causa, por favor indicanos tu nom
       return;
     }
 
-    // Client found! If multiple clients matched (e.g. sharing same number, or family), we can query details for all of them.
+    // If more than one client matches (number collision), ask sender to identify themselves
+    // instead of exposing data for multiple clients.
+    if (matchingClients.length > 1) {
+      await this.client.sendMessage(msg.from, '¡Hola! Encontramos más de un cliente con este número. Por favor, indicanos tu nombre completo para identificarte correctamente.');
+      return;
+    }
+
     const clientIds = matchingClients.map(c => c.id);
     const clientNames = matchingClients.map(c => `${c.nombre} ${c.apellido}`).join(', ');
 

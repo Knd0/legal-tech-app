@@ -62,6 +62,8 @@ Todos los gaps de seguridad conocidos están cerrados (JWT guards, filtros por u
 ~~- **`login.html`, `register.html`, `forgot-password.html`** — Botones migrados a `<button pButton>` con `[loading]` nativo de PrimeNG. ✓~~
 ~~- **`app.module.ts:37-40`** — `console.log` de debug eliminados del backend. ✓~~
 ~~- **`login.html`** — Campo contraseña ahora muestra mensaje de error de validación con `<small>`. ✓~~
+~~- **`calendar-event.service.ts`, `deadline.service.ts`** — Toast "Error al cargar eventos/vencimientos" aparecía al abrir la app (incluso en login). Los constructores disparaban HTTP sin sesión activa vía `AppComponent → NotificationService`. Corregido con `if (localStorage.getItem('auth_token'))` en ambos constructores. ✓~~
+~~- **`index.html`** — Favicon no aparecía en la tab del navegador: `favicon.png` original pesaba 1.5 MB / 2048 px. Ahora usa `icons/themis.svg` (primario) y `favicon-64.png` (64×64 px, 6 KB) como fallback. ✓~~
 
 ### Media prioridad
 ~~- **`expediente.service.ts`, `client.service.ts`, `deadline.service.ts`, `calendar-event.service.ts`** — Reemplazados `console.error` con `Swal.fire` toast en todos los handlers de error HTTP. ✓~~
@@ -111,6 +113,8 @@ Todos los gaps de seguridad conocidos están cerrados (JWT guards, filtros por u
 - **Kanban: detectar columna por referencia**: `this.columns.find(c => c.items === event.container.data)` es más robusto que `event.container.id` (CDK puede devolver ID interno).
 - **Auth endpoints públicos**: `/auth/forgot-password` y `/auth/reset-password` no requieren JWT. OTPs keyed por `forgot_<email>` para no colisionar con los del perfil.
 - **whatsapp-auth/ en .gitignore**: `backend/whatsapp-auth/` ignorado por `.gitignore` para no commitear el caché de sesión de Chromium.
+- **Servicios root + AppComponent**: `CalendarEventService` y `DeadlineService` se instancian al arrancar la app (antes de auth). Sus constructores usan `if (localStorage.getItem('auth_token'))` para no disparar HTTP sin sesión. `ClientService` / `ExpedienteService` tienen el mismo patrón pero solo viven en rutas lazy — no necesitan el guard.
+- **Landing logo y favicon**: El logo navbar/footer es el SVG `public/icons/themis.svg` inlineado con `fill="currentColor"`, coloreado por `--logo-icon-color` en `landing.scss`. Fuente del texto "Themis": `Caesar Dressing` (clase `.font-caesar`). El favicon ahora usa `icons/themis.svg` + `favicon-64.png` (64×64 px).
 
 ---
 

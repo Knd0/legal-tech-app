@@ -1,110 +1,184 @@
-/* Swiss Modernist Design System - Landing Page Styles */
+/* Organic Design System - Landing Page Styles */
 
 :host {
   display: block;
   scroll-behavior: smooth;
-  --surface-white: #FFFFFF;
-  --surface-neutral: #F7F7F8;
-  --accent-yves-blue: #002FA7;
-  --border-hairline: rgba(0, 0, 0, 0.08);
+  --surface-sand: #E8DCC7;
+  --surface-oat: #D4B895;
+  --accent-terracotta: #C66B3D;
+  --accent-moss: #606C38;
+  --accent-sage: #8B9D83;
+  --accent-clay: #B08B6E;
+  --accent-ochre: #C08E3A;
+  --border-organic: rgba(96, 60, 30, 0.08);
+  --border-organic-strong: rgba(96, 60, 30, 0.16);
+  --text-earth: #2B2521;
+}
+
+// Global elements within this component host
+:host {
+  font-family: 'Epilogue', sans-serif;
+  color: var(--text-earth);
+}
+
+h1, h2, h3, h4, .font-serif-organic {
+  font-family: 'Fraunces', serif !important;
+  color: var(--text-earth);
+}
+
+p, span, a, button, input, td, th, li, .font-sans-organic {
+  font-family: 'Epilogue', sans-serif;
 }
 
 // 1. Selection Theme
 ::selection {
-  background-color: rgba(0, 47, 167, 0.15);
-  color: var(--accent-yves-blue);
+  background-color: rgba(198, 107, 61, 0.15); // Terracotta selection
+  color: var(--accent-terracotta);
 }
 
-// 2. Swiss Grid & Hairline Lines
-.swiss-grid {
-  display: grid;
-  border-top: 1px solid var(--border-hairline);
-  border-left: 1px solid var(--border-hairline);
+// 2. Grain Film Texture (Applied globally on landing container)
+.grain-overlay {
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  opacity: 0.025; // 2.5% opacity as specified in anchor rules
+}
 
-  & > * {
-    border-bottom: 1px solid var(--border-hairline);
-    border-right: 1px solid var(--border-hairline);
+// 3. Gentle Breathing Motion
+@keyframes breathe {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
   }
 }
 
-.swiss-border-b {
-  border-bottom: 1px solid var(--border-hairline);
+.breathe-element {
+  animation: breathe 6s ease-in-out infinite;
 }
 
-.swiss-border-t {
-  border-top: 1px solid var(--border-hairline);
-}
-
-.swiss-border-l {
-  border-left: 1px solid var(--border-hairline);
-}
-
-.swiss-border-r {
-  border-right: 1px solid var(--border-hairline);
-}
-
-// 3. Swiss Flat Cards (Retaining class names to prevent breakage, but changing styles completely)
+// 4. Custom Cards and Layout styles
 .glass-card {
-  background: var(--surface-white);
-  border: 1px solid var(--border-hairline);
-  border-radius: 0px !important; // Strict Swiss geometric sharp edges
-  box-shadow: none;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background: var(--surface-oat);
+  border: 1.5px solid var(--border-organic);
+  border-radius: 24px !important; // Smooth organic rounded corners
+  box-shadow: 0 4px 20px -2px rgba(43, 37, 33, 0.04);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 
   &:hover {
-    transform: none;
-    border-color: var(--accent-yves-blue);
-    background: var(--surface-neutral);
+    transform: translateY(-4px);
+    border-color: var(--accent-terracotta);
+    background: #dfcdb4; // slightly darker oat
+    box-shadow: 0 8px 30px -4px rgba(43, 37, 33, 0.08);
+  }
+}
+
+.faq-card {
+  background: #fdfbf7; // Warm light paper background in light mode
+  border: 1.5px solid rgba(96, 60, 30, 0.08);
+  border-left: 1.5px solid rgba(96, 60, 30, 0.08);
+  border-radius: 20px !important;
+  box-shadow: 0 4px 15px -3px rgba(43, 37, 33, 0.02);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 1rem;
+  overflow: hidden;
+
+  summary {
+    list-style: none; // Hide default arrow in Firefox/Standard
+    color: var(--text-earth);
+    transition: color 0.3s ease;
+    
+    &::-webkit-details-marker {
+      display: none; // Hide default arrow in Safari/Chrome
+    }
+    
+    &:focus {
+      outline: none;
+    }
+  }
+
+  p {
+    color: rgba(43, 37, 33, 0.85); // Soft readable text in light mode
+    transition: opacity 0.3s ease;
+  }
+
+  &[open] {
+    background: #ffffff;
+    border-color: rgba(96, 60, 30, 0.12);
+    border-left: 4px solid var(--accent-terracotta) !important; // Terracotta left border indicator
+    box-shadow: 0 10px 25px -5px rgba(198, 107, 61, 0.06);
+
+    summary {
+      color: var(--accent-terracotta);
+    }
+    
+    summary span.flex-shrink-0 {
+      background: var(--accent-terracotta) !important;
+      color: #ffffff !important;
+    }
+  }
+
+  &:hover:not([open]) {
+    transform: translateY(-2px);
+    border-color: var(--accent-terracotta);
+    box-shadow: 0 6px 20px -4px rgba(43, 37, 33, 0.05);
   }
 }
 
 .glass-nav {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: none;
-  border-bottom: 1px solid var(--border-hairline);
-  border-radius: 0px !important;
-  box-shadow: none;
+  background: rgba(232, 220, 199, 0.92); // semi-transparent sand
+  backdrop-filter: blur(12px);
+  border-bottom: 1.5px solid var(--border-organic);
+  border-radius: 0 0 24px 24px !important;
+  box-shadow: 0 4px 20px -5px rgba(43, 37, 33, 0.05);
 }
 
-// 4. Platform Browser Mockup Shell
+// 5. Platform Browser Mockup Shell
 .platform-shell {
-  border-radius: 0px !important; // Sharp layout
-  border: 1px solid var(--border-hairline);
-  background: var(--surface-white);
-  box-shadow: none;
+  border-radius: 32px !important; // Hyper rounded
+  border: 1.5px solid var(--border-organic);
+  background: var(--surface-sand);
+  box-shadow: 0 12px 40px -10px rgba(43, 37, 33, 0.1);
   overflow: hidden;
-  transition: border-color 0.2s ease;
+  transition: all 0.4s ease;
 }
 
 .sidebar-item-active {
-  background: var(--accent-yves-blue) !important;
+  background: var(--accent-terracotta) !important;
   color: #FFFFFF !important;
   font-weight: 700;
-  border-radius: 0px !important;
+  border-radius: 16px !important;
 }
 
 .simulated-card {
-  border-radius: 0px !important;
-  box-shadow: none !important;
-  border: 1px solid var(--border-hairline) !important;
-  transition: all 0.2s ease;
+  border-radius: 20px !important;
+  box-shadow: 0 4px 15px -3px rgba(43, 37, 33, 0.03) !important;
+  border: 1.5px solid var(--border-organic) !important;
+  transition: all 0.3s ease;
+  background: #fdfaf4 !important; // Warm light paper interior
   &:hover {
-    transform: none;
-    border-color: var(--accent-yves-blue) !important;
+    transform: translateY(-2px);
+    border-color: var(--accent-terracotta) !important;
+    box-shadow: 0 6px 20px -4px rgba(198, 107, 61, 0.1) !important;
   }
 }
 
-// 5. Typographic Elements (No Gradients - Solid Ink Style)
+// 6. Typographic Elements (Organic Gradients & Accents)
 .text-gradient-primary {
-  background: none;
-  -webkit-text-fill-color: initial;
-  color: #000000; // Solid bold black for Swiss headlines
+  background: linear-gradient(135deg, var(--text-earth) 0%, var(--accent-terracotta) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .text-gradient-accent {
-  background: none;
-  -webkit-text-fill-color: initial;
-  color: var(--accent-yves-blue); // Solid Yves Klein Blue
+  background: linear-gradient(135deg, var(--accent-terracotta) 0%, var(--accent-clay) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .text-balance {
@@ -115,41 +189,19 @@
   text-wrap: pretty;
 }
 
-// 6. Interactive Element Styling
+// 7. Interactive Element Styling
 .switch-label-active {
-  color: var(--accent-yves-blue);
+  color: var(--accent-terracotta);
   font-weight: 800;
 }
 
 .pricing-card-pro {
   position: relative;
   overflow: visible;
-  border: 2px solid var(--accent-yves-blue) !important;
-  background: var(--surface-white);
-  border-radius: 0px !important;
-  box-shadow: none !important;
-
-  &::before {
-    display: none; // Remove colorful glowing dropshadows
-  }
-}
-
-// 7. Dynamic Color Swapping (No dark mode overrides that break Swiss white surface rules)
-:host-context(.dark) {
-  --surface-white: #FFFFFF;
-  --surface-neutral: #F7F7F8;
-  --border-hairline: rgba(0, 0, 0, 0.08);
-
-  .glass-card {
-    background: var(--surface-white);
-    border: 1px solid var(--border-hairline);
-    color: #0F172A;
-  }
-
-  .platform-shell {
-    background: var(--surface-white);
-    border: 1px solid var(--border-hairline);
-  }
+  border: 2px solid var(--accent-terracotta) !important;
+  background: var(--surface-oat);
+  border-radius: 28px !important;
+  box-shadow: 0 10px 30px -5px rgba(198, 107, 61, 0.1) !important;
 }
 
 // 8. Visual Composition Markers (Numbers)
@@ -157,5 +209,71 @@
   font-feature-settings: "tnum" 1;
   font-family: monospace;
   font-weight: 700;
-  color: var(--accent-yves-blue);
+  color: var(--accent-terracotta);
+}
+
+// Dark Mode integration supporting organic palettes (keeps warm tone principles)
+:host-context(.dark) {
+  .glass-nav {
+    background: rgba(28, 24, 21, 0.92) !important;
+    border-bottom: 1.5px solid var(--border-organic);
+  }
+
+  --surface-sand: #1c1815; // Dark warm-earth
+  --surface-oat: #292420;
+  --text-earth: #E8DCC7;
+  --border-organic: rgba(232, 220, 199, 0.08);
+  --border-organic-strong: rgba(232, 220, 199, 0.18);
+
+  .glass-card {
+    background: var(--surface-oat);
+    border: 1.5px solid var(--border-organic);
+    color: var(--text-earth);
+    
+    &:hover {
+      background: #362f2a;
+    }
+  }
+
+  .faq-card {
+    background: #231f1c; // Deep charcoal-brown
+    border-color: rgba(232, 220, 199, 0.08);
+    border-left: 1.5px solid rgba(232, 220, 199, 0.08);
+    box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.15);
+
+    p {
+      color: rgba(232, 220, 199, 0.85); // Softer light beige for high-contrast reading
+    }
+
+    &[open] {
+      background: #2a2521;
+      border-color: rgba(232, 220, 199, 0.12);
+      border-left: 4px solid var(--accent-terracotta) !important;
+      box-shadow: 0 10px 25px -5px rgba(198, 107, 61, 0.18);
+
+      summary {
+        color: var(--accent-terracotta);
+      }
+      
+      summary span.flex-shrink-0 {
+        background: var(--accent-terracotta) !important;
+        color: #ffffff !important;
+      }
+    }
+
+    &:hover:not([open]) {
+      border-color: var(--accent-terracotta);
+      box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .platform-shell {
+    background: var(--surface-oat);
+    border: 1.5px solid var(--border-organic);
+  }
+
+  .simulated-card {
+    background: #1c1815 !important;
+    border-color: var(--border-organic) !important;
+  }
 }

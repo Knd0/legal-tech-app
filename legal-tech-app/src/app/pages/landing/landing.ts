@@ -2,6 +2,7 @@ import { Component, inject, signal, AfterViewInit, OnDestroy } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 interface Particle {
   x: number;
@@ -20,6 +21,7 @@ interface Particle {
 })
 export class Landing implements AfterViewInit, OnDestroy {
   authService = inject(AuthService);
+  themeService = inject(ThemeService);
   
   activePreviewTab = signal<'dashboard' | 'kanban' | 'copilot' | 'afip' | 'whatsapp'>('dashboard');
   billingCycle = signal<'monthly' | 'yearly'>('monthly');
@@ -63,7 +65,7 @@ export class Landing implements AfterViewInit, OnDestroy {
       y: Math.random() * height,
       vx: (Math.random() - 0.5) * 0.35,
       vy: (Math.random() - 0.5) * 0.35,
-      radius: Math.random() * 1.5 + 0.6,
+      radius: Math.random() * 2.2 + 1.2,
     }));
 
     this.mouseMoveListener = (e: MouseEvent) => {
@@ -93,8 +95,11 @@ export class Landing implements AfterViewInit, OnDestroy {
 
       ctx.clearRect(0, 0, width, height);
 
-      // Always draw in Swiss Yves Klein Blue (0, 47, 167) over the light surface
-      const rgbColor = '0, 47, 167';
+      // Draw in Organic earth tones: Terracotta (198, 107, 61) and Moss (96, 108, 56)
+      const isDarkMode = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark');
+      const rgbTerracotta = '198, 107, 61';
+      const rgbMoss = isDarkMode ? '139, 157, 131' : '96, 108, 56'; // Sage green in dark mode for contrast
+      const rgbLine = isDarkMode ? '212, 184, 149' : '96, 75, 60'; // Light oat in dark mode, dark clay in light mode
 
       // Update and draw particles
       for (let i = 0; i < particles.length; i++) {
@@ -111,15 +116,18 @@ export class Landing implements AfterViewInit, OnDestroy {
         const dy = this.mouse.y - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        let alpha = 0.35;
+        let alpha = 0.65;
         if (dist < mouseDistance) {
-          alpha = 0.35 + (1 - dist / mouseDistance) * 0.45;
+          alpha = 0.65 + (1 - dist / mouseDistance) * 0.30;
         }
+
+        // Alternate particle colors between Terracotta and Moss
+        const pRgb = i % 2 === 0 ? rgbTerracotta : rgbMoss;
 
         // Draw particle
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${rgbColor}, ${alpha})`;
+        ctx.fillStyle = `rgba(${pRgb}, ${alpha})`;
         ctx.fill();
 
         // Draw connections between particles
@@ -130,24 +138,24 @@ export class Landing implements AfterViewInit, OnDestroy {
           const distance = Math.sqrt(ddx * ddx + ddy * ddy);
 
           if (distance < connectionDistance) {
-            const lineAlpha = (1 - distance / connectionDistance) * 0.11;
+            const lineAlpha = (1 - distance / connectionDistance) * 0.32;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(${rgbColor}, ${lineAlpha})`;
-            ctx.lineWidth = 0.4;
+            ctx.strokeStyle = `rgba(${rgbLine}, ${lineAlpha})`;
+            ctx.lineWidth = 0.7;
             ctx.stroke();
           }
         }
 
         // Draw connection to mouse
         if (dist < mouseDistance) {
-          const lineAlpha = (1 - dist / mouseDistance) * 0.18;
+          const lineAlpha = (1 - dist / mouseDistance) * 0.42;
           ctx.beginPath();
           ctx.moveTo(p.x, p.y);
           ctx.lineTo(this.mouse.x, this.mouse.y);
-          ctx.strokeStyle = `rgba(${rgbColor}, ${lineAlpha})`;
-          ctx.lineWidth = 0.4;
+          ctx.strokeStyle = `rgba(${rgbLine}, ${lineAlpha})`;
+          ctx.lineWidth = 0.8;
           ctx.stroke();
         }
       }

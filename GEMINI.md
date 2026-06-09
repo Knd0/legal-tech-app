@@ -40,7 +40,7 @@ Actualmente la aplicación se encuentra en un estado muy avanzado (~99% global):
 | **Documents UI** | **99%** | Carga de archivos integrada con **persistencia real en la nube usando Cloudinary**. Streaming seguro (view/download) y preview interactivo de imágenes y PDFs. |
 | **Copilot** | **100%** | Módulo de IA premium: análisis de textos, redactor de escritos judiciales, resúmenes procesales, análisis de riesgo/probabilidad de éxito, y calculadora interactiva de costos y análisis predictivo de viabilidad con reportes en PDF/Word. Gemini 2.5 Flash por defecto, fallback a OpenAI. |
 | **Facturas y Auditorías**| **100%** | Paginación server-side en facturas y audit logs. **Implementado soporte dinámico para múltiples Puntos de Venta en AFIP** (configurados en el perfil de cada usuario, por defecto 1). |
-| **Landing Page** | **100%** | Rediseño premium de Landing Page con barra de navegación glassmorphic, gradientes Outfit, selector de ciclo mensual/anual, un **Live Platform Preview Shell** interactivo y un **fondo animado interactivo de constelación de red (Network Constellation Canvas)** en tiempo real. |
+| **Landing Page** | **100%** | Rediseño bajo el ancla estética **Organic** (diseño cálido y natural, Oat/Sand surfaces, Terracotta/Moss accents, tipografías Fraunces/Epilogue, y canvas animado de partículas interactivo de alta visibilidad). |
 
 ---
 

@@ -93,9 +93,8 @@ export class Landing implements AfterViewInit, OnDestroy {
 
       ctx.clearRect(0, 0, width, height);
 
-      // Determine active color theme dynamically (dark mode vs light mode)
-      const isDark = document.documentElement.classList.contains('dark');
-      const rgbColor = isDark ? '96, 165, 250' : '79, 70, 229'; // light-blue (96, 165, 250) vs indigo (79, 70, 229)
+      // Always draw in Swiss Yves Klein Blue (0, 47, 167) over the light surface
+      const rgbColor = '0, 47, 167';
 
       // Update and draw particles
       for (let i = 0; i < particles.length; i++) {
@@ -112,9 +111,9 @@ export class Landing implements AfterViewInit, OnDestroy {
         const dy = this.mouse.y - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        let alpha = 0.45;
+        let alpha = 0.35;
         if (dist < mouseDistance) {
-          alpha = 0.45 + (1 - dist / mouseDistance) * 0.55;
+          alpha = 0.35 + (1 - dist / mouseDistance) * 0.45;
         }
 
         // Draw particle
@@ -131,24 +130,24 @@ export class Landing implements AfterViewInit, OnDestroy {
           const distance = Math.sqrt(ddx * ddx + ddy * ddy);
 
           if (distance < connectionDistance) {
-            const lineAlpha = (1 - distance / connectionDistance) * 0.13;
+            const lineAlpha = (1 - distance / connectionDistance) * 0.11;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(p2.x, p2.y);
             ctx.strokeStyle = `rgba(${rgbColor}, ${lineAlpha})`;
-            ctx.lineWidth = 0.55;
+            ctx.lineWidth = 0.4;
             ctx.stroke();
           }
         }
 
         // Draw connection to mouse
         if (dist < mouseDistance) {
-          const lineAlpha = (1 - dist / mouseDistance) * 0.22;
+          const lineAlpha = (1 - dist / mouseDistance) * 0.18;
           ctx.beginPath();
           ctx.moveTo(p.x, p.y);
           ctx.lineTo(this.mouse.x, this.mouse.y);
           ctx.strokeStyle = `rgba(${rgbColor}, ${lineAlpha})`;
-          ctx.lineWidth = 0.55;
+          ctx.lineWidth = 0.4;
           ctx.stroke();
         }
       }

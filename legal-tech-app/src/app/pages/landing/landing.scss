@@ -1,197 +1,112 @@
-/* Custom Landing Page Styles (Premium SaaS Design System) */
+/* Swiss Modernist Design System - Landing Page Styles */
 
-// 1. Theme Variables & Smooth Scrolling
 :host {
   display: block;
   scroll-behavior: smooth;
-  --glow-color: rgba(59, 130, 246, 0.5);
-  --glow-color-secondary: rgba(147, 51, 234, 0.4);
+  --surface-white: #FFFFFF;
+  --surface-neutral: #F7F7F8;
+  --accent-yves-blue: #002FA7;
+  --border-hairline: rgba(0, 0, 0, 0.08);
 }
 
-// Selection colors
+// 1. Selection Theme
 ::selection {
-  background-color: rgba(59, 130, 246, 0.2);
-  color: #3b82f6;
+  background-color: rgba(0, 47, 167, 0.15);
+  color: var(--accent-yves-blue);
 }
 
-// 2. High-Fidelity Gradients and Glow Effects
-.glow-bubble {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.65;
-  mix-blend-mode: plus-lighter;
-  animation: floatBubble 12s ease-in-out infinite alternate;
+// 2. Swiss Grid & Hairline Lines
+.swiss-grid {
+  display: grid;
+  border-top: 1px solid var(--border-hairline);
+  border-left: 1px solid var(--border-hairline);
+
+  & > * {
+    border-bottom: 1px solid var(--border-hairline);
+    border-right: 1px solid var(--border-hairline);
+  }
 }
 
-.glow-bubble-1 {
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, var(--glow-color) 0%, rgba(59, 130, 246, 0) 70%);
-  top: -150px;
-  left: 10%;
+.swiss-border-b {
+  border-bottom: 1px solid var(--border-hairline);
 }
 
-.glow-bubble-2 {
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, var(--glow-color-secondary) 0%, rgba(147, 51, 234, 0) 70%);
-  bottom: -200px;
-  right: 5%;
-  animation-duration: 18s;
-  animation-delay: -3s;
+.swiss-border-t {
+  border-top: 1px solid var(--border-hairline);
 }
 
-.glow-bubble-3 {
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0) 70%);
-  top: 45%;
-  left: -100px;
-  animation-duration: 15s;
+.swiss-border-l {
+  border-left: 1px solid var(--border-hairline);
 }
 
-// 3. Glassmorphism Design System (Light Mode by default)
-.glass-nav {
-  background: rgba(255, 255, 255, 0.75); // Clean translucent white glass
-  backdrop-filter: blur(20px) saturate(190%);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.swiss-border-r {
+  border-right: 1px solid var(--border-hairline);
 }
 
+// 3. Swiss Flat Cards (Retaining class names to prevent breakage, but changing styles completely)
 .glass-card {
-  background: rgba(255, 255, 255, 0.7); // Pristine white container
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  background: var(--surface-white);
+  border: 1px solid var(--border-hairline);
+  border-radius: 0px !important; // Strict Swiss geometric sharp edges
+  box-shadow: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    transform: none;
+    border-color: var(--accent-yves-blue);
+    background: var(--surface-neutral);
+  }
 }
 
-.glass-card:hover {
-  transform: translateY(-6px);
-  border-color: rgba(59, 130, 246, 0.3);
-  box-shadow: 0 12px 40px rgba(59, 130, 246, 0.08);
+.glass-nav {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: none;
+  border-bottom: 1px solid var(--border-hairline);
+  border-radius: 0px !important;
+  box-shadow: none;
 }
 
-// 4. Live Platform Preview Shell (Light Mode by default)
+// 4. Platform Browser Mockup Shell
 .platform-shell {
-  border-radius: 16px;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  background: #ffffff;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  border-radius: 0px !important; // Sharp layout
+  border: 1px solid var(--border-hairline);
+  background: var(--surface-white);
+  box-shadow: none;
   overflow: hidden;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.2s ease;
 }
 
 .sidebar-item-active {
-  background: rgba(59, 130, 246, 0.08);
-  color: #2563eb !important;
-  font-weight: 600;
-}
-
-// 5. Interactive Simulated UI elements
-.simulated-card {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  &:hover {
-    transform: translateY(-3px) scale(1.01);
-  }
-}
-
-// Typing simulation for Copilot
-.typing-dot {
-  width: 6px;
-  height: 6px;
-  background: #3b82f6;
-  border-radius: 50%;
-  animation: typingBounce 1.4s infinite ease-in-out;
-  display: inline-block;
-
-  &:nth-child(2) {
-    animation-delay: 0.2s;
-  }
-  &:nth-child(3) {
-    animation-delay: 0.4s;
-  }
-}
-
-// Sparkle glow effect
-.glowing-sparkle {
-  position: relative;
-  &::after {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    border-radius: inherit;
-    z-index: -1;
-    opacity: 0.5;
-    filter: blur(6px);
-  }
-}
-
-// 6. Interactive Pricing Toggle
-.switch-label-active {
-  color: #3b82f6;
+  background: var(--accent-yves-blue) !important;
+  color: #FFFFFF !important;
   font-weight: 700;
+  border-radius: 0px !important;
 }
 
-// Glow effect on premium cards
-.pricing-card-pro {
-  position: relative;
-  overflow: visible;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    background: linear-gradient(135deg, #3b82f6, #9333ea, #10b981);
-    border-radius: 24px;
-    z-index: -1;
-    opacity: 0.5;
-    filter: blur(8px);
-    transition: opacity 0.3s ease;
-  }
-
-  &:hover::before {
-    opacity: 0.85;
-    filter: blur(12px);
+.simulated-card {
+  border-radius: 0px !important;
+  box-shadow: none !important;
+  border: 1px solid var(--border-hairline) !important;
+  transition: all 0.2s ease;
+  &:hover {
+    transform: none;
+    border-color: var(--accent-yves-blue) !important;
   }
 }
 
-// 7. Animations
-@keyframes floatBubble {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  100% {
-    transform: translate(8%, 12%) scale(1.1);
-  }
-}
-
-@keyframes typingBounce {
-  0%, 80%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-6px);
-  }
-}
-
+// 5. Typographic Elements (No Gradients - Solid Ink Style)
 .text-gradient-primary {
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: none;
+  -webkit-text-fill-color: initial;
+  color: #000000; // Solid bold black for Swiss headlines
 }
 
 .text-gradient-accent {
-  background: linear-gradient(135deg, #2563eb, #10b981);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: none;
+  -webkit-text-fill-color: initial;
+  color: var(--accent-yves-blue); // Solid Yves Klein Blue
 }
 
-// 8. Base Layout Fixes
 .text-balance {
   text-wrap: balance;
 }
@@ -200,50 +115,47 @@
   text-wrap: pretty;
 }
 
-// ==========================================
-// 9. Angular Scoped Dark Mode Overrides
-// ==========================================
-:host-context(.dark) {
-  .glass-nav {
-    background: rgba(15, 23, 42, 0.7); // Translucent deep slate blue
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+// 6. Interactive Element Styling
+.switch-label-active {
+  color: var(--accent-yves-blue);
+  font-weight: 800;
+}
+
+.pricing-card-pro {
+  position: relative;
+  overflow: visible;
+  border: 2px solid var(--accent-yves-blue) !important;
+  background: var(--surface-white);
+  border-radius: 0px !important;
+  box-shadow: none !important;
+
+  &::before {
+    display: none; // Remove colorful glowing dropshadows
   }
+}
+
+// 7. Dynamic Color Swapping (No dark mode overrides that break Swiss white surface rules)
+:host-context(.dark) {
+  --surface-white: #FFFFFF;
+  --surface-neutral: #F7F7F8;
+  --border-hairline: rgba(0, 0, 0, 0.08);
 
   .glass-card {
-    background: rgba(30, 41, 59, 0.45); // Translucent slate
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25);
-
-    &:hover {
-      border-color: rgba(96, 165, 250, 0.2);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 25px rgba(96, 165, 250, 0.05);
-    }
+    background: var(--surface-white);
+    border: 1px solid var(--border-hairline);
+    color: #0F172A;
   }
 
   .platform-shell {
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: #0f172a; // Deep slate-900 (NOT grey!)
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    background: var(--surface-white);
+    border: 1px solid var(--border-hairline);
   }
+}
 
-  .sidebar-item-active {
-    background: rgba(96, 165, 250, 0.12);
-    color: #60a5fa !important;
-  }
-
-  .switch-label-active {
-    color: #60a5fa;
-  }
-
-  .text-gradient-primary {
-    background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 50%, #c084fc 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .text-gradient-accent {
-    background: linear-gradient(135deg, #60a5fa, #34d399);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+// 8. Visual Composition Markers (Numbers)
+.folio-number {
+  font-feature-settings: "tnum" 1;
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--accent-yves-blue);
 }

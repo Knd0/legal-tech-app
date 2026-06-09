@@ -162,6 +162,11 @@ p, span, a, button, input, td, th, li, .font-sans-organic {
 
 // Dark Mode integration supporting organic palettes (keeps warm tone principles)
 :host-context(.dark) {
+  .glass-nav {
+    background: rgba(28, 24, 21, 0.92) !important;
+    border-bottom: 1.5px solid var(--border-organic);
+  }
+
   --surface-sand: #1c1815; // Dark warm-earth
   --surface-oat: #292420;
   --text-earth: #E8DCC7;

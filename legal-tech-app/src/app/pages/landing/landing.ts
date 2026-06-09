@@ -94,9 +94,10 @@ export class Landing implements AfterViewInit, OnDestroy {
       ctx.clearRect(0, 0, width, height);
 
       // Draw in Organic earth tones: Terracotta (198, 107, 61) and Moss (96, 108, 56)
+      const isDarkMode = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark');
       const rgbTerracotta = '198, 107, 61';
-      const rgbMoss = '96, 108, 56';
-      const rgbLine = '96, 75, 60'; // Darker clay color for higher contrast
+      const rgbMoss = isDarkMode ? '139, 157, 131' : '96, 108, 56'; // Sage green in dark mode for contrast
+      const rgbLine = isDarkMode ? '212, 184, 149' : '96, 75, 60'; // Light oat in dark mode, dark clay in light mode
 
       // Update and draw particles
       for (let i = 0; i < particles.length; i++) {

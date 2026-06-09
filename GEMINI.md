@@ -142,6 +142,46 @@ Todos los gaps de seguridad conocidos están cerrados (JWT guards, filtros por u
 3. **Análisis Predictivo de Costos del Juicio:**
    Estimar de forma interactiva la tasa de justicia, bonos, honorarios mínimos de ley y gastos administrativos estimados antes de iniciar la demanda para cotizar mejor a los clientes.
 
+## 🎨 Pautas de Diseño del Sistema Visual "Organic" (Frontend)
+
+Para mantener la consistencia estética y evitar regresiones visuales (como distorsión de iconos o imágenes rotas), cualquier desarrollo nuevo en la interfaz debe seguir estas reglas:
+
+1. **Paleta de Colores Cálida (Variables CSS)**:
+   - Evitar usar colores fríos (grises/azules estándar de Tailwind). En su lugar usar siempre las variables de `:root` de `styles.scss`:
+     - Fondo General: `var(--bg-app)` (Arena: `#E8DCC7`)
+     - Tarjetas y Superficies: `var(--bg-surface)` (Crema Cálido/Avena suave: `#FAF6F0`)
+     - Acentos Principales: `var(--accent-terracotta)` (`#C66B3D`)
+     - Acentos Secundarios: `var(--accent-moss)` (`#606C38`) y `var(--accent-sage)` (`#8B9D83`)
+     - Texto Principal: `var(--text-main)` / `var(--text-earth)` (`#2B2521`)
+     - Bordes: `var(--border-color)`
+
+2. **Tipografías**:
+   - Encabezados y Títulos: Fuente **Fraunces** con peso destacado (`font-family: 'Fraunces', serif !important;` - ya está aplicada a los elementos `h1-h6`, `.p-dialog-title`, `.p-column-title`).
+   - Textos de Cuerpo, Inputs y Botones: Fuente **Epilogue** (`font-family: 'Epilogue', sans-serif !important;`).
+
+3. **Uso de Botones de PrimeNG (Crítico)**:
+   - **NO UTILIZAR** el componente `<p-button>` para iconos de acción individuales en tablas o botones de texto simples, ya que la estilización global de botones en forma de píldora sólida desborda y deforma su padding.
+   - **UTILIZAR SIEMPRE** el elemento nativo `<button pButton>` con clases explícitas:
+     - *Botones de acción de grilla (editar, borrar, suspender)*: Utilizar clases `.p-button-rounded .p-button-text .p-button-sm` con el color de texto correspondiente (ej. `text-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta)]/10`).
+     - *Botones principales*: Utilizar `.p-button-rounded .p-button-sm .p-button-primary`.
+     - *Botones secundarios/Cancelar*: Utilizar `.p-button-rounded .p-button-text .p-button-sm text-slate-500 hover:bg-slate-100`.
+
+4. **Diálogos y Modales**:
+   - Los diálogos modales de la app usan el contenedor `.p-dialog`. Se ha modificado globalmente para aplicar un `border-radius: 20px !important`, `overflow: hidden`, bordes delgados y sombreados premium de estilo Organic.
+   - Todos los inputs y componentes `<p-select>` dentro de los formularios en diálogos deben tener la clase `w-full` o la directiva `styleClass="w-full"` y `[style]="{'width':'100%'}"` para que se ajusten al ancho del modal y no se vean recortados.
+
+5. **Conservación de Iconos (PrimeIcons)**:
+   - Debido a que las directivas globales aplican la fuente `Epilogue` con prioridad `!important` a tags estándar como `span` y `button`, hemos fijado de forma exclusiva la fuente en la clase `.pi`:
+     ```css
+     .pi {
+         font-family: 'primeicons' !important;
+     }
+     ```
+     Nunca remover este override de `styles.scss`, de lo contrario todos los iconos se mostrarán como rectángulos vacíos en el navegador.
+
+6. **Rutas de Archivos Estáticos Absolutas**:
+   - Al referenciar el logo o cualquier archivo estático, usar siempre rutas absolutas (ej: `src="/favicon.png"`) en lugar de relativas (`src="favicon.png"`). Las rutas relativas devuelven error 404 al navegar en rutas anidadas como `/admin/users`.
+
 ---
 
 ## ⚠️ Pendientes de Acción Manual (fuera del repositorio)

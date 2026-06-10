@@ -44,9 +44,9 @@ export class FacturasService {
             const tmpCertPath = path.join(tmpDir, 'cert.crt');
             const tmpKeyPath = path.join(tmpDir, 'cert.key');
 
-            // Write files
-            fs.writeFileSync(tmpCertPath, envCert);
-            fs.writeFileSync(tmpKeyPath, envKey);
+            // Write files with owner-only permissions (prevents other OS users from reading credentials)
+            fs.writeFileSync(tmpCertPath, envCert, { mode: 0o600 });
+            fs.writeFileSync(tmpKeyPath, envKey, { mode: 0o600 });
 
             certPath = tmpCertPath;
             keyPath = tmpKeyPath;

@@ -35,18 +35,18 @@ export class FacturasService {
         console.log(`[DEBUG] AFIP_KEY present: ${!!envKey}, Length: ${envKey ? envKey.length : 0}`);
 
         if (envCert && envKey) {
-            const tmpDir = os.tmpdir(); // Cross-platform temp dir (Windows dev/Linux prod)
-            // Ensure temp dir exists (it should)
-            if (!fs.existsSync(tmpDir)) {
-                 try { fs.mkdirSync(tmpDir); } catch(e) {}
-            }
-            
-            const tmpCertPath = path.join(tmpDir, 'cert.crt');
-            const tmpKeyPath = path.join(tmpDir, 'cert.key');
+            // Private directory per-process prevents symlink attacks and cross-process file reuse
+            const secureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'afip-global-'));
+            fs.chmodSync(secureDir, 0o700);
 
-            // Write files with owner-only permissions (prevents other OS users from reading credentials)
-            fs.writeFileSync(tmpCertPath, envCert, { mode: 0o600 });
-            fs.writeFileSync(tmpKeyPath, envKey, { mode: 0o600 });
+            const tmpCertPath = path.join(secureDir, 'cert.crt');
+            const tmpKeyPath = path.join(secureDir, 'cert.key');
+
+            // O_EXCL ensures we never follow a pre-existing file or symlink
+            const certFd = fs.openSync(tmpCertPath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL, 0o600);
+            fs.writeSync(certFd, envCert); fs.closeSync(certFd);
+            const keyFd = fs.openSync(tmpKeyPath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL, 0o600);
+            fs.writeSync(keyFd, envKey); fs.closeSync(keyFd);
 
             certPath = tmpCertPath;
             keyPath = tmpKeyPath;
@@ -88,20 +88,25 @@ export class FacturasService {
       const os = require('os');
       const Afip = require('@afipsdk/afip.js');
 
-      const tmpDir = os.tmpdir();
-      const certPath = path.join(tmpDir, `cert_${userId}.crt`);
-      const keyPath = path.join(tmpDir, `key_${userId}.key`);
+      // Private directory per-user prevents symlink attacks and cross-process file reuse
+      const secureDir = fs.mkdtempSync(path.join(os.tmpdir(), `afip-${userId}-`));
+      fs.chmodSync(secureDir, 0o700);
 
-      // Write files with owner-only permissions (prevents other OS users from reading credentials)
-      fs.writeFileSync(certPath, user.afipCert, { mode: 0o600 });
-      fs.writeFileSync(keyPath, user.afipKey, { mode: 0o600 });
+      const certPath = path.join(secureDir, 'cert.crt');
+      const keyPath = path.join(secureDir, 'cert.key');
+
+      // O_EXCL ensures we never follow a pre-existing file or symlink
+      const certFd = fs.openSync(certPath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL, 0o600);
+      fs.writeSync(certFd, user.afipCert); fs.closeSync(certFd);
+      const keyFd = fs.openSync(keyPath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL, 0o600);
+      fs.writeSync(keyFd, user.afipKey); fs.closeSync(keyFd);
 
       const client = new Afip({
         CUIT: user.cuit.replace(/\D/g, ''), // Ensure no dashes or spaces
         cert: certPath,
         key: keyPath,
         production: user.afipProduction || false,
-        res_folder: tmpDir
+        res_folder: secureDir
       });
 
       this.afipClients.set(userId, client);

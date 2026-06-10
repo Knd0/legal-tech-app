@@ -20,6 +20,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
   private isInitialized = false;
   private qrCodeImage: string | null = null;
   private initializationError: string | null = null;
+  private loadingScreen: { percent: number; message: string } | null = null;
 
   async onApplicationBootstrap() {
     this.initializationError = null; 
@@ -38,7 +39,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
 
     // Check session after database connection is fully established by NestJS bootstrap
     try {
-      const session = await this.sessionRepository.findOne({ where: { id: 'RemoteAuth-themis-session' } });
+      const session = await this.sessionRepository.findOne({ where: { id: 'session-themis-session' } });
       if (session) {
         this.logger.log('WhatsApp session found in DB. Automatically initializing WhatsApp client in the background...');
         // Run in background without awaiting to prevent blocking the NestJS bootstrap process,
@@ -89,6 +90,11 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
       }),
       authTimeoutMs: 0, // Disable auth timeout to prevent unhandled rejection "auth timeout"
       qrMaxRetries: 10,
+      webVersionCache: {
+        type: 'remote',
+        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/{version}.html',
+        strict: false
+      },
       puppeteer: {
         headless: true,
         args: [
@@ -100,7 +106,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
             '--no-zygote',
             '--single-process',
             '--disable-gpu',
-            '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36', // Fix: Custom UA to reduce blocking
+            '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36', // Fix: Modern custom UA to prevent deprecation screens
             '--disable-application-cache',
             '--disable-gpu-program-cache',
             '--disable-gpu-shader-disk-cache',
@@ -128,9 +134,15 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
       }
     });
 
+    this.client.on('loading_screen', (percent: number, message: string) => {
+        this.logger.log(`WhatsApp loading screen: ${percent}% - ${message}`);
+        this.loadingScreen = { percent, message };
+    });
+
     this.client.on('ready', () => {
       this.isReady = true;
       this.qrCodeImage = null; // Clear QR when connected
+      this.loadingScreen = null; // Clear loading screen
       this.logger.log('WhatsApp Client is ready!');
       this.initializationError = null;
     });
@@ -147,12 +159,14 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
     this.client.on('auth_failure', (msg: string) => {
         this.logger.error('WhatsApp Authentication Failure', msg);
         this.initializationError = `Auth Failure: ${msg}`;
+        this.loadingScreen = null;
     });
     
     this.client.on('disconnected', (reason) => {
         this.logger.warn('WhatsApp Client Disconnected', reason);
         this.isReady = false;
         this.qrCodeImage = null;
+        this.loadingScreen = null;
     });
 
     this.client.on('message', async (msg) => {
@@ -233,6 +247,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
           ready: this.isReady,
           qr: this.qrCodeImage,
           number: this.isReady ? (this.client.info?.wid?.user || this.client.info?.me?.user) : null,
+          loading: this.loadingScreen, // Expose loading status
           error: this.initializationError // Expose error
       };
   }
@@ -293,7 +308,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
               }
 
               // Also delete from database for a clean start!
-              await this.sessionRepository.delete({ id: 'RemoteAuth-themis-session' });
+              await this.sessionRepository.delete({ id: 'session-themis-session' });
               this.logger.log('Session data cleared from DB.');
 
               this.initializationError = null;

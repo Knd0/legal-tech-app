@@ -438,6 +438,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                       this.qrCodeUrl.set(null);
                       this.configWhatsappNumber = '';
                       this.whatsappBotReady.set(false);
+                      this.whatsappLoadingStatus.set(null);
                       this.notificationService.updateAlertSettings(this.configDays, this.configHours, this.configWhatsapp, '', this.configDesktop);
                       if (this.configWhatsapp) this.startQrPolling();
                   },
@@ -456,6 +457,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.pairingCode.set(null);
           this.whatsappError.set(null);
           this.whatsappBotReady.set(false);
+          this.whatsappLoadingStatus.set(null);
       }
   }
 
@@ -463,10 +465,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
   scannedAndProcessing = signal<boolean>(false);
   pairingCode = signal<string | null>(null);
   loadingPairingCode = signal<boolean>(false);
+  whatsappLoadingStatus = signal<{ percent: number; message: string } | null>(null);
 
   restartWhatsapp() {
       this.loadingQr.set(true);
       this.scannedAndProcessing.set(false);
+      this.whatsappLoadingStatus.set(null);
       this.notificationService.restartWhatsapp().subscribe({
           next: () => {
               this.qrCodeUrl.set(null);
@@ -490,6 +494,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       
       this.loadingPairingCode.set(true);
       this.scannedAndProcessing.set(false);
+      this.whatsappLoadingStatus.set(null);
       this.notificationService.requestPairingCode(phone).subscribe({
           next: (res) => {
               this.loadingPairingCode.set(false);
@@ -539,6 +544,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   this.whatsappError.set(null);
                   this.loadingQr.set(false);
                   this.scannedAndProcessing.set(false);
+                  this.whatsappLoadingStatus.set(null);
                   this.stopQrPolling();
 
                   if (this.configWhatsappNumber !== status.number) {
@@ -563,6 +569,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   }
                 } else {
                   this.whatsappBotReady.set(false);
+
+                  if (status.loading) {
+                    this.whatsappLoadingStatus.set(status.loading);
+                    this.scannedAndProcessing.set(true);
+                    this.loadingQr.set(false);
+                    this.qrCodeUrl.set(null);
+                    this.pairingCode.set(null);
+                  } else {
+                    this.whatsappLoadingStatus.set(null);
+                  }
 
                   if (status.qr) {
                     this.qrCodeUrl.set(status.qr);

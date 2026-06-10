@@ -137,8 +137,13 @@ async function bootstrap() {
   } catch (error) {
     logger.error('Error seeding production database', error);
   } finally {
-    await queryRunner.release();
-    await app.close();
+    try {
+      await queryRunner.release();
+      await app.close();
+    } catch (e) {
+      logger.error('Error during cleanup', e);
+    }
+    process.exit(0);
   }
 }
 

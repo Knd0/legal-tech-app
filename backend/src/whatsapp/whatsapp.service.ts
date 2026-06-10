@@ -24,12 +24,28 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
   async onApplicationBootstrap() {
     this.initializationError = null; 
     
+    // Check if running in a CLI command (seeder, migration, test, etc.)
+    const isCLI = process.argv.some(arg => 
+      arg.includes('seed') || 
+      arg.includes('jest') || 
+      arg.includes('migration') || 
+      arg.includes('schema')
+    );
+    if (isCLI) {
+      this.logger.log('CLI or Test environment detected. Skipping automatic WhatsApp initialization.');
+      return;
+    }
+
     // Check session after database connection is fully established by NestJS bootstrap
     try {
       const session = await this.sessionRepository.findOne({ where: { id: 'RemoteAuth-themis-session' } });
       if (session) {
-        this.logger.log('WhatsApp session found in DB. Automatically initializing WhatsApp client...');
-        await this.ensureInitialized();
+        this.logger.log('WhatsApp session found in DB. Automatically initializing WhatsApp client in the background...');
+        // Run in background without awaiting to prevent blocking the NestJS bootstrap process,
+        // which can lead to Gateway Timeout (504) in production platforms like Railway.
+        this.ensureInitialized().catch((err) => {
+          this.logger.error('Failed to initialize WhatsApp client in background', err);
+        });
       } else {
         this.logger.log('No WhatsApp session found in DB. WhatsApp client initialization deferred.');
       }

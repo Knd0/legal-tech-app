@@ -19,25 +19,38 @@ export class MovimientosService {
     return saved;
   }
 
-  async findAllByClient(clientId: string, userId: string) {
-    return this.movimientosRepository.find({
+  async findAllByClient(clientId: string, userId: string, page = 1, limit = 10) {
+    const [data, total] = await this.movimientosRepository.findAndCount({
       where: { clientId, userId },
       order: { fecha: 'DESC', createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
+    return { data, total };
   }
 
   async getBalance(clientId: string, userId: string) {
-    const movimientos = await this.findAllByClient(clientId, userId);
-    
+    const result = await this.movimientosRepository
+      .createQueryBuilder('m')
+      .select('m.tipo', 'tipo')
+      .addSelect('SUM(m.monto)', 'sum')
+      .where('m.clientId = :clientId AND m.userId = :userId', { clientId, userId })
+      .groupBy('m.tipo')
+      .getRawMany();
+      
     let totalHonorarios = 0;
     let totalGastos = 0;
     let totalPagos = 0;
 
-    movimientos.forEach(m => {
-      const amount = Number(m.monto);
-      if (m.tipo === 'HONORARIO') totalHonorarios += amount;
-      if (m.tipo === 'GASTO') totalGastos += amount;
-      if (m.tipo === 'PAGO') totalPagos += amount;
+    result.forEach(row => {
+      const sum = Number(row.sum || 0);
+      if (row.tipo === 'HONORARIO' || row.tipo === 'REGULADO' || row.tipo === 'CONVENIO') {
+        totalHonorarios += sum;
+      } else if (row.tipo === 'GASTO') {
+        totalGastos += sum;
+      } else if (row.tipo === 'PAGO') {
+        totalPagos += sum;
+      }
     });
 
     const totalDeuda = totalHonorarios + totalGastos;
@@ -48,7 +61,6 @@ export class MovimientosService {
       totalGastos,
       totalPagos,
       balance,
-      movimientos
     };
   }
   async update(id: string, updateMovimientoDto: Partial<Movimiento>, userId: string) {

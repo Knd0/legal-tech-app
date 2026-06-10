@@ -17,23 +17,40 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
   private client: Client;
   private readonly logger = new Logger(WhatsappService.name);
   private isReady = false;
+  private isInitialized = false;
   private qrCodeImage: string | null = null;
-  private initializationError: string | null = null; // Fix: Property was missing
+  private initializationError: string | null = null;
 
-  onModuleInit() {
+  async onModuleInit() {
     this.initializationError = null; 
     
-    // Delay initialization to prevent blocking NestJS bootstrap on low-resource environments (Render)
-    const delay = 8000; // 8 seconds
-    this.logger.log(`Scheduling WhatsApp Client initialization in ${delay/1000}s to allow server startup...`);
+    // Defer session check slightly to avoid blocking NestJS startup
+    setTimeout(async () => {
+      try {
+        const session = await this.sessionRepository.findOne({ where: { id: 'RemoteAuth-themis-session' } });
+        if (session) {
+          this.logger.log('WhatsApp session found in DB. Automatically initializing WhatsApp client...');
+          await this.ensureInitialized();
+        } else {
+          this.logger.log('No WhatsApp session found in DB. WhatsApp client initialization deferred.');
+        }
+      } catch (err: any) {
+        this.logger.error('Failed to check WhatsApp session on boot', err);
+      }
+    }, 5000);
+  }
 
-    setTimeout(() => {
-        this.logger.log('Initializing WhatsApp Client now (delayed start)...');
-        this.client.initialize().catch((err: any) => {
-            this.logger.error('Failed to initialize WhatsApp client', err);
-            this.initializationError = err.message || 'Unknown initialization error';
-        });
-    }, delay);
+  private async ensureInitialized() {
+    if (this.isInitialized) return;
+    this.isInitialized = true;
+    this.logger.log('Initializing WhatsApp Client (launching Puppeteer)...');
+    try {
+      await this.client.initialize();
+    } catch (err: any) {
+      this.logger.error('Failed to initialize WhatsApp client', err);
+      this.initializationError = err.message || 'Unknown initialization error';
+      this.isInitialized = false; // Reset to allow retry
+    }
   }
 
   constructor(
@@ -80,7 +97,6 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
       }
     });
 
-    // ... (rest of constructor logs)
     this.logger.log(`WhatsApp Service Initialized. Puppeteer Config: Headless=${true}, ExecutablePath=${process.env.PUPPETEER_EXECUTABLE_PATH || 'Auto-resolve'}`);
 
     let lastQrLogTime = 0;
@@ -134,9 +150,10 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  // ... (onModuleInit remains mostly the same, ensuring delay is reasonable)
-
   async sendMessage(number: string, message: string): Promise<any> {
+    if (!this.isInitialized) {
+      await this.ensureInitialized();
+    }
     if (!this.isReady) {
       throw new Error('WhatsApp client is not ready yet');
     }
@@ -169,6 +186,9 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
   }
 
   async requestPairingCode(phoneNumber: string): Promise<string> {
+      if (!this.isInitialized) {
+          await this.ensureInitialized();
+      }
       if (!this.client) {
           throw new Error('Client not initialized');
       }
@@ -191,8 +211,10 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
   }
 
   getStatus() {
-      // Debug log (can be verbose, but useful here)
-      // this.logger.debug(`getStatus called. Ready: ${this.isReady}, QR present: ${!!this.qrCodeImage}`);
+      if (!this.isInitialized) {
+          // Trigger initialization in background
+          void this.ensureInitialized().catch(err => this.logger.error('Background initialization failed', err));
+      }
       return {
           ready: this.isReady,
           qr: this.qrCodeImage,
@@ -207,20 +229,19 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
           if (this.isReady) {
               await this.client.logout();
           }
-          await this.client.destroy();
+          if (this.isInitialized) {
+              await this.client.destroy();
+          }
           this.isReady = false;
+          this.isInitialized = false;
           this.qrCodeImage = null;
-          this.logger.log('Client destroyed. Re-initializing...');
-          
-          // Re-initialize to generate new QR
-          this.client.initialize().catch(err => this.logger.error('Failed to re-initialize', err));
+          this.logger.log('Client destroyed.');
           
           return { success: true };
       } catch (error) {
           this.logger.error('Error during logout', error);
-          // Force re-init even if logout fails
           this.isReady = false;
-          this.client.initialize().catch(err => this.logger.error('Failed to re-initialize', err));
+          this.isInitialized = false;
           throw error;
       }
   }
@@ -232,6 +253,7 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
       (async () => {
           try {
               this.isReady = false;
+              this.isInitialized = false;
               this.qrCodeImage = null;
 
               if (this.client) {
@@ -263,7 +285,7 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
               this.initializationError = null;
               
               this.logger.log('Re-initializing client...');
-              await this.client.initialize();
+              await this.ensureInitialized();
           } catch (e: any) {
               this.logger.error('Error during background restart', e);
               this.initializationError = e.message || 'Restart failed';
@@ -280,18 +302,13 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
     }
 
     const cleanIncoming = msg.from.replace(/\D/g, ''); // E.g. "5491123456789"
+    if (cleanIncoming.length < 10) return;
+    const last10Incoming = cleanIncoming.substring(cleanIncoming.length - 10);
 
-    // Find matching clients using strict full-number comparison.
-    // WhatsApp sends numbers with country code (e.g. 5491123456789) while the DB may store
-    // them without it (e.g. 1123456789). We accept a match only when one number is a suffix
-    // of the other AND the overlap is at least 10 digits, preventing false positives across tenants.
-    const clients = await this.clientRepository.find();
-    const matchingClients = clients.filter(c => {
-      if (!c.telefono) return false;
-      const cleanDb = c.telefono.replace(/\D/g, '');
-      if (cleanDb.length < 10 || cleanIncoming.length < 10) return false;
-      return cleanIncoming.endsWith(cleanDb) || cleanDb.endsWith(cleanIncoming);
-    });
+    // Find matching clients using SQL suffix pattern matching to prevent loading all clients in memory.
+    const matchingClients = await this.clientRepository.createQueryBuilder('client')
+      .where("RIGHT(REGEXP_REPLACE(client.telefono, '[^0-9]', '', 'g'), 10) = :last10", { last10: last10Incoming })
+      .getMany();
 
     if (matchingClients.length === 0) {
       // Not a registered client. Reply with polite help message.

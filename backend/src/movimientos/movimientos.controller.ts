@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Request, UseGuards, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Request, UseGuards, Patch, Delete, Query } from '@nestjs/common';
 import { MovimientosService } from './movimientos.service';
 import { Movimiento } from './entities/movimiento.entity';
 import { AuthGuard } from '@nestjs/passport';
@@ -14,8 +14,15 @@ export class MovimientosController {
   }
 
   @Get('client/:clientId')
-  findAllByClient(@Param('clientId') clientId: string, @Request() req) {
-    return this.movimientosService.findAllByClient(clientId, req.user.userId);
+  findAllByClient(
+    @Param('clientId') clientId: string,
+    @Request() req,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    const pageNum = page ? Number(page) : 1;
+    const limitNum = limit ? Number(limit) : 10;
+    return this.movimientosService.findAllByClient(clientId, req.user.userId, pageNum, limitNum);
   }
 
   @Get('client/:clientId/balance')

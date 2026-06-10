@@ -130,12 +130,22 @@
                         </td>
                     </tr>
                     <tr *ngIf="movimientos().length === 0">
-                        <td colspan="5" class="px-6 py-12 text-center text-slate-400 italic">
+                        <td colspan="6" class="px-6 py-12 text-center text-slate-400 italic">
                             No hay movimientos registrados.
                         </td>
                     </tr>
                 </tbody>
             </table>
+        </div>
+        <!-- Paginator -->
+        <div class="border-t border-slate-100 dark:border-slate-700 p-2" *ngIf="movimientosTotalRecords() > 0">
+            <p-paginator 
+                [rows]="movimientosRows()" 
+                [totalRecords]="movimientosTotalRecords()" 
+                [first]="movimientosFirst()"
+                [rowsPerPageOptions]="[5, 10, 20, 50]" 
+                (onPageChange)="loadMovimientosLazy($event)">
+            </p-paginator>
         </div>
     </div>
 

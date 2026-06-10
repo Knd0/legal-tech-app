@@ -266,11 +266,19 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
           this.qrCodeImage = null;
           this.logger.log('Client destroyed.');
           
+          // Ensure DB session is deleted
+          await this.sessionRepository.delete({ id: 'session-themis-session' });
+          this.logger.log('Session data cleared from DB.');
+          
           return { success: true };
       } catch (error) {
           this.logger.error('Error during logout', error);
           this.isReady = false;
           this.isInitialized = false;
+          
+          // Ensure DB session is deleted even on error
+          await this.sessionRepository.delete({ id: 'session-themis-session' });
+          this.logger.log('Session data cleared from DB after error.');
           throw error;
       }
   }
@@ -307,9 +315,9 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
                   }
               }
 
-              // Also delete from database for a clean start!
-              await this.sessionRepository.delete({ id: 'session-themis-session' });
-              this.logger.log('Session data cleared from DB.');
+              // Do NOT delete from database here to allow local session syncing.
+              // If a session exists in the DB, it will be pulled and used on re-initialization.
+              this.logger.log('Keeping database session (if any) for recovery.');
 
               this.initializationError = null;
               

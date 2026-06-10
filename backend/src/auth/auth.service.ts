@@ -196,4 +196,66 @@ export class AuthService {
       // Clear OTP
       await this.otpRepository.delete(userId);
   }
+
+  async requestPhoneVerificationOtp(userId: string, phoneNumber: string): Promise<void> {
+      const cleanPhone = phoneNumber.replace(/\D/g, '');
+      if (cleanPhone.length < 10) {
+          throw new UnauthorizedException('Número de teléfono inválido');
+      }
+
+      const code = randomInt(100000, 1000000).toString();
+      const key = `verify_phone_${userId}`;
+      
+      await this.otpRepository.save({
+        key,
+        code,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+        attempts: 0
+      });
+
+      // Send via WhatsApp
+      try {
+          await this.whatsappService.sendMessage(cleanPhone, `Tu código de verificación para vincular tu WhatsApp en Themis es: *${code}*`);
+      } catch (error: any) {
+          console.error('WhatsApp Verification OTP Error:', error);
+          if (error.message.includes('not ready')) {
+             throw new UnauthorizedException('El servicio de WhatsApp se está reiniciando. Intente en unos segundos.');
+          }
+          throw new UnauthorizedException('No se pudo enviar el WhatsApp. Asegúrate de que el bot de la plataforma esté conectado.');
+      }
+  }
+
+  async verifyPhoneOtp(userId: string, phoneNumber: string, otp: string): Promise<void> {
+      const key = `verify_phone_${userId}`;
+      const storedOtp = await this.otpRepository.findOneBy({ key });
+      
+      if (!storedOtp) {
+          throw new UnauthorizedException('No se encontró una solicitud de verificación.');
+      }
+
+      if (new Date() > storedOtp.expiresAt) {
+          await this.otpRepository.delete(key);
+          throw new UnauthorizedException('El código ha expirado.');
+      }
+
+      if (storedOtp.attempts >= this.MAX_OTP_ATTEMPTS) {
+          await this.otpRepository.delete(key);
+          throw new UnauthorizedException('Demasiados intentos fallidos. Solicitá un nuevo código.');
+      }
+      
+      if (storedOtp.code !== otp) {
+          storedOtp.attempts++;
+          await this.otpRepository.save(storedOtp);
+          throw new UnauthorizedException('Código incorrecto.');
+      }
+
+      // Update User phone and set isPhoneVerified = true
+      await this.usersService.updateProfile(userId, {
+          phoneNumber: phoneNumber,
+          isPhoneVerified: true
+      } as any);
+
+      // Clear OTP
+      await this.otpRepository.delete(key);
+  }
 }

@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { Client, RemoteAuth } from 'whatsapp-web.js';
 import * as QRCode from 'qrcode';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,7 +13,7 @@ import { Movimiento } from '../movimientos/entities/movimiento.entity';
 const qrcodeTerminal = require('qrcode-terminal');
 
 @Injectable()
-export class WhatsappService implements OnModuleInit {
+export class WhatsappService implements OnModuleInit, OnModuleDestroy {
   private client: Client;
   private readonly logger = new Logger(WhatsappService.name);
   private isReady = false;
@@ -453,5 +453,16 @@ Escribí *menu* en cualquier momento para volver a ver estas opciones.`;
 
 Escribí *menu* para ver la lista completa.`;
     await this.client.sendMessage(msg.from, defaultMsg);
+  }
+
+  async onModuleDestroy() {
+    this.logger.log('Closing WhatsApp client due to module destroy...');
+    try {
+      if (this.client) {
+        await this.client.destroy();
+      }
+    } catch (err: any) {
+      this.logger.error('Error destroying WhatsApp client on module destroy', err);
+    }
   }
 }

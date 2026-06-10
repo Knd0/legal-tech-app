@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import { Injectable, OnApplicationBootstrap, OnModuleDestroy, Logger } from '@nestjs/common';
 import { Client, RemoteAuth } from 'whatsapp-web.js';
 import * as QRCode from 'qrcode';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,7 +13,7 @@ import { Movimiento } from '../movimientos/entities/movimiento.entity';
 const qrcodeTerminal = require('qrcode-terminal');
 
 @Injectable()
-export class WhatsappService implements OnModuleInit, OnModuleDestroy {
+export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy {
   private client: Client;
   private readonly logger = new Logger(WhatsappService.name);
   private isReady = false;
@@ -21,23 +21,21 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
   private qrCodeImage: string | null = null;
   private initializationError: string | null = null;
 
-  async onModuleInit() {
+  async onApplicationBootstrap() {
     this.initializationError = null; 
     
-    // Defer session check slightly to avoid blocking NestJS startup
-    setTimeout(async () => {
-      try {
-        const session = await this.sessionRepository.findOne({ where: { id: 'RemoteAuth-themis-session' } });
-        if (session) {
-          this.logger.log('WhatsApp session found in DB. Automatically initializing WhatsApp client...');
-          await this.ensureInitialized();
-        } else {
-          this.logger.log('No WhatsApp session found in DB. WhatsApp client initialization deferred.');
-        }
-      } catch (err: any) {
-        this.logger.error('Failed to check WhatsApp session on boot', err);
+    // Check session after database connection is fully established by NestJS bootstrap
+    try {
+      const session = await this.sessionRepository.findOne({ where: { id: 'RemoteAuth-themis-session' } });
+      if (session) {
+        this.logger.log('WhatsApp session found in DB. Automatically initializing WhatsApp client...');
+        await this.ensureInitialized();
+      } else {
+        this.logger.log('No WhatsApp session found in DB. WhatsApp client initialization deferred.');
       }
-    }, 5000);
+    } catch (err: any) {
+      this.logger.error('Failed to check WhatsApp session on boot', err);
+    }
   }
 
   private async ensureInitialized() {

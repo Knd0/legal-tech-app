@@ -62,4 +62,18 @@ export class AuthController {
       await this.authService.changePassword(req.user.userId, otp, newPassword);
       return { message: 'Password updated successfully' };
   }
+
+  @Post('request-phone-verification-otp')
+  @UseGuards(AuthGuard('jwt'))
+  async requestPhoneVerificationOtp(@Request() req, @Body() body: { phoneNumber: string }) {
+      await this.authService.requestPhoneVerificationOtp(req.user.userId, body.phoneNumber);
+      return { message: 'OTP sent' };
+  }
+
+  @Post('verify-phone-otp')
+  @UseGuards(AuthGuard('jwt'))
+  async verifyPhoneOtp(@Request() req, @Body() body: { phoneNumber: string; otp: string }) {
+      await this.authService.verifyPhoneOtp(req.user.userId, body.phoneNumber, body.otp);
+      return { message: 'Phone verified successfully' };
+  }
 }

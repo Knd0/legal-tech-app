@@ -55,6 +55,12 @@ export class UsersService implements OnModuleInit {
   }
 
   async updateProfile(id: string, data: Partial<User>): Promise<User> {
+    if (data.phoneNumber !== undefined) {
+      const user = await this.findOneById(id);
+      if (user && user.phoneNumber !== data.phoneNumber) {
+        data.isPhoneVerified = false;
+      }
+    }
     await this.usersRepository.update(id, data);
     return this.findOneById(id);
   }

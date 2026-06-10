@@ -260,7 +260,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 showConfirmButton: false
             });
             const currentUser = this.authService.currentUser();
-            this.authService.currentUser.set({ ...currentUser, ...payload });
+            const numberChanged = currentUser?.phoneNumber !== payload.phoneNumber;
+            this.authService.currentUser.set({ 
+                ...currentUser, 
+                ...payload,
+                isPhoneVerified: numberChanged ? false : currentUser?.isPhoneVerified
+            });
         },
         error: (err: any) => {
             this.saving.set(false);
@@ -699,6 +704,76 @@ export class ProfileComponent implements OnInit, OnDestroy {
               Swal.fire('Contraseña Actualizada', 'Tu contraseña se ha cambiado correctamente.', 'success');
           },
           error: (err) => Swal.fire('Error', 'No se pudo cambiar la contraseña. ' + (err.error?.message || ''), 'error')
+      });
+  }
+
+  // Phone Verification Methods
+  showPhoneVerificationDialog = signal<boolean>(false);
+  phoneVerificationOtp = signal<string>('');
+  sendingPhoneOtp = signal<boolean>(false);
+  verifyingPhone = signal<boolean>(false);
+  phoneOtpSent = signal<boolean>(false);
+
+  openPhoneVerification() {
+      const phone = this.profileForm.get('phoneNumber')?.value;
+      if (!phone) {
+          Swal.fire('Atención', 'Debes ingresar tu número de teléfono primero.', 'warning');
+          return;
+      }
+      this.phoneVerificationOtp.set('');
+      this.phoneOtpSent.set(false);
+      this.showPhoneVerificationDialog.set(true);
+  }
+
+  sendPhoneVerificationOtp() {
+      const phone = this.profileForm.get('phoneNumber')?.value;
+      if (!phone) {
+          Swal.fire('Atención', 'Debes ingresar tu número de teléfono primero.', 'warning');
+          return;
+      }
+      this.sendingPhoneOtp.set(true);
+      this.http.post(`${environment.apiUrl}/auth/request-phone-verification-otp`, { phoneNumber: phone }).subscribe({
+          next: () => {
+              this.sendingPhoneOtp.set(false);
+              this.phoneOtpSent.set(true);
+              Swal.fire('Código Enviado', 'Revisa tu WhatsApp para ver el código de verificación.', 'success');
+          },
+          error: (err: any) => {
+              this.sendingPhoneOtp.set(false);
+              Swal.fire('Error', err.error?.message || 'No se pudo enviar el código. Asegúrate de que el bot de la plataforma esté activo.', 'error');
+          }
+      });
+  }
+
+  verifyPhoneVerificationOtp() {
+      const phone = this.profileForm.get('phoneNumber')?.value;
+      const otp = this.phoneVerificationOtp();
+      if (!otp) {
+          Swal.fire('Atención', 'Debes ingresar el código OTP.', 'warning');
+          return;
+      }
+      this.verifyingPhone.set(true);
+      this.http.post(`${environment.apiUrl}/auth/verify-phone-otp`, { phoneNumber: phone, otp }).subscribe({
+          next: () => {
+              this.verifyingPhone.set(false);
+              this.showPhoneVerificationDialog.set(false);
+              this.phoneOtpSent.set(false);
+              this.phoneVerificationOtp.set('');
+              
+              // Update state
+              const currentUser = this.authService.currentUser();
+              this.authService.currentUser.set({
+                  ...currentUser,
+                  phoneNumber: phone,
+                  isPhoneVerified: true
+              });
+              
+              Swal.fire('¡Verificado!', 'Tu número de WhatsApp ha sido verificado correctamente.', 'success');
+          },
+          error: (err: any) => {
+              this.verifyingPhone.set(false);
+              Swal.fire('Error', err.error?.message || 'Código incorrecto.', 'error');
+          }
       });
   }
 }

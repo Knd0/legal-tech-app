@@ -16,6 +16,7 @@ Este archivo contiene el registro de contexto de **Gemini** (Antigravity AI) sob
 - **PostgreSQL Local:** Activo en `localhost:5432`.
 - **Credenciales:** `postgres` / `1234`
 - **Base de datos:** `legal_tech_db`
+- **PostgreSQL Producción:** Hospedado en Railway (inyectado automáticamente vía la variable de entorno `DATABASE_URL`).
 - **Cuentas Sembradas (`SeedService` & script manual con contraseña `password123`):**
   1. `admin@themis.com` (Rol: `ADMIN` — bypass de checks de suscripción).
   2. `multifranco0@gmail.com` (Rol: `USER` — 2 clientes y 2 expedientes de prueba).

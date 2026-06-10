@@ -23,7 +23,7 @@ export interface Balance {
   totalGastos: number;
   totalPagos: number;
   balance: number;
-  movimientos: Movimiento[];
+  movimientos?: Movimiento[];
 }
 
 @Injectable({
@@ -36,6 +36,10 @@ export class MovimientoService {
 
   getBalance(clientId: string) {
     return this.http.get<Balance>(`${this.apiUrl}/client/${clientId}/balance`);
+  }
+
+  getMovementsPaginated(clientId: string, page: number, limit: number) {
+    return this.http.get<{ data: Movimiento[], total: number }>(`${this.apiUrl}/client/${clientId}?page=${page}&limit=${limit}`);
   }
 
   create(movimiento: Partial<Movimiento>) {

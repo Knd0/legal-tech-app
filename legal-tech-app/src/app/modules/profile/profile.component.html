@@ -251,6 +251,12 @@
                                 <p class="text-xs text-slate-500 dark:text-slate-400">
                                     El bot está listo para enviar notificaciones automáticas y alertas.
                                 </p>
+                                <a [href]="'https://wa.me/' + configWhatsappNumber + '?text=hola'" 
+                                   target="_blank" 
+                                   class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm no-underline">
+                                    <i class="pi pi-whatsapp"></i>
+                                    Abrir Chat del Bot
+                                </a>
                                 <button pButton label="Desconectar Bot" icon="pi pi-power-off"
                                     class="p-button-outlined p-button-danger p-button-sm w-full mt-2"
                                     (click)="logoutWhatsapp()"></button>

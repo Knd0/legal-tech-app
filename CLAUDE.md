@@ -72,7 +72,7 @@ Each feature is a NestJS module under `backend/src/`. Key modules:
 
 Database: PostgreSQL via TypeORM. `synchronize: true` in both dev and prod — schema changes apply on boot. No migration files exist.
 
-Backend deployed on Render: `https://legal-tech-app-gdme.onrender.com`
+Backend deployed on Railway: `https://themis.up.railway.app`
 
 ### Frontend (Angular 21)
 
@@ -268,7 +268,7 @@ Todo lo que figura aquí requiere acción directa sobre Render o servicios exter
 
 ### A) Variables de entorno — configurar en Render (Environment → Add Variable)
 
-- `MP_WEBHOOK_SECRET` — mercadopago.com.ar → Tu negocio → Configuración → Notificaciones → Webhooks → Clave secreta, apuntando a `https://legal-tech-app-gdme.onrender.com/mercadopago/webhook`. Sin esta variable el webhook acepta todas las requests sin verificar firma (loguea warning pero no rompe).
+- `MP_WEBHOOK_SECRET` — mercadopago.com.ar → Tu negocio → Configuración → Notificaciones → Webhooks → Clave secreta, apuntando a `https://themis.up.railway.app/mercadopago/webhook`. Sin esta variable el webhook acepta todas las requests sin verificar firma (loguea warning pero no rompe).
 - `RESEND_API_KEY` — resend.com → API Keys. Sin esta variable el fallback a email en forgot-password no funciona (WhatsApp sigue andando normalmente).
 - `GEMINI_API_KEY` — Google AI Studio. Sin esta variable el Copilot IA y el análisis de PDFs no funcionan en producción.
 - `FRONTEND_URL` — `https://legal-tech-app-woad.vercel.app`. Necesario para que el `back_url` de MercadoPago apunte correctamente en producción.

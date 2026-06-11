@@ -57,9 +57,9 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
     }
   }
 
-  private async ensureInitialized() {
+  private async ensureInitialized(fromRestart = false) {
     if (this.isReady) return;
-    if (this.restartingPromise) {
+    if (!fromRestart && this.restartingPromise) {
       return this.restartingPromise;
     }
     if (this.initializingPromise) {
@@ -377,7 +377,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
               this.initializationError = null;
               
               this.logger.log('Re-initializing client...');
-              await this.ensureInitialized();
+              await this.ensureInitialized(true);
           } catch (e: any) {
               this.logger.error('Error during background restart', e);
               this.initializationError = e.message || 'Restart failed';

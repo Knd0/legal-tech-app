@@ -47,8 +47,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private qrPollInterval: any;
   
   configDays: number = 3;
-  configRepetitions: number = 1;
-  configHour: number = 9;
+  configHours: number = 24;
   configWhatsapp: boolean = false;
   configWhatsappNumber: string = '';
   configDesktop: boolean = true;
@@ -96,33 +95,30 @@ export class ProfileComponent implements OnInit, OnDestroy {
         confirmPassword: ['', Validators.required]
     });
 
-    // Reactively update local form fields when notification settings change in the user profile
+    // Reactively update local form fields when notification settings change in the service
     effect(() => {
-      const user = this.authService.currentUser();
+      const days = this.notificationService.daysBeforeAlert();
+      const hours = this.notificationService.checkFrequencyHours();
+      const enabled = this.notificationService.enableWhatsapp();
       const whatsappNumber = this.notificationService.whatsappNumber();
-      if (user) {
-        // Defer assignments to prevent ExpressionChangedAfterItHasBeenCheckedError
-        setTimeout(() => {
-          this.configDays = user.alertDaysBefore ?? 3;
-          this.configRepetitions = user.alertRepetitions ?? 1;
-          this.configHour = user.alertHour ?? 9;
-          this.configWhatsapp = user.whatsappAlertsEnabled ?? false;
-          this.configDesktop = user.desktopAlertsEnabled ?? true;
-          this.configWhatsappNumber = whatsappNumber;
-        });
+      const desktop = this.notificationService.enableDesktop();
 
-        // Start/stop polling based on settings state (ADMIN ONLY - lawyers do not need active polling)
-        if (user.whatsappAlertsEnabled && user.role === 'ADMIN') {
-          this.ngZone.run(() => {
-            if (!this.qrPollInterval) {
-              this.startQrPolling();
-            }
-          });
-        } else {
-          this.ngZone.run(() => {
-            this.stopQrPolling();
-          });
-        }
+      // Defer assignments to prevent ExpressionChangedAfterItHasBeenCheckedError
+      setTimeout(() => {
+        this.configDays = days;
+        this.configHours = hours;
+        this.configWhatsapp = enabled;
+        this.configWhatsappNumber = whatsappNumber;
+        this.configDesktop = desktop;
+      });
+
+      // Start/stop polling based on settings state
+      if (enabled) {
+        this.ngZone.run(() => {
+          if (!this.qrPollInterval) {
+            this.startQrPolling();
+          }
+        });
       } else {
         this.ngZone.run(() => {
           this.stopQrPolling();
@@ -135,17 +131,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.loadProfile();
     this.loadSubscription();
     this.notificationService.loadSettings();
-
-    // For non-admin users, check the WhatsApp bot status once to enable/disable buttons appropriately without CPU-intensive polling loops.
-    const user = this.authService.currentUser();
-    if (user && user.role !== 'ADMIN') {
-      this.notificationService.getWhatsappStatus().subscribe({
-        next: (status: any) => {
-          this.whatsappBotReady.set(status.ready);
-        },
-        error: (err) => console.warn('Failed to fetch whatsapp status once', err)
-      });
-    }
   }
 
   loadSubscription() {
@@ -420,8 +405,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   saveIntegrations() {
       this.notificationService.updateAlertSettings(
           this.configDays,
-          this.configRepetitions,
-          this.configHour,
+          this.configHours,
           this.configWhatsapp,
           this.configWhatsappNumber,
           this.configDesktop
@@ -469,14 +453,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                       this.configWhatsappNumber = '';
                       this.whatsappBotReady.set(false);
                       this.whatsappLoadingStatus.set(null);
-                       this.notificationService.updateAlertSettings(
-                           this.configDays,
-                           this.configRepetitions,
-                           this.configHour,
-                           this.configWhatsapp,
-                           '',
-                           this.configDesktop
-                       );
+                      this.notificationService.updateAlertSettings(this.configDays, this.configHours, this.configWhatsapp, '', this.configDesktop);
                       if (this.configWhatsapp) this.startQrPolling();
                   },
                   error: () => Swal.fire('Error', 'No se pudo cerrar la sesión.', 'error')
@@ -593,8 +570,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     this.configWhatsappNumber = status.number;
                     this.notificationService.updateAlertSettings(
                       this.configDays,
-                      this.configRepetitions,
-                      this.configHour,
+                      this.configHours,
                       this.configWhatsapp,
                       status.number,
                       this.configDesktop
@@ -695,13 +671,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   sendTestMessage() {
-      const user = this.authService.currentUser();
-      const number = user?.role === 'ADMIN' ? this.configWhatsappNumber : user?.phoneNumber;
-      if (!number) {
-          Swal.fire('Error', 'No hay un número de teléfono verificado para enviar el mensaje de prueba.', 'error');
+      if (!this.configWhatsappNumber) {
+          Swal.fire('Error', 'Ingrese un número de WhatsApp válido.', 'error');
           return;
       }
-      this.notificationService.sendWhatsappMessage(number, '¡Hola! Esta es una prueba de notificación desde tu Perfil de Themis.');
+      this.notificationService.sendWhatsappMessage(this.configWhatsappNumber, 'Hola! Esta es una prueba de notificación desde tu Perfil.');
   }
 
 

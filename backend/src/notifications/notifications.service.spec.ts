@@ -6,7 +6,6 @@ import { SettingsService } from '../settings/settings.service';
 import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PushSubscription } from './entities/push-subscription.entity';
-import { UsersService } from '../users/users.service';
 
 describe('NotificationsService', () => {
   let service: NotificationsService;
@@ -40,20 +39,6 @@ describe('NotificationsService', () => {
     delete: jest.fn(),
   };
 
-  const mockUsersService = {
-    findOneById: jest.fn().mockResolvedValue({
-      id: 'lawyer-id',
-      fullName: 'Dr. Test',
-      phoneNumber: '5491122334455',
-      isPhoneVerified: true,
-      whatsappAlertsEnabled: true,
-      desktopAlertsEnabled: true,
-      alertDaysBefore: 3,
-      alertRepetitions: 1,
-      alertHour: 9,
-    }),
-  };
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -62,7 +47,6 @@ describe('NotificationsService', () => {
         { provide: WhatsappService, useValue: mockWhatsappService },
         { provide: SettingsService, useValue: mockSettingsService },
         { provide: ConfigService, useValue: mockConfigService },
-        { provide: UsersService, useValue: mockUsersService },
         { provide: getRepositoryToken(PushSubscription), useValue: mockPushSubscriptionRepository },
       ],
     }).compile();

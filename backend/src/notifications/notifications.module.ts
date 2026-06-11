@@ -7,7 +7,6 @@ import { PushSubscription } from './entities/push-subscription.entity';
 import { DeadlinesModule } from '../deadlines/deadlines.module';
 import { WhatsappModule } from '../whatsapp/whatsapp.module';
 import { SettingsModule } from '../settings/settings.module';
-import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -15,8 +14,7 @@ import { UsersModule } from '../users/users.module';
     TypeOrmModule.forFeature([PushSubscription]),
     DeadlinesModule,
     WhatsappModule,
-    SettingsModule,
-    UsersModule
+    SettingsModule
   ],
   controllers: [NotificationsController],
   providers: [NotificationsService],

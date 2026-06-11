@@ -80,10 +80,7 @@ describe('NotificationService', () => {
 
   it('should trigger popup for calendar events starting soon', () => {
     const mockHttp = { get: () => of([]), post: () => of({}) } as any;
-    const mockAuth = { 
-      isAuthenticated: () => true,
-      currentUser: () => ({ alertDaysBefore: 3, whatsappAlertsEnabled: false, desktopAlertsEnabled: true })
-    } as any;
+    const mockAuth = { isAuthenticated: () => true } as any;
     
     // An event starting in 5 minutes
     const futureDate = new Date();
@@ -111,10 +108,7 @@ describe('NotificationService', () => {
 
   it('should trigger warning popup for perentorio/today deadlines', () => {
     const mockHttp = { get: () => of([]), post: () => of({}) } as any;
-    const mockAuth = { 
-      isAuthenticated: () => true,
-      currentUser: () => ({ alertDaysBefore: 3, whatsappAlertsEnabled: false, desktopAlertsEnabled: true })
-    } as any;
+    const mockAuth = { isAuthenticated: () => true } as any;
     
     // A deadline due today
     const todayDate = new Date();

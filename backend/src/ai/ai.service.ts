@@ -77,7 +77,7 @@ export class AiService {
       }
     }
 
-    return `[MÓDULO IA DESACTIVADO]\n\nCopilot no está configurado.\n\nPara activarlo de forma gratuita, configure la variable de entorno 'GEMINI_API_KEY' en su panel de Render con una clave de Google AI Studio (https://aistudio.google.com/).`;
+    return `[MÓDULO IA DESACTIVADO]\n\nCopilot no está configurado.\n\nPara activarlo de forma gratuita, configure la variable de entorno 'GEMINI_API_KEY' en su panel de Railway con una clave de Google AI Studio (https://aistudio.google.com/).`;
   }
 
   async analyze(text: string, context?: string): Promise<{ analysis: string }> {

@@ -193,28 +193,35 @@
                     class="text-lg font-bold text-slate-700 dark:text-slate-200 mb-4 pb-2 border-b border-slate-50 dark:border-slate-700">
                     Integraciones
                 </h2>
-
                 <div class="space-y-6">
-                    <!-- Notifications -->
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Configuración de Alertas
-                        </h3>
-                        <div class="grid grid-cols-2 gap-2">
+                    <!-- Configuración de Alertas (ADMIN ONLY - General view at top) -->
+                    <div *ngIf="authService.currentUser()?.role === 'ADMIN'">
+                        <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Configuración de Alertas</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div>
-                                <label class="text-xs text-slate-500 dark:text-slate-400">Días antes</label>
-                                <input type="number" pInputText [(ngModel)]="configDays"
-                                    class="w-full p-1 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+                                <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Días antes</label>
+                                <input type="number" pInputText [(ngModel)]="configDays" min="1" max="30"
+                                    class="w-full p-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white">
                             </div>
                             <div>
-                                <label class="text-xs text-slate-500 dark:text-slate-400">Frecuencia (Horas)</label>
-                                <input type="number" pInputText [(ngModel)]="configHours"
-                                    class="w-full p-1 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+                                <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Alertas al día</label>
+                                <select [(ngModel)]="configRepetitions" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-white focus:ring-emerald-500">
+                                    <option [ngValue]="1">1 vez al día</option>
+                                    <option [ngValue]="2">2 veces (cada 12h)</option>
+                                    <option [ngValue]="3">3 veces (cada 8h)</option>
+                                    <option [ngValue]="4">4 veces (cada 6h)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Hora inicio (0-23h)</label>
+                                <input type="number" pInputText [(ngModel)]="configHour" min="0" max="23"
+                                    class="w-full p-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white">
                             </div>
                         </div>
                     </div>
 
                     <!-- Desktop Notifications -->
-                    <div class="border-t border-slate-100 dark:border-slate-700 pt-4">
+                    <div class="border-t border-slate-100 dark:border-slate-700 pt-4" [class.border-t-0]="authService.currentUser()?.role !== 'ADMIN'">
                         <div class="flex items-center justify-between">
                             <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                                 <i class="pi pi-desktop text-blue-500"></i> Alertas PC / Celular (Pop-ups)
@@ -224,212 +231,240 @@
                         <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                             Muestra alertas emergentes nativas en tu PC o celular cuando hay eventos o vencimientos cercanos.
                         </p>
+                        
+                        <!-- Timing config inline if popups active and user not admin, and whatsapp is inactive -->
+                        <div *ngIf="configDesktop && !configWhatsapp && authService.currentUser()?.role !== 'ADMIN'" class="mt-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800 animate-fade-in">
+                            <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Días de anticipación para las alertas</label>
+                            <input type="number" pInputText [(ngModel)]="configDays" min="1" max="30"
+                                class="w-full max-w-[150px] p-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+                        </div>
                     </div>
 
                     <!-- WhatsApp -->
                     <div class="border-t border-slate-100 dark:border-slate-700 pt-4">
-                        <div class="flex items-center justify-between mb-2" [pTooltip]="!authService.isProUser() ? 'Requiere Plan Pro' : (!authService.currentUser()?.isPhoneVerified && authService.currentUser()?.role !== 'ADMIN' ? 'Debes verificar tu teléfono primero' : '')">
-                            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2" [class.opacity-50]="!authService.isProUser() || (!authService.currentUser()?.isPhoneVerified && authService.currentUser()?.role !== 'ADMIN')">
-                                <i class="pi pi-whatsapp text-lg text-emerald-500"></i> Alertas por WhatsApp
-                                <span *ngIf="!authService.isProUser()" class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black uppercase">Pro</span>
-                            </h3>
-                            <p-checkbox [(ngModel)]="configWhatsapp" [binary]="true" [disabled]="!authService.isProUser() || (!authService.currentUser()?.isPhoneVerified && authService.currentUser()?.role !== 'ADMIN')" (onChange)="onWhatsappToggle()" class="premium-locked"></p-checkbox>
-                        </div>
-                        <p *ngIf="!authService.currentUser()?.isPhoneVerified && authService.currentUser()?.role !== 'ADMIN'" class="text-[10px] text-red-500 dark:text-red-400 mt-1 mb-2 font-semibold">
-                            ⚠️ Debes verificar tu teléfono en "Información Personal" para habilitar las alertas.
-                        </p>
-
-                        <div *ngIf="configWhatsappNumber">
-                            <label class="text-xs text-slate-500 dark:text-slate-400">Número Vinculado</label>
-                            <div
-                                class="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">
-                                <i class="pi pi-whatsapp text-green-600"></i>
-                                <span class="text-sm font-bold text-slate-800 dark:text-slate-200">{{
-                                    configWhatsappNumber }}</span>
-                            </div>
-                        </div>
-
-                        <!-- Actions -->
-                        <div class="flex gap-2 mt-2">
-                            <button pButton label="Guardar" icon="pi pi-save"
-                                class="p-button-success p-button-sm flex-1" (click)="saveIntegrations()"></button>
-                            <button *ngIf="configWhatsappNumber && whatsappBotReady()" pButton icon="pi pi-send"
-                                class="p-button-success p-button-sm" (click)="sendTestMessage()"
-                                pTooltip="Probar mensaje"></button>
-                        </div>
-
-                        <!-- QR / Status Area (ADMIN ONLY) -->
-                        <div *ngIf="configWhatsapp && authService.currentUser()?.role === 'ADMIN'"
-                            class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-lg text-center shadow-inner">
-
-                            <!-- Connected State -->
-                            <div *ngIf="configWhatsappNumber && whatsappBotReady()" class="space-y-3 py-2">
-                                <div class="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full text-xs font-bold ring-1 ring-green-500/35">
-                                    <span class="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
-                                    <span>Bot Conectado</span>
-                                </div>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">
-                                    El bot está listo para enviar notificaciones automáticas y alertas.
-                                </p>
-                                <a [href]="'https://wa.me/' + configWhatsappNumber + '?text=hola'" 
-                                   target="_blank" 
-                                   class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm no-underline">
+                        <!-- Case A: Phone NOT verified (and user is not admin) -->
+                        <div *ngIf="!authService.currentUser()?.isPhoneVerified && authService.currentUser()?.role !== 'ADMIN'"
+                             class="bg-amber-50/50 dark:bg-amber-900/10 p-4 rounded-xl border border-amber-200/30 dark:border-amber-800/20 text-center space-y-2">
+                            <div class="flex justify-center">
+                                <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-950/30 flex items-center justify-center text-amber-600 dark:text-amber-400 text-lg">
                                     <i class="pi pi-whatsapp"></i>
-                                    Abrir Chat del Bot
-                                </a>
-                                <button pButton label="Desconectar Bot" icon="pi pi-power-off"
-                                    class="p-button-outlined p-button-danger p-button-sm w-full mt-2"
-                                    (click)="logoutWhatsapp()"></button>
+                                </div>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-700 dark:text-slate-300">Alertas de WhatsApp no disponibles</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+                                Para recibir notificaciones automáticas de tus plazos, debés verificar tu número de teléfono primero.
+                            </p>
+                            <button pButton type="button" label="Verificar Teléfono Ahora" icon="pi pi-verified" 
+                                class="p-button-outlined p-button-success p-button-sm p-button-rounded text-xs mt-2" 
+                                (click)="openPhoneVerification()"></button>
+                        </div>
+
+                        <!-- Case B: Phone IS verified (or user is admin) -->
+                        <div *ngIf="authService.currentUser()?.isPhoneVerified || authService.currentUser()?.role === 'ADMIN'">
+                            <div class="flex items-center justify-between mb-2" [pTooltip]="!authService.isProUser() ? 'Requiere Plan Pro' : ''">
+                                <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2" [class.opacity-50]="!authService.isProUser()">
+                                    <i class="pi pi-whatsapp text-lg text-emerald-500"></i> Alertas por WhatsApp
+                                    <span *ngIf="!authService.isProUser()" class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black uppercase">Pro</span>
+                                </h3>
+                                <p-checkbox [(ngModel)]="configWhatsapp" [binary]="true" [disabled]="!authService.isProUser()" (onChange)="onWhatsappToggle()" class="premium-locked"></p-checkbox>
                             </div>
 
-                            <!-- Not Connected State -->
-                            <div *ngIf="!configWhatsappNumber || !whatsappBotReady()" class="space-y-4">
-                                
-                                <!-- 1. Idle state (not started linking yet, and no active error) -->
-                                <div *ngIf="!userStartedLinking() && !whatsappError() && !scannedAndProcessing() && !pairingCode() && !qrCodeUrl()" 
-                                     class="py-6 flex flex-col items-center justify-center gap-3 text-center animate-fade-in">
-                                    <div class="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-3xl shadow-sm border border-emerald-100 dark:border-emerald-900/50">
+                            <!-- Bot Number Vinculado (ADMIN ONLY) -->
+                            <div *ngIf="configWhatsappNumber && authService.currentUser()?.role === 'ADMIN'" class="mb-3">
+                                <label class="text-xs text-slate-500 dark:text-slate-400">Número del Bot Vinculado</label>
+                                <div
+                                    class="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">
+                                    <i class="pi pi-whatsapp text-green-600"></i>
+                                    <span class="text-sm font-bold text-slate-800 dark:text-slate-200">{{
+                                        configWhatsappNumber }}</span>
+                                </div>
+                            </div>
+
+                            <!-- User phone recipient description (LAWYERS / NON-ADMIN) -->
+                            <div *ngIf="configWhatsapp && authService.currentUser()?.role !== 'ADMIN' && authService.currentUser()?.isPhoneVerified" class="mb-3">
+                                <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Las alertas se enviarán a tu número:</label>
+                                <div
+                                    class="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">
+                                    <i class="pi pi-whatsapp text-emerald-600"></i>
+                                    <span class="text-sm font-bold text-slate-800 dark:text-slate-200">{{ authService.currentUser()?.phoneNumber }}</span>
+                                    <span class="text-[10px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded font-bold uppercase tracking-wider border border-green-200">Verificado</span>
+                                </div>
+                            </div>
+
+                            <!-- Timing config inline if whatsapp active and user not admin -->
+                            <div *ngIf="configWhatsapp && authService.currentUser()?.role !== 'ADMIN'" class="mt-3 mb-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800 animate-fade-in space-y-4">
+                                <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200/50 dark:border-slate-800 pb-1">Configuración de Tiempos</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Días antes</label>
+                                        <input type="number" pInputText [(ngModel)]="configDays" min="1" max="30"
+                                            class="w-full p-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Alertas al día</label>
+                                        <select [(ngModel)]="configRepetitions" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-white focus:ring-emerald-500">
+                                            <option [ngValue]="1">1 vez al día</option>
+                                            <option [ngValue]="2">2 veces (cada 12h)</option>
+                                            <option [ngValue]="3">3 veces (cada 8h)</option>
+                                            <option [ngValue]="4">4 veces (cada 6h)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Hora inicio (0-23h)</label>
+                                        <input type="number" pInputText [(ngModel)]="configHour" min="0" max="23"
+                                            class="w-full p-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex gap-2 mt-2">
+                                <button pButton label="Guardar" icon="pi pi-save"
+                                    class="p-button-success p-button-sm flex-1" (click)="saveIntegrations()"></button>
+                                <button *ngIf="whatsappBotReady() && (authService.currentUser()?.role === 'ADMIN' ? configWhatsappNumber : authService.currentUser()?.isPhoneVerified)" pButton icon="pi pi-send"
+                                    class="p-button-success p-button-sm" (click)="sendTestMessage()"
+                                    pTooltip="Probar mensaje"></button>
+                            </div>
+
+                            <!-- QR / Status Area (ADMIN ONLY) -->
+                            <div *ngIf="configWhatsapp && authService.currentUser()?.role === 'ADMIN'"
+                                class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-lg text-center shadow-inner">
+
+                                <!-- Connected State -->
+                                <div *ngIf="configWhatsappNumber && whatsappBotReady()" class="space-y-3 py-2">
+                                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full text-xs font-bold ring-1 ring-green-500/35">
+                                        <span class="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
+                                        <span>Bot Conectado</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                                        El bot está listo para enviar notificaciones automáticas y alertas.
+                                    </p>
+                                    <a [href]="'https://wa.me/' + configWhatsappNumber + '?text=hola'" 
+                                       target="_blank" 
+                                       class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm no-underline">
                                         <i class="pi pi-whatsapp"></i>
-                                    </div>
-                                    <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200">Vinculación de WhatsApp</h4>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
-                                        Conectá el bot central para enviar notificaciones automáticas de turnos, expedientes y alertas a los clientes de tu estudio.
-                                    </p>
-                                    <button pButton label="Vincular WhatsApp" icon="pi pi-link"
-                                        class="p-button-success p-button-rounded p-button-sm px-6 mt-2 shadow-sm hover:scale-105 transition-transform duration-200"
-                                        (click)="startLinkingProcess()" [loading]="loadingQr()"></button>
+                                        Abrir Chat del Bot
+                                    </a>
+                                    <button pButton label="Desconectar Bot" icon="pi pi-power-off"
+                                        class="p-button-outlined p-button-danger p-button-sm w-full mt-2"
+                                        (click)="logoutWhatsapp()"></button>
                                 </div>
 
-                                <!-- 2. Error State -->
-                                <div *ngIf="whatsappError()" class="py-6 flex flex-col items-center justify-center gap-3 text-center animate-fade-in">
-                                    <div class="w-16 h-16 rounded-full bg-red-50 dark:bg-red-950/30 flex items-center justify-center text-red-600 dark:text-red-400 text-3xl shadow-sm border border-red-100 dark:border-red-900/50">
-                                        <i class="pi pi-exclamation-circle"></i>
-                                    </div>
-                                    <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200">Error de Conexión</h4>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
-                                        No se pudo iniciar el bot de WhatsApp.
-                                    </p>
-                                    <div class="bg-red-50/50 dark:bg-red-950/10 p-3 rounded-lg border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 text-[11px] font-mono max-w-xs mx-auto break-words select-all">
-                                        {{ whatsappError() }}
-                                    </div>
-                                    <button pButton label="Reintentar Vinculación" icon="pi pi-refresh"
-                                        class="p-button-danger p-button-rounded p-button-sm px-6 mt-2 shadow-sm"
-                                        (click)="restartWhatsapp()" [loading]="loadingQr()"></button>
-                                </div>
-
-                                <!-- 3. Active linking state (loading / QR / pairing code) -->
-                                <div *ngIf="userStartedLinking() && !whatsappError()">
+                                <!-- Not Connected State -->
+                                <div *ngIf="!configWhatsappNumber || !whatsappBotReady()" class="space-y-4">
                                     
-                                    <!-- Scanned & Processing State -->
-                                    <div *ngIf="scannedAndProcessing()" class="py-6 flex flex-col items-center justify-center gap-3 animate-fade-in">
-                                        <i class="pi pi-spin pi-sync text-4xl text-emerald-600 dark:text-emerald-400"></i>
-                                        <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300 animate-pulse">¡QR Escaneado!</p>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
-                                            Autenticando y sincronizando tu cuenta de WhatsApp. Preparando el bot... por favor espera.
-                                        </p>
-                                        
-                                        <!-- Progress bar showing actual synchronization state -->
-                                        <div *ngIf="whatsappLoadingStatus()" class="w-full max-w-xs mt-2 px-4 space-y-1">
-                                            <div class="flex justify-between text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
-                                                <span>{{ whatsappLoadingStatus()?.message || 'Sincronizando' }}</span>
-                                                <span>{{ whatsappLoadingStatus()?.percent }}%</span>
-                                            </div>
-                                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden font-mono">
-                                                <div class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
-                                                    [style.width.%]="whatsappLoadingStatus()?.percent || 0"></div>
-                                            </div>
+                                    <!-- 1. Idle state (not started linking yet, and no active error) -->
+                                    <div *ngIf="!userStartedLinking() && !whatsappError() && !scannedAndProcessing() && !pairingCode() && !qrCodeUrl()" 
+                                         class="py-6 flex flex-col items-center justify-center gap-3 text-center animate-fade-in">
+                                        <div class="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-3xl shadow-sm border border-emerald-100 dark:border-emerald-900/50">
+                                            <i class="pi pi-whatsapp"></i>
                                         </div>
+                                        <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200">Vinculación de WhatsApp</h4>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
+                                            Conectá el bot central para enviar notificaciones automáticas de turnos, expedientes y alertas a los clientes de tu estudio.
+                                        </p>
+                                        <button pButton label="Vincular WhatsApp" icon="pi pi-link"
+                                            class="p-button-success p-button-rounded p-button-sm px-6 mt-2 shadow-sm hover:scale-105 transition-transform duration-200"
+                                            (click)="startLinkingProcess()" [loading]="loadingQr()"></button>
                                     </div>
 
-                                    <!-- Pairing Code State -->
-                                    <div *ngIf="!scannedAndProcessing() && pairingCode()" class="py-4 space-y-3">
-                                        <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700 text-center animate-fade-in">
-                                            <p class="text-xs text-yellow-800 dark:text-yellow-200 mb-1 font-bold">Ingresá este código en tu WhatsApp:</p>
-                                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mb-3">(Dispositivos vinculados > Vincular > Vincular con número)</p>
-                                            <div class="text-3xl font-mono font-bold tracking-widest text-slate-800 dark:text-white select-all bg-white dark:bg-slate-800 py-2 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
-                                                {{ pairingCode() }}
-                                            </div>
+                                    <!-- 2. Error State -->
+                                    <div *ngIf="whatsappError()" class="py-6 flex flex-col items-center justify-center gap-3 text-center animate-fade-in">
+                                        <div class="w-16 h-16 rounded-full bg-red-50 dark:bg-red-950/30 flex items-center justify-center text-red-600 dark:text-red-400 text-3xl shadow-sm border border-red-100 dark:border-red-900/50">
+                                            <i class="pi pi-exclamation-circle"></i>
                                         </div>
-                                        <button pButton label="Volver a Código QR" icon="pi pi-qrcode"
-                                            class="p-button-text p-button-secondary p-button-sm"
+                                        <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200">Error de Conexión</h4>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
+                                            No se pudo iniciar el bot de WhatsApp.
+                                        </p>
+                                        <div class="bg-red-50/50 dark:bg-red-950/10 p-3 rounded-lg border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 text-[11px] font-mono max-w-xs mx-auto break-words select-all">
+                                            {{ whatsappError() }}
+                                        </div>
+                                        <button pButton label="Reintentar Vinculación" icon="pi pi-refresh"
+                                            class="p-button-danger p-button-rounded p-button-sm px-6 mt-2 shadow-sm"
                                             (click)="restartWhatsapp()" [loading]="loadingQr()"></button>
                                     </div>
 
-                                    <!-- QR Code / Loader State -->
-                                    <div *ngIf="!scannedAndProcessing() && !pairingCode()">
-                                        <!-- QR Code Ready -->
-                                        <div *ngIf="qrCodeUrl()" class="py-2 space-y-3 animate-fade-in">
-                                            <p class="text-xs text-green-800 dark:text-green-300 font-bold">Escaneá el código para conectar:</p>
-                                            <div class="relative inline-block">
-                                                <img [src]="qrCodeUrl()"
-                                                    class="mx-auto w-44 h-44 border-4 border-white dark:border-slate-700 rounded-xl shadow-md transition-transform hover:scale-105 duration-200">
-                                            </div>
-                                            <p class="text-[10px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-                                                Abrí WhatsApp en tu celular > Menú o Configuración > Dispositivos Vinculados > Vincular un dispositivo.
+                                    <!-- 3. Active linking state (loading / QR / pairing code) -->
+                                    <div *ngIf="userStartedLinking() && !whatsappError()">
+                                        
+                                        <!-- Scanned & Processing State -->
+                                        <div *ngIf="scannedAndProcessing()" class="py-6 flex flex-col items-center justify-center gap-3 animate-fade-in">
+                                            <i class="pi pi-spin pi-sync text-4xl text-emerald-600 dark:text-emerald-400"></i>
+                                            <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300 animate-pulse">¡QR Escaneado!</p>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
+                                                Autenticando y sincronizando tu cuenta de WhatsApp. Preparando el bot... por favor espera.
                                             </p>
                                             
-                                            <!-- Option to restart QR if it gets stuck -->
-                                            <button pButton label="Generar nuevo QR" icon="pi pi-refresh"
-                                                class="p-button-text p-button-secondary p-button-xs mt-2"
+                                            <!-- Progress bar showing actual synchronization state -->
+                                            <div *ngIf="whatsappLoadingStatus()" class="w-full max-w-xs mt-2 px-4 space-y-1">
+                                                <div class="flex justify-between text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+                                                    <span>{{ whatsappLoadingStatus()?.message || 'Sincronizando' }}</span>
+                                                    <span>{{ whatsappLoadingStatus()?.percent }}%</span>
+                                                </div>
+                                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden font-mono">
+                                                    <div class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
+                                                        [style.width.%]="whatsappLoadingStatus()?.percent || 0"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Pairing Code State -->
+                                        <div *ngIf="!scannedAndProcessing() && pairingCode()" class="py-4 space-y-3">
+                                            <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700 text-center animate-fade-in">
+                                                <p class="text-xs text-yellow-800 dark:text-yellow-200 mb-1 font-bold">Ingresá este código en tu WhatsApp:</p>
+                                                <p class="text-[10px] text-slate-500 dark:text-slate-400 mb-3">(Dispositivos vinculados > Vincular > Vincular con número)</p>
+                                                <div class="text-3xl font-mono font-bold tracking-widest text-slate-800 dark:text-white select-all bg-white dark:bg-slate-800 py-2 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+                                                    {{ pairingCode() }}
+                                                </div>
+                                            </div>
+                                            <button pButton label="Volver a Código QR" icon="pi pi-qrcode"
+                                                class="p-button-text p-button-secondary p-button-sm"
                                                 (click)="restartWhatsapp()" [loading]="loadingQr()"></button>
                                         </div>
 
-                                        <!-- Loading/Generating QR -->
-                                        <div *ngIf="!qrCodeUrl()" class="py-6 flex flex-col items-center justify-center gap-3">
-                                            <i class="pi pi-spin pi-spinner text-3xl text-indigo-600 dark:text-indigo-400"></i>
-                                            <p class="text-sm font-bold text-slate-700 dark:text-slate-300 animate-pulse">Iniciando Bot de WhatsApp...</p>
-                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
-                                                Conectando con el bot de WhatsApp en el servidor. Esto puede demorar unos segundos. Por favor espera...
-                                            </p>
-                                        </div>
+                                        <!-- QR Code / Loader State -->
+                                        <div *ngIf="!scannedAndProcessing() && !pairingCode()">
+                                            <!-- QR Code Ready -->
+                                            <div *ngIf="qrCodeUrl()" class="py-2 space-y-3 animate-fade-in">
+                                                <p class="text-xs text-green-800 dark:text-green-300 font-bold">Escaneá el código para conectar:</p>
+                                                <div class="relative inline-block">
+                                                    <img [src]="qrCodeUrl()"
+                                                        class="mx-auto w-44 h-44 border-4 border-white dark:border-slate-700 rounded-xl shadow-md transition-transform hover:scale-105 duration-200">
+                                                </div>
+                                                <p class="text-[10px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+                                                    Abrí WhatsApp en tu celular > Menú o Configuración > Dispositivos Vinculados > Vincular un dispositivo.
+                                                </p>
+                                                
+                                                <!-- Option to restart QR if it gets stuck -->
+                                                <button pButton label="Generar nuevo QR" icon="pi pi-refresh"
+                                                    class="p-button-text p-button-secondary p-button-xs mt-2"
+                                                    (click)="restartWhatsapp()" [loading]="loadingQr()"></button>
+                                            </div>
 
-                                        <!-- Show option to switch to pairing code method -->
-                                        <div class="flex items-center gap-2 my-3 w-full justify-center">
-                                            <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
-                                            <span class="text-[10px] text-slate-400 uppercase tracking-wider">O también podés</span>
-                                            <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
-                                        </div>
+                                            <!-- Loading/Generating QR -->
+                                            <div *ngIf="!qrCodeUrl()" class="py-6 flex flex-col items-center justify-center gap-3">
+                                                <i class="pi pi-spin pi-spinner text-3xl text-indigo-600 dark:text-indigo-400"></i>
+                                                <p class="text-sm font-bold text-slate-700 dark:text-slate-300 animate-pulse">Iniciando Bot de WhatsApp...</p>
+                                                <p class="text-[11px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
+                                                    Conectando con el bot de WhatsApp en el servidor. Esto puede demorar unos segundos. Por favor espera...
+                                                </p>
+                                            </div>
 
-                                        <button pButton label="Vincular con Código de Teléfono" icon="pi pi-mobile"
-                                            class="p-button-secondary p-button-outlined p-button-sm w-full"
-                                            (click)="generatePairingCode()" [loading]="loadingPairingCode()">
-                                        </button>
+                                            <!-- Show option to switch to pairing code method -->
+                                            <div class="flex items-center gap-2 my-3 w-full justify-center">
+                                                <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                                                <span class="text-[10px] text-slate-400 uppercase tracking-wider">O también podés</span>
+                                                <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                                            </div>
+
+                                            <button pButton label="Vincular con Código de Teléfono" icon="pi pi-mobile"
+                                                class="p-button-secondary p-button-outlined p-button-sm w-full"
+                                                (click)="generatePairingCode()" [loading]="loadingPairingCode()">
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-
-                            </div>
-                        </div>
-                        <!-- Status Area (LAWYERS / NON-ADMIN) -->
-                        <div *ngIf="configWhatsapp && authService.currentUser()?.role !== 'ADMIN'"
-                            class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-lg text-center shadow-inner">
-                            
-                            <!-- Connected State for Lawyers -->
-                            <div *ngIf="whatsappBotReady()" class="space-y-3 py-2">
-                                <div class="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full text-xs font-bold ring-1 ring-green-500/35">
-                                    <span class="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
-                                    <span>Servicio Activo</span>
-                                </div>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">
-                                    El bot de la plataforma está listo para enviar notificaciones automáticas a tus clientes.
-                                </p>
-                                <a *ngIf="configWhatsappNumber"
-                                   [href]="'https://wa.me/' + configWhatsappNumber + '?text=hola'" 
-                                   target="_blank" 
-                                   class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm no-underline font-sans">
-                                    <i class="pi pi-whatsapp"></i>
-                                    Abrir Chat del Bot
-                                </a>
-                            </div>
-
-                            <!-- Disconnected State for Lawyers -->
-                            <div *ngIf="!whatsappBotReady()" class="space-y-3 py-2">
-                                <div class="inline-flex items-center gap-2 px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-xs font-bold ring-1 ring-yellow-500/35">
-                                    <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
-                                    <span>Servicio en Mantenimiento</span>
-                                </div>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">
-                                    El canal de envío de WhatsApp se encuentra inactivo. Por favor, comunícate con el administrador para que lo reactive.
-                                </p>
                             </div>
                         </div>
                     </div>

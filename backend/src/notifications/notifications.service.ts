@@ -7,6 +7,7 @@ import * as webpush from 'web-push';
 import { DeadlinesService } from '../deadlines/deadlines.service';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { SettingsService } from '../settings/settings.service';
+import { UsersService } from '../users/users.service';
 import { PushSubscription } from './entities/push-subscription.entity';
 
 @Injectable()
@@ -20,6 +21,7 @@ export class NotificationsService {
     private readonly whatsappService: WhatsappService,
     private readonly settingsService: SettingsService,
     private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
     @InjectRepository(PushSubscription)
     private readonly pushSubscriptionRepository: Repository<PushSubscription>,
   ) {
@@ -118,47 +120,99 @@ export class NotificationsService {
     }
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_9AM) // Runs at 9:00 AM daily
+  @Cron(CronExpression.EVERY_HOUR) // Runs every hour to support customizable alert times and repetitions
   async handleCron() {
-    this.logger.debug('Running daily deadline check...');
-    const settings = await this.settingsService.getSettings();
-    const deadlines = await this.deadlinesService.findAll();
+    this.logger.debug('Running hourly deadline check...');
+    const now = new Date();
+    const currentHour = now.getHours();
     const today = new Date();
     today.setHours(0,0,0,0);
 
+    const deadlines = await this.deadlinesService.findAll();
+
     for (const d of deadlines) {
       if (d.estado !== 'PENDIENTE') continue;
+
+      const lawyerUserId = d.userId || d.expediente?.userId;
+      if (!lawyerUserId) continue;
+
+      // Fetch the lawyer/user associated with the deadline
+      const user = await this.usersService.findOneById(lawyerUserId);
+      if (!user) continue;
+
+      // Determine alert times for this user (evenly spaced throughout 24 hours starting from alertHour)
+      const startHour = user.alertHour ?? 9;
+      const reps = user.alertRepetitions ?? 1;
+      const scheduledHours: number[] = [];
+      const interval = Math.floor(24 / reps);
+      for (let i = 0; i < reps; i++) {
+        scheduledHours.push((startHour + i * interval) % 24);
+      }
+
+      // Check if currentHour matches one of the scheduled hours
+      if (!scheduledHours.includes(currentHour)) continue;
 
       const dueDate = new Date(d.fechaVencimiento);
       dueDate.setHours(0,0,0,0);
 
       const diffTime = dueDate.getTime() - today.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-      
-      // Notify if within range (e.g. 3 days) OR if it is today (0)
-      if (diffDays <= settings.daysBeforeAlert && diffDays >= 0) {
-           // 1. WhatsApp to Client (if enabled and client phone details exist)
-           if (settings.enableWhatsapp && d.expediente && d.expediente.cliente && d.expediente.cliente.telefono) {
-             const message = `📅 *Recordatorio Legal*\n🔔 Vencimiento: *${d.titulo}*\n⏳ Falta: *${diffDays} días*\n📂 Desc: ${d.descripcion || 'Sin descripción'}`;
-             try {
-                 await this.whatsappService.sendMessage(d.expediente.cliente.telefono, message);
-                 this.logger.log(`Notification sent to ${d.expediente.cliente.nombre} for deadline ${d.titulo}`);
-             } catch (e) {
-                 this.logger.error(`Failed to send notification for ${d.titulo}`, e);
-             }
-           }
 
-           // 2. Web Push to Lawyer (User)
-           const lawyerUserId = d.userId || d.expediente?.userId;
-           if (lawyerUserId) {
-             const pushTitle = diffDays === 0 ? `⚠️ Vencimiento HOY` : `🔔 Vencimiento Próximo`;
-             const pushBody = `El vencimiento "${d.titulo}" expira en ${diffDays} días (Expediente: ${d.expediente?.caratula || 'Sin carátula'}).`;
-             try {
-               await this.sendPushNotification(lawyerUserId, pushTitle, pushBody, { url: '/calendario' });
-             } catch (e) {
-               this.logger.error(`Failed to send Web Push to lawyer ${lawyerUserId} for deadline ${d.titulo}`, e);
-             }
-           }
+      const userDaysBeforeAlert = user.alertDaysBefore ?? 3;
+
+      // Notify if within range OR if it is today (0)
+      if (diffDays <= userDaysBeforeAlert && diffDays >= 0) {
+        // Prevent duplicate sending for the same hour
+        const lastSentDate = d.fechaAviso ? new Date(d.fechaAviso) : null;
+        if (
+          lastSentDate && 
+          lastSentDate.toDateString() === now.toDateString() && 
+          lastSentDate.getHours() === currentHour
+        ) {
+          continue; // Already sent for this repetition slot today
+        }
+
+        // 1. WhatsApp to Lawyer (User) (if enabled, verified, and phone exists)
+        if (user.whatsappAlertsEnabled && user.isPhoneVerified && user.phoneNumber) {
+          const message = `📅 *Recordatorio de Vencimiento*\n🔔 Vencimiento: *${d.titulo}*\n⏳ Falta: *${diffDays} días*\n📂 Expediente: ${d.expediente?.caratula || 'Sin carátula'}\n📝 Desc: ${d.descripcion || 'Sin descripción'}`;
+          try {
+              await this.whatsappService.sendMessage(user.phoneNumber, message);
+              this.logger.log(`WhatsApp notification sent to lawyer ${user.fullName} for deadline ${d.titulo}`);
+          } catch (e) {
+              this.logger.error(`Failed to send WhatsApp notification to lawyer ${user.phoneNumber} for ${d.titulo}`, e);
+          }
+        }
+
+        // 2. WhatsApp to Client (if enabled, verified, and client phone exists)
+        if (user.whatsappAlertsEnabled && user.isPhoneVerified && d.expediente && d.expediente.cliente && d.expediente.cliente.telefono) {
+          const message = `📅 *Recordatorio Legal*\n🔔 Vencimiento: *${d.titulo}*\n⏳ Falta: *${diffDays} días*\n📂 Desc: ${d.descripcion || 'Sin descripción'}`;
+          try {
+              await this.whatsappService.sendMessage(d.expediente.cliente.telefono, message);
+              this.logger.log(`WhatsApp notification sent to client ${d.expediente.cliente.nombre} for deadline ${d.titulo}`);
+          } catch (e) {
+              this.logger.error(`Failed to send WhatsApp notification for ${d.titulo}`, e);
+          }
+        }
+
+        // 3. Web Push to Lawyer (User)
+        const desktopEnabled = user.desktopAlertsEnabled ?? true;
+        if (desktopEnabled) {
+          const pushTitle = diffDays === 0 ? `⚠️ Vencimiento HOY` : `🔔 Vencimiento Próximo`;
+          const pushBody = `El vencimiento "${d.titulo}" expira en ${diffDays} días (Expediente: ${d.expediente?.caratula || 'Sin carátula'}).`;
+          try {
+            await this.sendPushNotification(user.id, pushTitle, pushBody, { url: '/calendario' });
+            this.logger.log(`Web Push notification sent to lawyer ${user.fullName} for deadline ${d.titulo}`);
+          } catch (e) {
+            this.logger.error(`Failed to send Web Push to lawyer ${user.id} for deadline ${d.titulo}`, e);
+          }
+        }
+
+        // Update last sent date
+        try {
+          await this.deadlinesService.update(d.id, { fechaAviso: now });
+        } catch (e) {
+          this.logger.error(`Failed to update fechaAviso for deadline ${d.id}`, e);
+        }
       }
     }
   }

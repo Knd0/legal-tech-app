@@ -9,6 +9,8 @@ import { Client as ClientEntity } from '../clients/client.entity';
 import { Expediente } from '../expedientes/expediente.entity';
 import { Deadline } from '../deadlines/deadline.entity';
 import { Movimiento } from '../movimientos/entities/movimiento.entity';
+import * as path from 'path';
+import * as os from 'os';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const qrcodeTerminal = require('qrcode-terminal');
 
@@ -21,6 +23,18 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
   private qrCodeImage: string | null = null;
   private initializationError: string | null = null;
   private loadingScreen: { percent: number; message: string } | null = null;
+  private initializingPromise: Promise<void> | null = null;
+  private restartingPromise: Promise<any> | null = null;
+
+  private getSessionPath(): string {
+    const isWindows = process.platform === 'win32';
+    // On Windows, resolve a folder in the user's home directory to bypass Chrome sandbox blocks inside hidden .gemini folders.
+    // On production (Linux), resolve a standard './whatsapp-auth' absolute path.
+    const resolvedPath = isWindows
+      ? path.join(os.homedir(), 'themis-whatsapp-auth')
+      : path.resolve(process.cwd(), 'whatsapp-auth');
+    return resolvedPath;
+  }
 
   async onApplicationBootstrap() {
     this.initializationError = null; 
@@ -55,39 +69,54 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
     }
   }
 
-  private async ensureInitialized() {
-    if (this.isInitialized) return;
-    this.isInitialized = true;
-    this.logger.log('Initializing WhatsApp Client (launching Puppeteer)...');
-    try {
-      await this.client.initialize();
-    } catch (err: any) {
-      this.logger.error('Failed to initialize WhatsApp client', err);
-      this.initializationError = err.message || 'Unknown initialization error';
-      this.isInitialized = false; // Reset to allow retry
+  private async recreateClient() {
+    if (this.client) {
+      this.logger.log('Recreating WhatsApp client to guarantee clean state...');
+      try {
+        this.client.removeAllListeners();
+        await this.client.destroy();
+      } catch (e: any) {
+        this.logger.warn('Error destroying client during recreation: ' + e.message);
+      }
     }
+    this.createClient();
   }
 
-  constructor(
-    @InjectRepository(WhatsappSession)
-    private readonly sessionRepository: Repository<WhatsappSession>,
-    @InjectRepository(ClientEntity)
-    private readonly clientRepository: Repository<ClientEntity>,
-    @InjectRepository(Expediente)
-    private readonly expedienteRepository: Repository<Expediente>,
-    @InjectRepository(Deadline)
-    private readonly deadlineRepository: Repository<Deadline>,
-    @InjectRepository(Movimiento)
-    private readonly movimientoRepository: Repository<Movimiento>,
-  ) {
+  private createClient() {
     const store = new WhatsappDbStore(this.sessionRepository);
+    const headlessVal = process.env.PUPPETEER_HEADLESS !== undefined
+      ? (process.env.PUPPETEER_HEADLESS === 'true')
+      : (process.env.NODE_ENV === 'production' ? 'new' : false);
+
+    // Resolve browser path on Windows to use modern installed Chrome or Edge (preventing deprecation screens)
+    let solvedExecutablePath: string | undefined = undefined;
+    if (process.platform === 'win32') {
+      const fs = require('fs');
+      const browserPaths = [
+        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+      ];
+      for (const p of browserPaths) {
+        if (fs.existsSync(p)) {
+          solvedExecutablePath = p;
+          break;
+        }
+      }
+    }
+
+    const execPath = process.env.PUPPETEER_EXECUTABLE_PATH || solvedExecutablePath;
+    const sessionDir = this.getSessionPath();
+    this.logger.log(`Using WhatsApp session directory: ${sessionDir}`);
+
     this.client = new Client({
       authStrategy: new RemoteAuth({
         clientId: 'themis-session',
-        dataPath: './whatsapp-auth',
+        dataPath: sessionDir,
         store: store,
         backupSyncIntervalMs: 60000,
       }),
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
       authTimeoutMs: 0, // Disable auth timeout to prevent unhandled rejection "auth timeout"
       qrMaxRetries: 10,
       webVersionCache: {
@@ -96,7 +125,8 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
         strict: false
       },
       puppeteer: {
-        headless: true,
+        headless: headlessVal,
+        executablePath: execPath,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -104,7 +134,6 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
             '--disable-accelerated-2d-canvas',
             '--no-first-run',
             '--no-zygote',
-            '--single-process',
             '--disable-gpu',
             '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36', // Fix: Modern custom UA to prevent deprecation screens
             '--disable-application-cache',
@@ -117,7 +146,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
       }
     });
 
-    this.logger.log(`WhatsApp Service Initialized. Puppeteer Config: Headless=${true}, ExecutablePath=${process.env.PUPPETEER_EXECUTABLE_PATH || 'Auto-resolve'}`);
+    this.logger.log(`WhatsApp Client Instance Created. Headless=${headlessVal}, ExecutablePath=${execPath || 'Auto-resolve'}`);
 
     let lastQrLogTime = 0;
     this.client.on('qr', async (qr: string) => {
@@ -169,6 +198,9 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
         this.loadingScreen = null;
     });
 
+    // Chat bidireccional interactivo inhabilitado temporalmente a petición del usuario.
+    // Solo se realizarán envíos automáticos de notificaciones salientes.
+    /*
     this.client.on('message', async (msg) => {
       try {
         await this.handleIncomingMessage(msg);
@@ -176,12 +208,121 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
         this.logger.error('Error handling incoming WhatsApp message', err);
       }
     });
+    */
   }
 
-  async sendMessage(number: string, message: string): Promise<any> {
+  private async ensureInitialized(fromRestart = false) {
+    if (this.isReady) return;
+    if (!fromRestart && this.restartingPromise) {
+      return this.restartingPromise;
+    }
+    if (this.initializingPromise) {
+      return this.initializingPromise;
+    }
+
+    this.isInitialized = true;
+    this.initializationError = null;
+    this.logger.log('Initializing WhatsApp Client (launching Puppeteer)...');
+
+    this.initializingPromise = (async () => {
+      try {
+        // Recreate the client instance to start with a fresh state
+        await this.recreateClient();
+
+        // Check session in database. If no session exists, clean up local folder first to ensure a completely clean start.
+        const session = await this.sessionRepository.findOne({ where: { id: 'session-themis-session' } });
+        const sessionDir = this.getSessionPath();
+        if (!session) {
+          this.logger.log('No WhatsApp session found in DB. Cleaning up local session folder before initializing to ensure a clean state...');
+          const fs = require('fs');
+          const sessionPath = path.join(sessionDir, 'RemoteAuth-themis-session');
+          if (fs.existsSync(sessionPath)) {
+            try {
+              fs.rmSync(sessionPath, { recursive: true, force: true });
+              this.logger.log('Local session folder cleared.');
+            } catch (e: any) {
+              this.logger.warn('Could not clear local session folder: ' + e.message);
+            }
+          }
+        }
+
+        // Clear any stale lockfile before launching to prevent Puppeteer "already running" error on Windows
+        const fs = require('fs');
+        const lockfilePath = path.join(sessionDir, 'RemoteAuth-themis-session', 'lockfile');
+        if (fs.existsSync(lockfilePath)) {
+          this.logger.log('Stale lockfile detected. Removing lockfile before initializing...');
+          try {
+            fs.unlinkSync(lockfilePath);
+            this.logger.log('Stale lockfile removed.');
+          } catch (e: any) {
+            this.logger.warn('Could not remove stale lockfile: ' + e.message);
+          }
+        }
+
+        await this.client.initialize();
+      } catch (err: any) {
+        this.logger.error('Failed to initialize WhatsApp client', err);
+        this.initializationError = err.message || 'Unknown initialization error';
+        this.isInitialized = false; // Reset to allow retry
+        try {
+          this.logger.log('Destroying client to release locks after initialization failure...');
+          if (this.client) {
+            await this.client.destroy();
+          }
+        } catch (destroyErr: any) {
+          this.logger.warn('Failed to destroy client on initialization failure: ' + destroyErr.message);
+        }
+        throw err; // Rethrow to reject initializingPromise
+      } finally {
+        this.initializingPromise = null;
+      }
+    })();
+
+    return this.initializingPromise;
+  }
+
+  private async waitForInitialization() {
+    if (this.restartingPromise) {
+      this.logger.log('Waiting for active restart to complete before proceeding...');
+      try {
+        await this.restartingPromise;
+      } catch (e) {}
+    }
+    if (this.initializingPromise) {
+      this.logger.log('Waiting for active initialization to complete before proceeding...');
+      try {
+        await this.initializingPromise;
+      } catch (e) {}
+    }
     if (!this.isInitialized) {
       await this.ensureInitialized();
     }
+
+    if (this.initializationError) {
+      throw new Error(`WhatsApp client initialization failed: ${this.initializationError}`);
+    }
+    if (!this.isInitialized) {
+      throw new Error('WhatsApp client is not initialized');
+    }
+  }
+
+  constructor(
+    @InjectRepository(WhatsappSession)
+    private readonly sessionRepository: Repository<WhatsappSession>,
+    @InjectRepository(ClientEntity)
+    private readonly clientRepository: Repository<ClientEntity>,
+    @InjectRepository(Expediente)
+    private readonly expedienteRepository: Repository<Expediente>,
+    @InjectRepository(Deadline)
+    private readonly deadlineRepository: Repository<Deadline>,
+    @InjectRepository(Movimiento)
+    private readonly movimientoRepository: Repository<Movimiento>,
+  ) {
+    this.createClient();
+  }
+
+  async sendMessage(number: string, message: string): Promise<any> {
+    await this.waitForInitialization();
     if (!this.isReady) {
       throw new Error('WhatsApp client is not ready yet');
     }
@@ -214,9 +355,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
   }
 
   async requestPairingCode(phoneNumber: string): Promise<string> {
-      if (!this.isInitialized) {
-          await this.ensureInitialized();
-      }
+      await this.waitForInitialization();
       if (!this.client) {
           throw new Error('Client not initialized');
       }
@@ -239,10 +378,6 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
   }
 
   getStatus() {
-      if (!this.isInitialized) {
-          // Trigger initialization in background
-          void this.ensureInitialized().catch(err => this.logger.error('Background initialization failed', err));
-      }
       return {
           ready: this.isReady,
           qr: this.qrCodeImage,
@@ -255,6 +390,19 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
   async logout() {
       this.logger.log('Logging out WhatsApp client...');
       try {
+          if (this.initializingPromise) {
+              this.logger.log('Waiting for active initialization to complete/fail before logging out...');
+              try {
+                  await this.initializingPromise;
+              } catch (e) {}
+          }
+          if (this.restartingPromise) {
+              this.logger.log('Waiting for active restart to complete/fail before logging out...');
+              try {
+                  await this.restartingPromise;
+              } catch (e) {}
+          }
+
           if (this.isReady) {
               await this.client.logout();
           }
@@ -284,11 +432,25 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
   }
 
   async restart() {
+      if (this.restartingPromise) {
+          this.logger.log('Restart already in progress. Returning existing restart status.');
+          return { success: true, message: 'Restart already in progress' };
+      }
+
       this.logger.log('Force restarting WhatsApp client (Background Process)...');
       
-      // Run in background to prevent 504 Timeout
-      (async () => {
+      this.restartingPromise = (async () => {
           try {
+              // Wait for any active initialization promise to settle first
+              if (this.initializingPromise) {
+                  this.logger.log('Waiting for active initialization to complete/fail before restarting...');
+                  try {
+                      await this.initializingPromise;
+                  } catch (e) {
+                      // ignore initialization errors since we are restarting
+                  }
+              }
+
               this.isReady = false;
               this.isInitialized = false;
               this.qrCodeImage = null;
@@ -299,19 +461,18 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
               }
               
               // Wait a moment for file locks to release
-              await new Promise(resolve => setTimeout(resolve, 3000)); // Increased wait time
+              await new Promise(resolve => setTimeout(resolve, 5000)); // Increased wait time
               
               const fs = require('fs');
-              const path = './whatsapp-auth';
-              if (fs.existsSync(path)) {
+              const sessionDir = this.getSessionPath();
+              if (fs.existsSync(sessionDir)) {
                   this.logger.log('Clearing session data...');
                   try {
                     // Try robust removal
-                    fs.rmSync(path, { recursive: true, force: true });
+                    fs.rmSync(sessionDir, { recursive: true, force: true });
                     this.logger.log('Session data cleared.');
                   } catch(e: any) {
                       this.logger.warn('Could not remove auth folder immediately (likely locked). Proceeding anyway...', e.message);
-                      // In Render, ephemeral storage might be weird. failing to delete shouldn't block restart if possible.
                   }
               }
 
@@ -322,10 +483,12 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
               this.initializationError = null;
               
               this.logger.log('Re-initializing client...');
-              await this.ensureInitialized();
+              await this.ensureInitialized(true);
           } catch (e: any) {
               this.logger.error('Error during background restart', e);
               this.initializationError = e.message || 'Restart failed';
+          } finally {
+              this.restartingPromise = null;
           }
       })();
 

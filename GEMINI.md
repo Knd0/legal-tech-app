@@ -30,7 +30,7 @@ Actualmente la aplicación se encuentra en un estado muy avanzado (~99% global):
 
 | Area | Estado | Detalles de Implementation |
 |---|---|---|
-| **Auth (BE+FE)** | **100%** | JWT (60m) + local strategy. Recuperación por OTP vía WhatsApp (y fallback a Email vía Resend) **persistido en base de datos (`Otp` entity)** para resistir reinicios en Render. |
+| **Auth (BE+FE)** | **100%** | JWT (60m) + local strategy. Recuperación por OTP vía WhatsApp (y fallback a Email vía Resend) **persistido en base de datos (`Otp` entity)** para resistir reinicios en Railway. |
 | **Clientes** | **99%** | Gestión completa. Tabla con **paginación server-side, debouncer de búsqueda (300ms) y carga lazy**. Reemplazado confirm() nativo por SweetAlert2. |
 | **Expedientes** | **99%** | Seguimiento de causas. Tabla con **paginación server-side, filtro de estado, debouncer y borrado con SweetAlert2**. Kanban interactivo funcional. |
 | **Calendario** | **99%** | Vista interactiva en frontend (mensual/semanal/diario). Módulo backend (Calendar BE) implementado con eventos en base de datos. Integrado sistema de alertas pop-up nativas (PC/Celular) y en la misma app (SweetAlert2) para eventos y vencimientos de hoy/próximos. |
@@ -80,9 +80,9 @@ Todos los gaps de seguridad conocidos están cerrados (JWT guards, filtros por u
 - `JWT_SECRET=super_secret_jwt_key`
 - `PORT` (por defecto 3000)
 - `MP_ACCESS_TOKEN` (Producción/Pruebas de MercadoPago)
-- `MP_WEBHOOK_SECRET` (Firma de Webhooks de MercadoPago — **pendiente en Render**)
-- `RESEND_API_KEY` (Para envío de correos en flujo de olvido de clave — **pendiente en Render**; sin esta variable el fallback a email no funciona, WhatsApp sigue andando normalmente)
-- `FRONTEND_URL` (URL del frontend — ya se usa en el código; configurar en Render para que `back_url` de MercadoPago apunte correctamente)
+- `MP_WEBHOOK_SECRET` (Firma de Webhooks de MercadoPago — **pendiente en Railway**)
+- `RESEND_API_KEY` (Para envío de correos en flujo de olvido de clave — **pendiente en Railway**; sin esta variable el fallback a email no funciona, WhatsApp sigue andando normalmente)
+- `FRONTEND_URL` (URL del frontend — ya se usa en el código; configurar en Railway para que `back_url` de MercadoPago apunte correctamente)
 - `VAPID_PUBLIC_KEY` — clave pública generada. Sin esta variable el backend genera claves efímeras en cada restart, invalidando suscripciones push.
 - `VAPID_PRIVATE_KEY` — clave privada correspondiente. Guardar también en `.env` local.
 - `ADMIN_PASSWORD` (Seed del admin, por defecto `ChangeMe123!`)
@@ -116,8 +116,8 @@ Todos los gaps de seguridad conocidos están cerrados (JWT guards, filtros por u
 - **whatsapp-auth/ en .gitignore**: `backend/whatsapp-auth/` ignorado por `.gitignore` para no commitear el caché de sesión de Chromium.
 - **Servicios root + AppComponent**: `CalendarEventService` y `DeadlineService` se instancian al arrancar la app (antes de auth). Sus constructores usan `if (localStorage.getItem('auth_token'))` para no disparar HTTP sin sesión. `ClientService` / `ExpedienteService` tienen el mismo patrón pero solo viven en rutas lazy — no necesitan el guard.
 - **Landing logo y favicon**: El logo navbar/footer es el SVG `public/icons/themis.svg` inlineado con `fill="currentColor"`, coloreado por `--logo-icon-color` en `landing.scss`. Fuente del texto "Themis": `Caesar Dressing` (clase `.font-caesar`). El favicon ahora usa `icons/themis.svg` + `favicon-64.png` (64×64 px).
-- **Estado de Bot de WhatsApp en Perfil**: La interfaz de configuración de alertas de WhatsApp (`ProfileComponent`) utiliza el signal `whatsappBotReady` y sondeos dinámicos (`startQrPolling`) para reflejar el estado del bot en tiempo real. Para evitar estados inconsistentes (como mostrar "Bot Conectado" cuando la sesión en el backend se ha cerrado), la UI valida que el bot esté listo en el servidor (`status.ready`). Si se detecta desconexión, la UI expone el contenedor de vinculación (código QR o código de emparejamiento por teléfono). El sondeo se inicia inmediatamente al activar el interruptor de WhatsApp. Además, se desactivó todo almacenamiento caché en el Chromium de Puppeteer (mediante flags como `--disk-cache-size=1`) para reducir el tamaño del ZIP de sesión a un mínimo (~1MB), evitando congelamientos (504 Gateway Timeout) en entornos con recursos limitados (Render), y se obliga a que el frontend reciba el número telefónico del bot (`status.number`) antes de dar por completado el emparejamiento.
-- **Inicialización de WhatsApp no Bloqueante**: La inicialización automática del bot de WhatsApp en `onApplicationBootstrap()` se ejecuta de forma asíncrona en segundo plano (sin `await`). Esto previene que el arranque de la API en NestJS se bloquee al iniciar Puppeteer/Chromium, resolviendo de manera definitiva los errores `504 Gateway Timeout` en plataformas de hosting (Railway/Render). Adicionalmente, el bot se desactiva por completo en scripts CLI, semilla (`seed:prod`) y suites de prueba Jest para economizar memoria RAM.
+- **Estado de Bot de WhatsApp en Perfil**: La interfaz de configuración de alertas de WhatsApp (`ProfileComponent`) utiliza el signal `whatsappBotReady` y sondeos dinámicos (`startQrPolling`) para reflejar el estado del bot en tiempo real. Para evitar estados inconsistentes (como mostrar "Bot Conectado" cuando la sesión en el backend se ha cerrado), la UI valida que el bot esté listo en el servidor (`status.ready`). Si se detecta desconexión, la UI expone el contenedor de vinculación (código QR o código de emparejamiento por teléfono). El sondeo se inicia inmediatamente al activar el interruptor de WhatsApp. Además, se desactivó todo almacenamiento caché en el Chromium de Puppeteer (mediante flags como `--disk-cache-size=1`) para reducir el tamaño del ZIP de sesión a un mínimo (~1MB), evitando congelamientos (504 Gateway Timeout) en entornos con recursos limitados (Railway), y se obliga a que el frontend reciba el número telefónico del bot (`status.number`) antes de dar por completado el emparejamiento.
+- **Inicialización de WhatsApp no Bloqueante**: La inicialización automática del bot de WhatsApp en `onApplicationBootstrap()` se ejecuta de forma asíncrona en segundo plano (sin `await`). Esto previene que el arranque de la API en NestJS se bloquee al iniciar Puppeteer/Chromium, resolviendo de manera definitiva los errores `504 Gateway Timeout` en plataformas de hosting (Railway). Adicionalmente, el bot se desactiva por completo en scripts CLI, semilla (`seed:prod`) y suites de prueba Jest para economizar memoria RAM.
 - **Gestión de Inicialización y Bloqueo de WhatsApp**: Se eliminó la inicialización automática del bot en el método `getStatus()` para erradicar los bucles infinitos de lanzamientos de Puppeteer causados por el sondeo periódico del frontend. Ahora la inicialización ocurre a demanda (clic en "Vincular WhatsApp") o en el arranque si hay una sesión previa. Además, se implementó `initializingPromise` para evitar lanzamientos paralelos de Puppeteer, y se incorporó una limpieza proactiva de `lockfile` (`./whatsapp-auth/RemoteAuth-themis-session/lockfile`) en Windows antes del inicio, resolviendo el error falso de "browser already running". Adicionalmente, se implementó `restartingPromise` como semáforo del comando `restart()` y se modificaron `restart()`, `ensureInitialized()` y `logout()` para esperar y sincronizar sus llamadas promisorias de forma atómica, evitando carreras concurrentes de inicialización/destrucción de Puppeteer (Error "Execution context was destroyed").
 
 ---
@@ -134,8 +134,8 @@ Todos los gaps de seguridad conocidos están cerrados (JWT guards, filtros por u
 
 ## 💡 Próximos Pasos Recomendados
 
-1. **Configurar la API Key del Copilot en Producción (Render):**
-   El módulo está 100% desarrollado. Para activarlo de forma gratuita en producción, obtenga una API key en Google AI Studio (https://aistudio.google.com/) y configúrela como variable de entorno `GEMINI_API_KEY` en Render.
+1. **Configurar la API Key del Copilot en Producción (Railway):**
+   El módulo está 100% desarrollado. Para activarlo de forma gratuita en producción, obtenga una API key en Google AI Studio (https://aistudio.google.com/) y configúrela como variable de entorno `GEMINI_API_KEY` en Railway.
 2. **Paginación Server-Side en listados de Movimientos (Cuenta Corriente):**
    Si la cantidad de transacciones por cliente se incrementa fuertemente, se puede aplicar paginación diferida en la lista principal de movimientos del cliente.
 
@@ -195,9 +195,9 @@ Para mantener la consistencia estética y evitar regresiones visuales (como dist
 
 ## ⚠️ Pendientes de Acción Manual (fuera del repositorio)
 
-Todo lo que figura aquí requiere acción directa sobre Render o servicios externos. No hay cambios de código pendientes.
+Todo lo que figura aquí requiere acción directa sobre Railway o servicios externos. No hay cambios de código pendientes.
 
-### A) Variables de entorno — configurar en Render (Environment → Add Variable)
+### A) Variables de entorno — configurar en Railway (Environment → Add Variable)
 
 - `MP_WEBHOOK_SECRET` — mercadopago.com.ar → Tu negocio → Configuración → Notificaciones → Webhooks → Clave secreta, apuntando a `https://themis.up.railway.app/mercadopago/webhook`. Sin esta variable el webhook acepta todas las requests sin verificar firma.
 - `RESEND_API_KEY` — resend.com → API Keys. Sin esta variable el fallback a email en forgot-password no funciona (WhatsApp sigue andando normalmente).
@@ -212,9 +212,9 @@ Los campos `subscriptionStatus`, `subscriptionExpiresAt` y `mpSubscriptionId` fu
 
 **Secuencia de deploy:**
 
-1. **Push a `main`** → Render bootea → TypeORM crea la tabla `subscription` automáticamente.
+1. **Push a `main`** → Railway bootea → TypeORM crea la tabla `subscription` automáticamente.
 
-2. **Ejecutar en Render → PostgreSQL → psql:**
+2. **Ejecutar en Railway → PostgreSQL → psql:**
 
 ```sql
 INSERT INTO "subscription" (

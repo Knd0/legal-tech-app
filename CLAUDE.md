@@ -62,9 +62,9 @@ Each feature is a NestJS module under `backend/src/`. Key modules:
 - **clients / expedientes** — Core legal domain. Expedientes track `EstadoExpediente`: `INICIADO → PRUEBA → ALEGATOS → SENTENCIA → ARCHIVADO`. Both support **server-side pagination, status filters, and search queries**.
 - **deadlines** — Judicial vencimientos. Exposes `/deadlines` and `/deadlines/analyze-pdf` to upload a judicial notification PDF and extract/schedule upcoming deadline calendar events using Gemini 2.5 Flash by default. A daily cron job runs at 9 AM to send WhatsApp alerts.
 - **calendar** — Empty module. Google Calendar integration was removed. Controller has no endpoints.
-- **documents** — **File uploads are persisted in Cloudinary** (avoiding local ephemeral filesystem issues on Render). Safe streaming view/download endpoints are protected by `JwtAuthGuard` to mask public Cloudinary URLs.
+- **documents** — **File uploads are persisted in Cloudinary** (avoiding local ephemeral filesystem issues on Railway). Safe streaming view/download endpoints are protected by `JwtAuthGuard` to mask public Cloudinary URLs.
 - **mercadopago** — Recurring subscriptions (`PreApproval`). Webhook at `POST /mercadopago/webhook` updates `subscriptionStatus` and `subscriptionExpiresAt` via `UsersService.updateSubscription()`, which writes to the `Subscription` entity.
-- **whatsapp** — whatsapp-web.js session with RemoteAuth. Session stored in PostgreSQL (whatsapp_sessions table) to prevent Render/Railway ephemeral restarts from wiping authentication. Boots asynchronously in the background during application bootstrap (non-blocking) and is completely disabled in CLI/seeder/test environments to conserve RAM and prevent 504 Gateway Timeouts. Cache generation in Puppeteer is disabled via command-line arguments to minimize session size (~1.5MB).
+- **whatsapp** — whatsapp-web.js session with RemoteAuth. Session stored in PostgreSQL (whatsapp_sessions table) to prevent Railway ephemeral restarts from wiping authentication. Boots asynchronously in the background during application bootstrap (non-blocking) and is completely disabled in CLI/seeder/test environments to conserve RAM and prevent 504 Gateway Timeouts. Cache generation in Puppeteer is disabled via command-line arguments to minimize session size (~1.5MB).
 - **facturas** — AFIP/ARCA e-invoicing. Uses `os.tmpdir()` for cross-platform (Windows dev / Linux prod) temp certificate writing, and reads `AFIP_PRODUCTION` env variable dynamically to switch between homologation (false/default) and production. Falls back to simulation mode if `AFIP_CERT`/`AFIP_KEY` env vars are missing.
 - **movimientos** — Financial movements per client (honorarios, gastos, pagos) with JUS/UMA unit support.
 - **settings** — Key-value config store. Seeded with `VALOR_JUS_ENTRE_RIOS`, `VALOR_UMA_NACION`, `ENABLE_WHATSAPP`, `DAYS_BEFORE_ALERT`, `ENABLE_DESKTOP_NOTIFICATIONS`.
@@ -118,7 +118,7 @@ Backend (`.env`):
 - `AFIP_PRODUCTION` (`true` / `false`) — switches AFIP environment between homologation and production
 - `MP_WEBHOOK_SECRET` — Webhook secret signature key from MercadoPago
 
-Frontend: `environment.ts` → `http://localhost:3000`; `environment.prod.ts` → Render URL.
+Frontend: `environment.ts` → `http://localhost:3000`; `environment.prod.ts` → Railway URL.
 
 ---
 
@@ -188,7 +188,7 @@ To maintain design consistency and prevent bugs (like icon distortion or broken 
 
 ## Security Gaps
 
-Todos los gaps de seguridad conocidos han sido corregidos en el código. Ver sección **"Pendientes de Acción Manual"** al final de este archivo para las variables de entorno que aún faltan configurar en Render.
+Todos los gaps de seguridad conocidos han sido corregidos en el código. Ver sección **"Pendientes de Acción Manual"** al final de este archivo para las variables de entorno que aún faltan configurar en Railway.
 
 ---
 
@@ -206,7 +206,7 @@ Todos los gaps de seguridad conocidos han sido corregidos en el código. Ver sec
 | Admin/Users         | 99%     | —                                                                         |
 | Documents UI        | 99%     | —                                                                         |
 | Copilot             | 100%    | Módulo de IA premium con análisis general, redacción de escritos, resúmenes de causas, análisis de riesgo y calculadora interactiva predictiva de costos judiciales con exportación PDF/Word. |
-| Calendar (BE)       | 100%    | VAPID keys generadas. Ver sección "Pendientes de configurar en Render". |
+| Calendar (BE)       | 100%    | VAPID keys generadas. Ver sección "Pendientes de configurar en Railway". |
 | Facturas y Audits   | 99%     | —                                                                         |
 
 ---
@@ -226,7 +226,7 @@ Todos los gaps de seguridad conocidos han sido corregidos en el código. Ver sec
 - **Signals vs RxJS**: Usar `signal()` y `computed()` para nuevo estado en el frontend. Suscribirse a Observables HTTP con `.subscribe()` está bien, pero no crear `BehaviorSubject` nuevos — convertir a signal en el `tap`/`next`.
 - **Audit logging**: Los módulos clients/expedientes/movimientos usan `void this.auditLogsService.log(...).catch(err => console.error('Audit log failed:', err))`. Fallos de DB no se propagan al usuario. Al agregar nuevos calls de audit log, usar el mismo patrón fire-and-forget con `.catch()`.
 - **SeedService**: Creates `admin@themis.com` automatically on startup if it does not exist. Password from env `ADMIN_PASSWORD`.
-- **Storage efímero en Render**: Cloudinary handles document uploads. WhatsApp auth session is now persisted in PostgreSQL via a custom `WhatsappDbStore` with `RemoteAuth` under key `RemoteAuth-themis-session`, solving the Render ephemeral restarts issue. Puppeteer cache generation is disabled (`--disk-cache-size=1`, etc.) to keep the session ZIP tiny (~1.5MB), avoiding Render event loop freezes and 504 Gateway Timeouts during LEVEL-9 RemoteAuth zipping.
+- **Storage efímero en Railway**: Cloudinary handles document uploads. WhatsApp auth session is now persisted in PostgreSQL via a custom `WhatsappDbStore` with `RemoteAuth` under key `RemoteAuth-themis-session`, solving the Railway ephemeral restarts issue. Puppeteer cache generation is disabled (`--disk-cache-size=1`, etc.) to keep the session ZIP tiny (~1.5MB), avoiding Railway event loop freezes and 504 Gateway Timeouts during LEVEL-9 RemoteAuth zipping.
 - **WhatsApp Linking Logic**: The frontend polling requires both `status.ready` and `status.number` to be present before stopping the poll, ensuring `WHATSAPP_NUMBER` is correctly written to system settings.
 - **synchronize:true en prod**: TypeORM crea/altera tablas al iniciar. Cambios de columna pueden perder datos. No usar para eliminar columnas — hacerlo manualmente en la DB.
 - **Hardcoded values a recordar**:
@@ -251,7 +251,7 @@ Todos los gaps de seguridad conocidos han sido corregidos en el código. Ver sec
 ## Recommended Next Steps & Innovative Ideas
 
 ### Next Steps:
-1. **Configure API Keys in Production**: Add `GEMINI_API_KEY` on Render to fully run the integrated AI copilot and PDF parsing features for free, or add `OPENAI_API_KEY` if preferred.
+1. **Configure API Keys in Production**: Add `GEMINI_API_KEY` on Railway to fully run the integrated AI copilot and PDF parsing features for free, or add `OPENAI_API_KEY` if preferred.
 2. **AFIP Point of Sale Configuration**: Allow configuring custom points of sale from the user profile settings.
 3. **Lazy-Loaded Account Movements**: Implement server-side pagination for movement lists (cuenta corriente).
 
@@ -264,9 +264,9 @@ Todos los gaps de seguridad conocidos han sido corregidos en el código. Ver sec
 
 ## Pendientes de Acción Manual (fuera del repositorio)
 
-Todo lo que figura aquí requiere acción directa sobre Render o servicios externos. No hay cambios de código pendientes.
+Todo lo que figura aquí requiere acción directa sobre Railway o servicios externos. No hay cambios de código pendientes.
 
-### A) Variables de entorno — configurar en Render (Environment → Add Variable)
+### A) Variables de entorno — configurar en Railway (Environment → Add Variable)
 
 - `MP_WEBHOOK_SECRET` — mercadopago.com.ar → Tu negocio → Configuración → Notificaciones → Webhooks → Clave secreta, apuntando a `https://themis.up.railway.app/mercadopago/webhook`. Sin esta variable el webhook acepta todas las requests sin verificar firma (loguea warning pero no rompe).
 - `RESEND_API_KEY` — resend.com → API Keys. Sin esta variable el fallback a email en forgot-password no funciona (WhatsApp sigue andando normalmente).
@@ -277,13 +277,13 @@ Todo lo que figura aquí requiere acción directa sobre Render o servicios exter
 
 ### B) Migración SQL de la entidad Subscription (una sola vez, después del próximo deploy)
 
-Los campos `subscriptionStatus`, `subscriptionExpiresAt` y `mpSubscriptionId` fueron extraídos de la tabla `user` a una tabla `subscription` separada (`Subscription` entity en `backend/src/users/entities/subscription.entity.ts`). El código ya está actualizado y compila. La migración de datos debe ejecutarse manualmente en Render porque TypeORM `synchronize:true` crea tablas pero nunca mueve datos.
+Los campos `subscriptionStatus`, `subscriptionExpiresAt` y `mpSubscriptionId` fueron extraídos de la tabla `user` a una tabla `subscription` separada (`Subscription` entity en `backend/src/users/entities/subscription.entity.ts`). El código ya está actualizado y compila. La migración de datos debe ejecutarse manualmente en Railway porque TypeORM `synchronize:true` crea tablas pero nunca mueve datos.
 
 **Secuencia de deploy:**
 
-1. **Push a `main`** y esperar que Render termine el deploy. TypeORM creará la tabla `subscription` automáticamente (con la columna `userId` FK + UNIQUE a `user.id`).
+1. **Push a `main`** y esperar que Railway termine el deploy. TypeORM creará la tabla `subscription` automáticamente (con la columna `userId` FK + UNIQUE a `user.id`).
 
-2. **Ejecutar en Render → PostgreSQL → psql:**
+2. **Ejecutar en Railway → PostgreSQL → psql:**
 
 ```sql
 -- Copiar datos de suscripción de la tabla user a subscription
@@ -304,7 +304,7 @@ SELECT COUNT(*) AS total_users FROM "user";
 SELECT COUNT(*) AS total_subscriptions FROM "subscription";
 ```
 
-3. **Verificar** que el login y el dashboard cargan sin errores 403/500. Revisar logs de Render buscando errores de TypeORM.
+3. **Verificar** que el login y el dashboard cargan sin errores 403/500. Revisar logs de Railway buscando errores de TypeORM.
 
 4. **Cuando todo esté estable** (opcional): eliminar las columnas viejas de la tabla `user`:
 

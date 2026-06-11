@@ -58,6 +58,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   
   whatsappError = signal<string | null>(null);
   whatsappBotReady = signal<boolean>(false);
+  userStartedLinking = signal<boolean>(false);
 
   private apiUrl = `${environment.apiUrl}/users/profile`;
 
@@ -73,7 +74,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       // AFIP Fields
       iibb: [''],
       initActivityUser: [''],
-      puntoVenta: [null, Validators.required],
+      puntoVenta: [null],
       condicionIva: ['Resp. Monotributo']
     });
 
@@ -96,12 +97,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     // Reactively update local form fields when notification settings change in the service
     effect(() => {
-      this.configDays = this.notificationService.daysBeforeAlert();
-      this.configHours = this.notificationService.checkFrequencyHours();
+      const days = this.notificationService.daysBeforeAlert();
+      const hours = this.notificationService.checkFrequencyHours();
       const enabled = this.notificationService.enableWhatsapp();
-      this.configWhatsapp = enabled;
-      this.configWhatsappNumber = this.notificationService.whatsappNumber();
-      this.configDesktop = this.notificationService.enableDesktop();
+      const whatsappNumber = this.notificationService.whatsappNumber();
+      const desktop = this.notificationService.enableDesktop();
+
+      // Defer assignments to prevent ExpressionChangedAfterItHasBeenCheckedError
+      setTimeout(() => {
+        this.configDays = days;
+        this.configHours = hours;
+        this.configWhatsapp = enabled;
+        this.configWhatsappNumber = whatsappNumber;
+        this.configDesktop = desktop;
+      });
 
       // Start/stop polling based on settings state
       if (enabled) {
@@ -472,6 +481,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
   loadingPairingCode = signal<boolean>(false);
   whatsappLoadingStatus = signal<{ percent: number; message: string } | null>(null);
 
+  startLinkingProcess() {
+      this.userStartedLinking.set(true);
+      this.restartWhatsapp();
+  }
+
   restartWhatsapp() {
       this.loadingQr.set(true);
       this.scannedAndProcessing.set(false);
@@ -574,6 +588,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   }
                 } else {
                   this.whatsappBotReady.set(false);
+                  
+                  if (status.qr || status.loading || status.error || this.pairingCode()) {
+                    this.userStartedLinking.set(true);
+                  }
 
                   if (status.loading) {
                     this.whatsappLoadingStatus.set(status.loading);

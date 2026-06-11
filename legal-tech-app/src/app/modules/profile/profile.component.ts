@@ -535,8 +535,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.stopQrPolling();
       
       // If we don't have a connected number and we aren't pairing with a code or already scanned,
-      // let's show the loading/generating QR state from the start!
-      if ((!this.configWhatsappNumber || !this.whatsappBotReady()) && !this.pairingCode() && !this.scannedAndProcessing()) {
+      // let's show the loading/generating QR state from the start, but only if the user has actively started the linking process!
+      if (this.userStartedLinking() && (!this.configWhatsappNumber || !this.whatsappBotReady()) && !this.pairingCode() && !this.scannedAndProcessing()) {
           this.loadingQr.set(true);
       }
 

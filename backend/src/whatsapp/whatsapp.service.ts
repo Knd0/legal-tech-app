@@ -91,7 +91,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
     const store = new WhatsappDbStore(this.sessionRepository);
     const headlessVal = process.env.PUPPETEER_HEADLESS !== undefined
       ? (process.env.PUPPETEER_HEADLESS === 'true')
-      : (process.env.NODE_ENV === 'production' ? 'new' : false);
+      : (process.env.NODE_ENV === 'production' || process.platform !== 'win32' ? 'new' : false);
 
     // Resolve browser path on Windows to use modern installed Chrome or Edge (preventing deprecation screens)
     let solvedExecutablePath: string | undefined = undefined;

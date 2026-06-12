@@ -58,6 +58,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   
   whatsappError = signal<string | null>(null);
   whatsappBotReady = signal<boolean>(false);
+  whatsappConnecting = signal<boolean>(false);
   userStartedLinking = signal<boolean>(false);
 
   private apiUrl = `${environment.apiUrl}/users/profile`;
@@ -549,6 +550,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             next: (status: any) => {
               this.ngZone.run(() => {
                 consecutiveErrors = 0;
+                this.whatsappConnecting.set(!!status.connecting);
                 // Reset to faster polling if the server is responsive and we are currently polling slowly
                 if (intervalMs === 10_000) {
                   this.startQrPolling(3000);
@@ -556,6 +558,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
                 if (status.ready && status.number) {
                   this.whatsappBotReady.set(true);
+                  this.whatsappConnecting.set(false);
                   const wasLinking = this.loadingQr() || this.scannedAndProcessing() || this.loadingPairingCode() || this.pairingCode();
                   
                   this.qrCodeUrl.set(null);

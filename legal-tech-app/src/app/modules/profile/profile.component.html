@@ -285,8 +285,18 @@
                             <!-- Not Connected State -->
                             <div *ngIf="!configWhatsappNumber || !whatsappBotReady()" class="space-y-4">
                                 
-                                <!-- 1. Idle state (not started linking yet, and no active error) -->
-                                <div *ngIf="!userStartedLinking() && !whatsappError() && !scannedAndProcessing()" 
+                                <!-- Connecting / Booting State -->
+                                <div *ngIf="whatsappConnecting() && !whatsappError() && !scannedAndProcessing() && !whatsappBotReady()" 
+                                     class="py-6 flex flex-col items-center justify-center gap-3 text-center animate-fade-in">
+                                    <i class="pi pi-spin pi-sync text-4xl text-emerald-600 dark:text-emerald-400"></i>
+                                    <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200">Bot Inicializando...</h4>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
+                                        El bot se está conectando en el servidor en segundo plano. Esto puede demorar unos minutos. Por favor espera...
+                                    </p>
+                                </div>
+
+                                <!-- 1. Idle state (not started linking yet, and no active error, and not connecting) -->
+                                <div *ngIf="!whatsappConnecting() && !userStartedLinking() && !whatsappError() && !scannedAndProcessing()" 
                                      class="py-6 flex flex-col items-center justify-center gap-3 text-center animate-fade-in">
                                     <div class="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-3xl shadow-sm border border-emerald-100 dark:border-emerald-900/50">
                                         <i class="pi pi-whatsapp"></i>

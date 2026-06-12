@@ -54,16 +54,20 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
 
     // Check session after database connection is fully established by NestJS bootstrap
     try {
+      const isProduction = process.env.NODE_ENV === 'production';
       const session = await this.sessionRepository.findOne({ where: { id: 'session-themis-session' } });
-      if (session) {
-        this.logger.log('WhatsApp session found in DB. Automatically initializing WhatsApp client in the background...');
+      
+      // In local development, always initialize automatically on boot to open the browser window.
+      // In production (Railway), only initialize if a session already exists to prevent Gateway Timeout.
+      if (!isProduction || session) {
+        this.logger.log(`Automatically initializing WhatsApp client (isProduction=${isProduction}, sessionExists=${!!session})...`);
         // Run in background without awaiting to prevent blocking the NestJS bootstrap process,
         // which can lead to Gateway Timeout (504) in production platforms like Railway.
         this.ensureInitialized().catch((err) => {
           this.logger.error('Failed to initialize WhatsApp client in background', err);
         });
       } else {
-        this.logger.log('No WhatsApp session found in DB. WhatsApp client initialization deferred.');
+        this.logger.log('No WhatsApp session found in DB and running in Production. WhatsApp client initialization deferred.');
       }
     } catch (err: any) {
       this.logger.error('Failed to check WhatsApp session on boot', err);
@@ -87,7 +91,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
     const store = new WhatsappDbStore(this.sessionRepository);
     const headlessVal = process.env.PUPPETEER_HEADLESS !== undefined
       ? (process.env.PUPPETEER_HEADLESS === 'true')
-      : (process.platform === 'win32' ? false : 'new');
+      : (process.env.NODE_ENV === 'production' ? 'new' : false);
 
     // Resolve browser path on Windows to use modern installed Chrome or Edge (preventing deprecation screens)
     let solvedExecutablePath: string | undefined = undefined;

@@ -54,8 +54,8 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
 
     // Check session after database connection is fully established by NestJS bootstrap
     try {
-      const isProduction = process.env.NODE_ENV === 'production';
-      const session = await this.sessionRepository.findOne({ where: { id: 'session-themis-session' } });
+      const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
+      const session = await this.sessionRepository.findOne({ where: { id: 'RemoteAuth-themis-session' } });
       
       // In local development, always initialize automatically on boot to open the browser window.
       // In production (Railway), only initialize if a session already exists to prevent Gateway Timeout.
@@ -240,7 +240,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
         await this.recreateClient();
 
         // Check session in database. If no session exists, clean up local folder first to ensure a completely clean start.
-        const session = await this.sessionRepository.findOne({ where: { id: 'session-themis-session' } });
+        const session = await this.sessionRepository.findOne({ where: { id: 'RemoteAuth-themis-session' } });
         const sessionDir = this.getSessionPath();
         if (!session) {
           this.logger.log('No WhatsApp session found in DB. Cleaning up local session folder before initializing to ensure a clean state...');
@@ -411,7 +411,8 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
           qr: this.qrCodeImage,
           number: this.isReady ? (this.client.info?.wid?.user || this.client.info?.me?.user) : null,
           loading: this.loadingScreen, // Expose loading status
-          error: this.initializationError // Expose error
+          error: this.initializationError, // Expose error
+          connecting: !!this.initializingPromise || !!this.restartingPromise || (this.isInitialized && !this.isReady && !this.initializationError)
       };
   }
 
@@ -451,7 +452,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
           this.logger.log('Client destroyed.');
           
           // Ensure DB session is deleted
-          await this.sessionRepository.delete({ id: 'session-themis-session' });
+          await this.sessionRepository.delete({ id: 'RemoteAuth-themis-session' });
           this.logger.log('Session data cleared from DB.');
           
           return { success: true };
@@ -461,7 +462,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
           this.isInitialized = false;
           
           // Ensure DB session is deleted even on error
-          await this.sessionRepository.delete({ id: 'session-themis-session' });
+          await this.sessionRepository.delete({ id: 'RemoteAuth-themis-session' });
           this.logger.log('Session data cleared from DB after error.');
           throw error;
       }

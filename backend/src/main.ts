@@ -7,6 +7,14 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('[Global] Unhandled Rejection at:', promise, 'reason:', reason);
+  });
+  
+  process.on('uncaughtException', (err) => {
+    console.error('[Global] Uncaught Exception thrown:', err);
+  });
+
   const app = await NestFactory.create(AppModule);
   app.enableCors({
     origin: ['https://legal-tech-app-woad.vercel.app', 'http://localhost:4200'], 

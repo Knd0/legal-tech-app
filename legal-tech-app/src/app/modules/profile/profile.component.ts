@@ -499,11 +499,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
           },
           error: () => {
               this.loadingQr.set(false);
-              Swal.fire('Error', 'No se pudo generar el QR.', 'error');
+              Swal.fire('Error', 'No se pudo reiniciar el bot.', 'error');
           }
       });
   }
-
+ 
   generatePairingCode() {
       const phone = this.profileForm.get('phoneNumber')?.value;
       if (!phone) {
@@ -526,7 +526,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           error: (err) => {
               this.loadingPairingCode.set(false);
               console.error(err);
-              Swal.fire('Error', 'No se pudo generar el código. Asegúrate que el bot se haya reiniciado primero (usa el botón Generar QR primero para iniciar el proceso).', 'error');
+              Swal.fire('Error', 'No se pudo generar el código. Por favor, asegúrate de que el número de teléfono sea válido e inténtalo de nuevo.', 'error');
           }
       });
   }

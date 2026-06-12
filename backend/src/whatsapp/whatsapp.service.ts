@@ -374,6 +374,24 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
            
            // Format: 54911...
            const cleanCode = phoneNumber.replace(/\D/g, '');
+
+           // Bypass whatsapp-web.js bug: window.onCodeReceivedEvent is not exposed if pairWithPhoneNumber is not set in constructor
+           const page = (this.client as any).pupPage;
+           if (page) {
+               const hasEvent = await page.evaluate(() => typeof (window as any).onCodeReceivedEvent === 'function');
+               if (!hasEvent) {
+                   this.logger.log('Exposing window.onCodeReceivedEvent to Puppeteer browser context...');
+                   try {
+                       await page.exposeFunction('onCodeReceivedEvent', (code: string) => {
+                           this.client.emit('code', code);
+                           return code;
+                       });
+                   } catch (e: any) {
+                       this.logger.warn('Failed to expose onCodeReceivedEvent (might already be exposed): ' + e.message);
+                   }
+               }
+           }
+
            const code = await this.client.requestPairingCode(cleanCode);
            this.logger.log(`Pairing code generated: ${code}`);
            return code;

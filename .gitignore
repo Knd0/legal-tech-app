@@ -40,6 +40,8 @@ Thumbs.db
 backend/whatsapp-auth/
 backend/.wwebjs_cache/
 backend/uploads/
+backend/whatsapp-auth-*/
+backend/whatsapp-auth-test/
 
 # Graphify generated output
 graphify-out/

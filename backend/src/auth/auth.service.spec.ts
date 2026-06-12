@@ -7,6 +7,21 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Otp } from './otp.entity';
 import { UnauthorizedException } from '@nestjs/common';
 
+jest.mock('@whiskeysockets/baileys', () => ({
+  __esModule: true,
+  default: jest.fn().mockReturnValue({
+    ev: { on: jest.fn() },
+    onWhatsApp: jest.fn().mockResolvedValue([{ exists: true, jid: 'test@s.whatsapp.net' }]),
+    sendMessage: jest.fn().mockResolvedValue({}),
+  }),
+  useMultiFileAuthState: jest.fn().mockResolvedValue({
+    state: { creds: { registered: true }, keys: {} },
+    saveCreds: jest.fn(),
+  }),
+  DisconnectReason: { loggedOut: 401 },
+  makeCacheableSignalKeyStore: jest.fn().mockImplementation((keys) => keys),
+}));
+
 describe('AuthService - OTP Persistence', () => {
   let service: AuthService;
   let otpRepositoryMock: any;

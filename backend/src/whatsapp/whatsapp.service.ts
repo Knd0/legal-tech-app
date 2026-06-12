@@ -1,3 +1,4 @@
+// Trigger deploy: memory-saving and immediate state-clearing stabilization
 import { Injectable, OnApplicationBootstrap, OnModuleDestroy, Logger } from '@nestjs/common';
 import { Client, RemoteAuth } from 'whatsapp-web.js';
 import * as QRCode from 'qrcode';

@@ -140,7 +140,12 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
             '--disable-gpu-program-cache',
             '--disable-gpu-shader-disk-cache',
             '--disk-cache-size=1',
-            '--media-cache-size=1'
+            '--media-cache-size=1',
+            '--disable-extensions',
+            '--disable-default-apps',
+            '--disable-sync',
+            '--disable-translate',
+            '--mute-audio'
         ],
         timeout: 60000,
       }
@@ -389,6 +394,14 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
 
   async logout() {
       this.logger.log('Logging out WhatsApp client...');
+      
+      // Clear states and errors immediately to prevent frontend from reading stale values
+      this.initializationError = null;
+      this.qrCodeImage = null;
+      this.loadingScreen = null;
+      this.isReady = false;
+      this.isInitialized = false;
+
       try {
           if (this.initializingPromise) {
               this.logger.log('Waiting for active initialization to complete/fail before logging out...');
@@ -439,6 +452,14 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
 
       this.logger.log('Force restarting WhatsApp client (Background Process)...');
       
+      // Clear error states, loading screen and ready flags immediately to prevent frontend
+      // from reading stale error states during the 5-second restart delay.
+      this.initializationError = null;
+      this.qrCodeImage = null;
+      this.loadingScreen = null;
+      this.isReady = false;
+      this.isInitialized = false;
+
       this.restartingPromise = (async () => {
           try {
               // Wait for any active initialization promise to settle first

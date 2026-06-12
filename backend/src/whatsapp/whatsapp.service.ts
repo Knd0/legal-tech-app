@@ -53,6 +53,10 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
     }
 
     // Check session after database connection is fully established by NestJS bootstrap
+    this.initializeOnBootWithRetry();
+  }
+
+  private async initializeOnBootWithRetry(retries = 5, delayMs = 10000) {
     try {
       const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
       const session = await this.sessionRepository.findOne({ where: { id: 'RemoteAuth-themis-session' } });
@@ -70,7 +74,20 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
         this.logger.log('No WhatsApp session found in DB and running in Production. WhatsApp client initialization deferred.');
       }
     } catch (err: any) {
-      this.logger.error('Failed to check WhatsApp session on boot', err);
+      this.logger.error(`Failed to check WhatsApp session on boot (retries left: ${retries})`, err);
+      
+      const isDbStartingOrRecovering = 
+        err.message?.toLowerCase().includes('starting up') || 
+        err.message?.toLowerCase().includes('recovery') || 
+        err.message?.toLowerCase().includes('terminated') ||
+        err.code === '57P03';
+
+      if (retries > 0 && isDbStartingOrRecovering) {
+        this.logger.log(`Database is starting up or in recovery. Retrying in ${delayMs / 1000}s...`);
+        setTimeout(() => {
+          this.initializeOnBootWithRetry(retries - 1, delayMs);
+        }, delayMs);
+      }
     }
   }
 

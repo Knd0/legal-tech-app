@@ -131,6 +131,9 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
     const sessionDir = this.getSessionPath();
     this.logger.log(`Using WhatsApp session directory: ${sessionDir}`);
 
+    const os = require('os');
+    const tempCacheDir = path.join(os.tmpdir(), 'themis-whatsapp-cache');
+
     this.client = new Client({
       authStrategy: new RemoteAuth({
         clientId: 'themis-session',
@@ -163,6 +166,10 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
             '--disable-gpu-shader-disk-cache',
             '--disk-cache-size=1',
             '--media-cache-size=1',
+            `--disk-cache-dir=${tempCacheDir}`,
+            '--disable-breakpad',
+            '--disable-metrics',
+            '--disable-metrics-reporter',
             '--disable-extensions',
             '--disable-default-apps',
             '--disable-sync',
@@ -285,6 +292,9 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
             this.logger.warn('Could not remove stale lockfile: ' + e.message);
           }
         }
+
+        // Clean cache directories to shrink the zip size before zipping/initialization
+        this.cleanLocalCache(sessionDir);
 
         await this.client.initialize();
       } catch (err: any) {
@@ -732,6 +742,33 @@ Escribí *menu* en cualquier momento para volver a ver estas opciones.`;
 
 Escribí *menu* para ver la lista completa.`;
     await this.client.sendMessage(msg.from, defaultMsg);
+  }
+
+  private cleanLocalCache(sessionDir: string) {
+    try {
+      const fs = require('fs');
+      const defaultPath = path.join(sessionDir, 'RemoteAuth-themis-session', 'Default');
+      if (fs.existsSync(defaultPath)) {
+        const cachePaths = [
+          path.join(defaultPath, 'Cache'),
+          path.join(defaultPath, 'Code Cache'),
+          path.join(defaultPath, 'Service Worker', 'CacheStorage'),
+          path.join(defaultPath, 'Service Worker', 'ScriptCache'),
+        ];
+        for (const p of cachePaths) {
+          if (fs.existsSync(p)) {
+            try {
+              fs.rmSync(p, { recursive: true, force: true });
+              this.logger.log(`Cleared cached directory: ${p}`);
+            } catch (err: any) {
+              this.logger.warn(`Could not clear directory ${p}: ${err.message}`);
+            }
+          }
+        }
+      }
+    } catch (e: any) {
+      this.logger.warn('Failed to clean local cache folders: ' + e.message);
+    }
   }
 
   async onModuleDestroy() {

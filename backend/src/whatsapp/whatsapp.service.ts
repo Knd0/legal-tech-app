@@ -160,6 +160,9 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
             '--no-first-run',
             '--no-zygote',
             '--disable-gpu',
+            '--single-process',
+            '--js-flags="--max-old-space-size=128"',
+            '--disable-features=site-per-process',
             '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36', // Fix: Modern custom UA to prevent deprecation screens
             '--disable-application-cache',
             '--disable-gpu-program-cache',

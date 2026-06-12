@@ -1,4 +1,4 @@
-import { Injectable, signal, effect, inject, computed } from '@angular/core';
+import { Injectable, signal, effect, inject } from '@angular/core';
 import { SwPush } from '@angular/service-worker';
 import { environment } from '../../../environments/environment';
 import { catchError, of, tap } from 'rxjs';
@@ -16,11 +16,11 @@ export class NotificationService {
   readonly isSubscribed = signal<boolean>(false);
 
   // Configuration
-  readonly daysBeforeAlert = computed(() => this.authService?.currentUser()?.alertDaysBefore ?? 3);
-  readonly checkFrequencyHours = signal<number>(24);
-  readonly enableWhatsapp = computed(() => this.authService?.currentUser()?.whatsappAlertsEnabled ?? false);
+  readonly daysBeforeAlert = signal<number>(3); // Default 3 days
+  readonly checkFrequencyHours = signal<number>(24); // Default 24 hours
+  readonly enableWhatsapp = signal<boolean>(false); // Default false
   readonly whatsappNumber = signal<string>(''); // Default empty
-  readonly enableDesktop = computed(() => this.authService?.currentUser()?.desktopAlertsEnabled ?? true);
+  readonly enableDesktop = signal<boolean>(true); // Default true
 
   private schedulerInterval: any = null;
   private notifiedEventIds = new Set<string>();
@@ -67,41 +67,42 @@ export class NotificationService {
     }
   }
 
-  updateAlertSettings(days: number, repetitions: number, hour: number, whatsapp: boolean, number: string, desktop: boolean) {
-    const profilePayload = {
-        alertDaysBefore: days,
-        alertRepetitions: repetitions,
-        alertHour: hour,
-        whatsappAlertsEnabled: whatsapp,
-        desktopAlertsEnabled: desktop
+  updateAlertSettings(days: number, hours: number, whatsapp: boolean, number: string, desktop: boolean) {
+    const settings = {
+        daysBeforeAlert: days,
+        checkFrequencyHours: hours,
+        enableWhatsapp: whatsapp,
+        whatsappNumber: number,
+        enableDesktop: desktop
     };
 
-    this.http.patch(`${environment.apiUrl}/users/profile`, profilePayload).subscribe({
+    this.http.post(this.SETTINGS_API, settings).subscribe({
         next: () => {
-             const currentUser = this.authService?.currentUser();
-             if (currentUser) {
-               this.authService?.currentUser.set({ ...currentUser, ...profilePayload });
-             }
+             this.daysBeforeAlert.set(days);
+             this.checkFrequencyHours.set(hours);
+             this.enableWhatsapp.set(whatsapp);
+             this.whatsappNumber.set(number);
+             this.enableDesktop.set(desktop);
         },
-        error: (err) => console.error('Failed to save user settings', err)
+        error: (err) => console.error('Failed to save settings', err)
     });
-
-    if (number !== undefined && this.authService?.currentUser()?.role === 'ADMIN') {
-      this.http.post(this.SETTINGS_API, { whatsappNumber: number }).subscribe({
-          next: () => {
-               this.whatsappNumber.set(number);
-          },
-          error: (err) => console.error('Failed to save global settings', err)
-      });
-    }
   }
 
   public loadSettings() {
     this.http.get<any[]>(this.SETTINGS_API).subscribe({
         next: (settings) => {
             if (Array.isArray(settings)) {
+                const days = settings.find(s => s.key === 'DAYS_BEFORE_ALERT')?.value;
+                const hours = settings.find(s => s.key === 'CHECK_FREQUENCY_HOURS')?.value;
+                const enable = settings.find(s => s.key === 'ENABLE_WHATSAPP')?.value;
                 const number = settings.find(s => s.key === 'WHATSAPP_NUMBER')?.value;
+                const desktop = settings.find(s => s.key === 'ENABLE_DESKTOP_NOTIFICATIONS')?.value;
+
+                if (days) this.daysBeforeAlert.set(Number(days));
+                if (hours) this.checkFrequencyHours.set(Number(hours));
+                if (enable) this.enableWhatsapp.set(enable === '1');
                 if (number) this.whatsappNumber.set(number);
+                if (desktop) this.enableDesktop.set(desktop === '1');
             }
         },
         error: (err) => console.error('Failed to load settings', err)

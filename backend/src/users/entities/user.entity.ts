@@ -62,21 +62,6 @@ export class User {
   @Column({ default: false })
   afipProduction: boolean;
 
-  @Column({ default: false })
-  whatsappAlertsEnabled: boolean;
-
-  @Column({ default: true })
-  desktopAlertsEnabled: boolean;
-
-  @Column({ default: 3 })
-  alertDaysBefore: number;
-
-  @Column({ default: 1 })
-  alertRepetitions: number;
-
-  @Column({ default: 9 })
-  alertHour: number;
-
   @CreateDateColumn()
   createdAt: Date;
 

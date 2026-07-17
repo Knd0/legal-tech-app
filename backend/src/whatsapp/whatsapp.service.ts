@@ -119,15 +119,26 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
         
         // Start periodic sync of auth state to database
         this.startPeriodicSync();
+
+        // Create a wrapper logger for Baileys to prevent "logger?.trace is not a function" crashes
+        const baileysLogger: any = {
+          trace: () => {},
+          debug: () => {},
+          info: () => {},
+          warn: (msg: any) => this.logger.warn(typeof msg === 'string' ? msg : JSON.stringify(msg)),
+          error: (msg: any) => this.logger.error(typeof msg === 'string' ? msg : JSON.stringify(msg)),
+          child: () => baileysLogger
+        };
         
         // 3. Make socket
         const sock = makeWASocket({
           auth: {
             creds: state.creds,
-            keys: makeCacheableSignalKeyStore(state.keys, this.logger as any),
+            keys: makeCacheableSignalKeyStore(state.keys, baileysLogger),
           },
           printQRInTerminal: false,
-          browser: ['Themis Legal Tech', 'Chrome', '1.0.0']
+          browser: ['Themis Legal Tech', 'Chrome', '1.0.0'],
+          logger: baileysLogger
         });
         
         this.socket = sock;

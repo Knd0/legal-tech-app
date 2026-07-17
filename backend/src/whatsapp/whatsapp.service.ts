@@ -348,13 +348,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
           }
 
           // Delete session from DB
-          const dbSessions = await this.sessionRepository.find();
-          for (const dbSession of dbSessions) {
-            if (dbSession.id.endsWith('.json')) {
-              await this.sessionRepository.delete({ id: dbSession.id });
-            }
-          }
-          await this.sessionRepository.delete({ id: 'RemoteAuth-themis-session' });
+          await this.sessionRepository.clear();
 
           // Clear local session folder
           const fs = require('fs');
@@ -431,6 +425,13 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
       const fs = require('fs');
       if (!fs.existsSync(folder)) {
         fs.mkdirSync(folder, { recursive: true });
+      }
+
+      // Check if creds.json exists in DB. If not, truncate the table to avoid loading orphaned keys
+      const credsExist = await this.sessionRepository.findOne({ where: { id: 'creds.json' } });
+      if (!credsExist) {
+        this.logger.log('No creds.json found in database. Truncating whatsapp_sessions table to prevent OOM.');
+        await this.sessionRepository.clear();
       }
 
       const dbSessions = await this.sessionRepository.find();

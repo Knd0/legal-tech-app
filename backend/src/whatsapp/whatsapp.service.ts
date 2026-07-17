@@ -263,7 +263,17 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
   }
 
   private async sendMessageDirectly(number: string, message: string): Promise<any> {
-    const cleanNumber = number.replace(/\D/g, '');
+    let cleanNumber = number.replace(/\D/g, '');
+
+    // Auto-format Argentine numbers (insert 9 after 54 if not present)
+    // Argentine mobile formats on WhatsApp require 54 9 <area_code> <number>
+    // e.g. 54 345 4201722 -> 54 9 345 4201722 (12 digits -> 13 digits)
+    if (cleanNumber.startsWith('54') && !cleanNumber.startsWith('549')) {
+      if (cleanNumber.length === 12) {
+        cleanNumber = '549' + cleanNumber.substring(2);
+      }
+    }
+
     const jid = `${cleanNumber}@s.whatsapp.net`;
 
     try {
@@ -271,16 +281,8 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
           throw new Error('WhatsApp socket client not initialized');
         }
 
-        // Check if number exists on WhatsApp using Baileys
-        const [result] = await this.socket.onWhatsApp(jid);
-        if (!result || !result.exists) {
-             this.logger.warn(`Number ${cleanNumber} not registered on WhatsApp`);
-             throw new Error('Number not registered on WhatsApp');
-        }
-
-        const serializedId = result.jid;
-        const response = await this.socket.sendMessage(serializedId, { text: message });
-        this.logger.log(`Message sent to ${serializedId}`);
+        const response = await this.socket.sendMessage(jid, { text: message });
+        this.logger.log(`Message sent to ${jid}`);
         return response;
     } catch (error: any) {
         this.logger.error(`Error sending message to ${cleanNumber}`, error);

@@ -79,27 +79,37 @@ export class ClientesListComponent implements OnInit, OnDestroy {
     this.loadClients();
   }
 
-  async sendWhatsapp(cliente: Cliente) {
+  sendWhatsapp(cliente: Cliente) {
     if (!cliente.telefono) {
       Swal.fire('Error', 'El cliente no tiene un número de teléfono registrado.', 'error');
       return;
     }
 
-    const { value: text } = await Swal.fire({
-      input: 'textarea',
-      inputLabel: 'Mensaje para ' + cliente.nombre,
-      inputPlaceholder: 'Escribe tu mensaje aquí...',
-      inputAttributes: {
-        'aria-label': 'Escribe tu mensaje aquí'
-      },
-      showCancelButton: true,
-      confirmButtonText: 'Enviar WhatsApp',
-      cancelButtonText: 'Cancelar'
-    });
-
-    if (text) {
-      this.notificationService.sendWhatsappMessage(cliente.telefono, text);
+    let phone = cliente.telefono.replace(/\D/g, '');
+    if (!phone) {
+      Swal.fire('Error', 'El número de teléfono no contiene dígitos válidos.', 'error');
+      return;
     }
+
+    // Formatear para Argentina si no tiene código internacional
+    if (phone.startsWith('54')) {
+      if (phone.length === 12) {
+        phone = '549' + phone.substring(2);
+      }
+    } else {
+      if (phone.startsWith('9') && phone.length === 11) {
+        phone = '54' + phone;
+      } else if (phone.length === 10) {
+        phone = '549' + phone;
+      } else if (phone.startsWith('15') && phone.length === 12) {
+        phone = '549' + phone.substring(2);
+      } else {
+        phone = '54' + phone;
+      }
+    }
+
+    const url = `https://wa.me/${phone}`;
+    window.open(url, '_blank');
   }
 
   async deleteCliente(cliente: Cliente) {

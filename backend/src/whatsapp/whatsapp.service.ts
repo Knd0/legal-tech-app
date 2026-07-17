@@ -510,22 +510,17 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
           continue;
         }
 
-        // File changed or is new
+        // File changed or is new - read content and upsert natively
         const data = fs.readFileSync(filePath);
-        let session = await this.sessionRepository.findOne({ where: { id: file } });
-        if (!session) {
-          session = this.sessionRepository.create({ id: file });
-        }
         
-        // Only update if database data is actually different (avoid redundant writes)
-        if (!session.sessionData || !session.sessionData.equals(data)) {
-          session.sessionData = data;
-          session.updatedAt = new Date();
-          await this.sessionRepository.save(session);
-          changed = true;
-        }
-
+        await this.sessionRepository.upsert({
+          id: file,
+          sessionData: data,
+          updatedAt: new Date()
+        }, ['id']);
+        
         this.fileCache.set(file, { mtime: stat.mtimeMs, size: stat.size });
+        changed = true;
       }
 
       // Check for deleted files

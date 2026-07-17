@@ -24,7 +24,6 @@ export class WhatsappController {
   }
 
   @Get('status')
-  @Roles('ADMIN')
   getStatus() {
       return this.whatsappService.getStatus();
   }

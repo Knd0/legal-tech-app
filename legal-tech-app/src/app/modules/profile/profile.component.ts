@@ -113,18 +113,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.configDesktop = desktop;
       });
 
-      // Start/stop polling based on settings state
-      if (enabled) {
-        this.ngZone.run(() => {
-          if (!this.qrPollInterval) {
-            this.startQrPolling();
-          }
-        });
-      } else {
-        this.ngZone.run(() => {
-          this.stopQrPolling();
-        });
-      }
+      // Start polling WhatsApp status unconditionally
+      this.ngZone.run(() => {
+        if (!this.qrPollInterval) {
+          this.startQrPolling();
+        }
+      });
     });
   }
 
@@ -407,7 +401,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.notificationService.updateAlertSettings(
           this.configDays,
           this.configHours,
-          this.configWhatsapp,
+          true, // Always enable WhatsApp alerts
           this.configWhatsappNumber,
           this.configDesktop
       );
@@ -418,14 +412,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
           showConfirmButton: false
       });
 
-      if (this.configWhatsapp && !this.qrCodeUrl() && !this.qrPollInterval) {
+      if (!this.qrCodeUrl() && !this.qrPollInterval) {
           this.startQrPolling();
-      } else if (!this.configWhatsapp) {
-          this.stopQrPolling();
       }
   }
-
-
 
   stopQrPolling() {
       if (this.qrPollInterval) {
@@ -454,26 +444,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
                       this.configWhatsappNumber = '';
                       this.whatsappBotReady.set(false);
                       this.whatsappLoadingStatus.set(null);
-                      this.notificationService.updateAlertSettings(this.configDays, this.configHours, this.configWhatsapp, '', this.configDesktop);
-                      if (this.configWhatsapp) this.startQrPolling();
+                      this.notificationService.updateAlertSettings(this.configDays, this.configHours, true, '', this.configDesktop);
+                      this.startQrPolling();
                   },
                   error: () => Swal.fire('Error', 'No se pudo cerrar la sesión.', 'error')
-              });
+               });
           }
       });
-  }
-
-  onWhatsappToggle() {
-      if (this.configWhatsapp) {
-          this.startQrPolling();
-      } else {
-          this.stopQrPolling();
-          this.qrCodeUrl.set(null);
-          this.pairingCode.set(null);
-          this.whatsappError.set(null);
-          this.whatsappBotReady.set(false);
-          this.whatsappLoadingStatus.set(null);
-      }
   }
 
   loadingQr = signal<boolean>(false);

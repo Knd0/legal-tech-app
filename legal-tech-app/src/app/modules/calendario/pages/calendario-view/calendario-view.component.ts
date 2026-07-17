@@ -445,13 +445,23 @@ export class CalendarioViewComponent {
   }
 
   simulateNotification(deadline: Vencimiento) {
-    const whatsappEnabled = this.notificationService.enableWhatsapp();
-    const waNumber = this.notificationService.whatsappNumber();
+    const currentUser = this.authService.currentUser();
+    const waNumber = currentUser?.phoneNumber;
+    const isPhoneVerified = currentUser?.isPhoneVerified;
 
-    if (!whatsappEnabled || !waNumber) {
+    if (!waNumber) {
       Swal.fire({
-        title: 'WhatsApp no configurado',
-        text: 'Activá el Bot de WhatsApp en tu perfil para poder enviar alertas.',
+        title: 'Teléfono no registrado',
+        text: 'Cargá tu número de teléfono de WhatsApp en tu Perfil para poder recibir alertas.',
+        icon: 'warning',
+      });
+      return;
+    }
+
+    if (!isPhoneVerified) {
+      Swal.fire({
+        title: 'Teléfono no verificado',
+        text: 'Debes verificar tu número de teléfono de WhatsApp en tu Perfil primero.',
         icon: 'warning',
       });
       return;

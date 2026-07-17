@@ -273,6 +273,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 ...payload,
                 isPhoneVerified: numberChanged ? false : currentUser?.isPhoneVerified
             });
+            this.authService.refreshProfile();
         },
         error: (err: any) => {
             this.saving.set(false);
@@ -772,6 +773,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   phoneNumber: phone,
                   isPhoneVerified: true
               });
+              this.authService.refreshProfile();
               
               Swal.fire('¡Verificado!', 'Tu número de WhatsApp ha sido verificado correctamente.', 'success');
           },

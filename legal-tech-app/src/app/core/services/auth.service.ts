@@ -99,6 +99,20 @@ export class AuthService {
       return this.http.post(`${this.apiUrl}/change-password`, { otp, newPassword: newPass });
   }
 
+  refreshProfile() {
+    if (!this.isAuthenticated()) return;
+    this.http.get<any>(`${environment.apiUrl}/users/profile`).subscribe({
+      next: (user) => {
+        if (user) {
+          this.currentUser.set(user);
+        }
+      },
+      error: (err) => {
+        console.error('Failed to refresh user profile:', err);
+      }
+    });
+  }
+
   private loadUserFromToken() {
     const token = this.getToken();
     if (token) {
@@ -112,11 +126,14 @@ export class AuthService {
                 email: decoded.username,
                 role: decoded.role,
                 phoneNumber: decoded.phoneNumber,
+                isPhoneVerified: decoded.isPhoneVerified || false,
+                daysBeforeAlert: decoded.daysBeforeAlert !== undefined ? decoded.daysBeforeAlert : 1,
                 fullName: decoded.fullName,
                 subscriptionStatus: decoded.subscriptionStatus,
                 subscriptionPlan: decoded.subscriptionPlan || 'pro',
                 subscriptionExpiresAt: decoded.subscriptionExpiresAt
             });
+            this.refreshProfile();
         } else {
             this.logout();
         }

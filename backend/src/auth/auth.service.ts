@@ -41,6 +41,8 @@ export class AuthService {
       sub: user.id,
       role: user.role,
       phoneNumber: user.phoneNumber,
+      isPhoneVerified: user.isPhoneVerified || false,
+      daysBeforeAlert: user.daysBeforeAlert !== undefined ? user.daysBeforeAlert : 1,
       fullName: user.fullName,
       subscriptionStatus: user.subscription?.subscriptionStatus || 'trial',
       subscriptionPlan: user.subscription?.subscriptionPlan || 'pro',

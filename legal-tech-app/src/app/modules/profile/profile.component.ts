@@ -343,12 +343,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
               
               if (status.qr) {
                   this.qrCodeUrl = status.qr;
-                  // If we have a QR, we probably don't have a pairing code active anymore, or maybe we do.
-                  // Let's not clear pairingCode automatically unless it conflicts.
+                  this.pairingCode = null;
+                  this.whatsappError = null;
                   this.cdr.detectChanges(); 
               } else if (status.ready) {
                   this.qrCodeUrl = null;
                   this.pairingCode = null;
+                  this.whatsappError = null;
                   this.stopQrPolling();
                   
                   if (status.number && !this.configWhatsappNumber) {
@@ -362,11 +363,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     timer: 2000,
                     showConfirmButton: false
                   });
-              } else if (status.error) {
-                  // status.error indicates backend caught an error (e.g. auth failure)
-                  // We can display it but keep polling?
+              } else {
+                  if (status.pairingCode) {
+                      this.pairingCode = status.pairingCode;
+                      this.qrCodeUrl = null;
+                  }
+                  if (status.error) {
+                      this.whatsappError = status.error;
+                  } else {
+                      this.whatsappError = null;
+                  }
+                  this.cdr.detectChanges();
               }
             },
+
             error: (err: any) => {
                 console.warn('Polling error:', err);
                 errorCount++;

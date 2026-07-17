@@ -1,16 +1,15 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { Client, LocalAuth } from 'whatsapp-web.js';
 import * as QRCode from 'qrcode';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const qrcodeTerminal = require('qrcode-terminal');
 
 @Injectable()
 export class WhatsappService implements OnModuleInit {
-  private client: Client;
+  private client: Client | null = null;
   private readonly logger = new Logger(WhatsappService.name);
   private isReady = false;
   private qrCodeImage: string | null = null;
-  private initializationError: string | null = null; // Fix: Property was missing
+  private pairingCode: string | null = null;
+  private initializationError: string | null = null;
 
   onModuleInit() {
     this.initializationError = null; 
@@ -20,16 +19,22 @@ export class WhatsappService implements OnModuleInit {
     this.logger.log(`Scheduling WhatsApp Client initialization in ${delay/1000}s to allow server startup...`);
 
     setTimeout(() => {
-        this.logger.log('Initializing WhatsApp Client now (delayed start)...');
-        this.client.initialize().catch((err: any) => {
-            this.logger.error('Failed to initialize WhatsApp client', err);
-            this.initializationError = err.message || 'Unknown initialization error';
-        });
+        const botNumber = process.env.WHATSAPP_BOT_NUMBER;
+        if (botNumber) {
+            this.logger.log(`Initializing WhatsApp Client now (delayed start) with WHATSAPP_BOT_NUMBER environment variable: ${botNumber}...`);
+            this.initializeClient(botNumber.replace(/\D/g, ''));
+        } else {
+            this.logger.log('Initializing WhatsApp Client now (delayed start in QR mode)...');
+            this.initializeClient();
+        }
     }, delay);
   }
 
-  constructor() {
-    this.client = new Client({
+
+  private initializeClient(phoneNumber?: string) {
+    this.logger.log(`Creating WhatsApp Client instance. PhoneNumber for pairing: ${phoneNumber || 'None (QR Mode)'}`);
+    
+    const clientOptions: any = {
       authStrategy: new LocalAuth({ dataPath: './whatsapp-auth' }),
       authTimeoutMs: 0, // Disable auth timeout to prevent unhandled rejection "auth timeout"
       qrMaxRetries: 10,
@@ -44,17 +49,23 @@ export class WhatsappService implements OnModuleInit {
             '--no-zygote',
             '--single-process',
             '--disable-gpu',
-            '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' // Fix: Custom UA to reduce blocking
+            '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
         ],
         timeout: 60000,
       }
-    });
+    };
 
-    // ... (rest of constructor logs)
-    this.logger.log(`WhatsApp Service Initialized. Puppeteer Config: Headless=${true}, ExecutablePath=${process.env.PUPPETEER_EXECUTABLE_PATH || 'Auto-resolve'}`);
+    if (phoneNumber) {
+      clientOptions.pairWithPhoneNumber = {
+        phoneNumber: phoneNumber
+      };
+    }
+
+    this.client = new Client(clientOptions);
 
     this.client.on('qr', async (qr: string) => {
       this.logger.log('QR Code received from WhatsApp Web.');
+      this.pairingCode = null;
       try {
         const url = await QRCode.toDataURL(qr);
         this.qrCodeImage = url;
@@ -63,9 +74,16 @@ export class WhatsappService implements OnModuleInit {
       }
     });
 
+    this.client.on('pairing_code', (code: string) => {
+      this.logger.log(`Pairing code received from WhatsApp Web: ${code}`);
+      this.pairingCode = code;
+      this.qrCodeImage = null;
+    });
+
     this.client.on('ready', () => {
       this.isReady = true;
-      this.qrCodeImage = null; // Clear QR when connected
+      this.qrCodeImage = null;
+      this.pairingCode = null;
       this.logger.log('WhatsApp Client is ready!');
       this.initializationError = null;
     });
@@ -73,6 +91,7 @@ export class WhatsappService implements OnModuleInit {
     this.client.on('authenticated', () => {
         this.logger.log('WhatsApp Authenticated');
         this.qrCodeImage = null;
+        this.pairingCode = null;
     });
 
     this.client.on('auth_failure', (msg: string) => {
@@ -84,25 +103,25 @@ export class WhatsappService implements OnModuleInit {
         this.logger.warn('WhatsApp Client Disconnected', reason);
         this.isReady = false;
         this.qrCodeImage = null;
+        this.pairingCode = null;
+    });
+
+    this.client.initialize().catch((err: any) => {
+        this.logger.error('Failed to initialize WhatsApp client', err);
+        this.initializationError = err.message || 'Unknown initialization error';
     });
   }
 
-  // ... (onModuleInit remains mostly the same, ensuring delay is reasonable)
-
   async sendMessage(number: string, message: string): Promise<any> {
-    if (!this.isReady) {
+    if (!this.client || !this.isReady) {
       throw new Error('WhatsApp client is not ready yet');
     }
 
     // Format number: remove non-digits
     const cleanNumber = number.replace(/\D/g, '');
-    
-    // We need to resolve the correct ID for the number
-    // This handles cases like Argentina (549...) vs other formats
     const sanitized_number = `${cleanNumber}@c.us`;
 
     try {
-        // First try to check if the number is registered
         const numberDetails = await this.client.getNumberId(sanitized_number);
         
         if (!numberDetails) {
@@ -122,21 +141,41 @@ export class WhatsappService implements OnModuleInit {
   }
 
   async requestPairingCode(phoneNumber: string): Promise<string> {
-      if (!this.client) {
-          throw new Error('Client not initialized');
+      if (this.isReady) {
+          throw new Error('Client is already connected');
       }
-      this.logger.log(`Requesting pairing code for ${phoneNumber}`);
+      
+      const cleanCode = phoneNumber.replace(/\D/g, '');
+      this.logger.log(`Requesting pairing code dynamically for ${cleanCode}`);
+
       try {
-          // ensure we are in a state to pair (not ready)
-           if (this.isReady) {
-               throw new Error('Client is already connected');
-           }
-           
-           // Format: 54911...
-           const cleanCode = phoneNumber.replace(/\D/g, '');
-           const code = await this.client.requestPairingCode(cleanCode);
-           this.logger.log(`Pairing code generated: ${code}`);
-           return code;
+          if (this.client) {
+              this.logger.log('Destroying existing client for pairing code re-initialization...');
+              await this.client.destroy().catch(e => this.logger.warn('Error destroying client', e));
+          }
+
+          this.isReady = false;
+          this.qrCodeImage = null;
+          this.pairingCode = null;
+          this.initializationError = null;
+
+          // Re-initialize client in pairing code mode
+          this.initializeClient(cleanCode);
+
+          // Active wait for the pairing code event to fire (up to 20 seconds)
+          const start = Date.now();
+          while (!this.pairingCode && Date.now() - start < 20000) {
+              if (this.initializationError) {
+                  throw new Error(this.initializationError);
+              }
+              await new Promise(resolve => setTimeout(resolve, 500));
+          }
+
+          if (!this.pairingCode) {
+              throw new Error('Timeout waiting for pairing code generation');
+          }
+
+          return this.pairingCode;
       } catch (error) {
            this.logger.error('Error requesting pairing code', error);
            throw error;
@@ -144,36 +183,37 @@ export class WhatsappService implements OnModuleInit {
   }
 
   getStatus() {
-      // Debug log (can be verbose, but useful here)
-      // this.logger.debug(`getStatus called. Ready: ${this.isReady}, QR present: ${!!this.qrCodeImage}`);
       return {
           ready: this.isReady,
           qr: this.qrCodeImage,
-          number: this.isReady ? this.client.info?.wid?.user : null,
-          error: this.initializationError // Expose error
+          pairingCode: this.pairingCode,
+          number: (this.isReady && this.client) ? this.client.info?.wid?.user : null,
+          error: this.initializationError
       };
   }
 
   async logout() {
       this.logger.log('Logging out WhatsApp client...');
       try {
-          if (this.isReady) {
+          if (this.client && this.isReady) {
               await this.client.logout();
           }
-          await this.client.destroy();
+          if (this.client) {
+              await this.client.destroy();
+          }
           this.isReady = false;
           this.qrCodeImage = null;
-          this.logger.log('Client destroyed. Re-initializing...');
+          this.pairingCode = null;
+          this.logger.log('Client destroyed. Re-initializing in QR mode...');
           
-          // Re-initialize to generate new QR
-          this.client.initialize().catch(err => this.logger.error('Failed to re-initialize', err));
-          
+          this.initializeClient();
           return { success: true };
       } catch (error) {
           this.logger.error('Error during logout', error);
-          // Force re-init even if logout fails
           this.isReady = false;
-          this.client.initialize().catch(err => this.logger.error('Failed to re-initialize', err));
+          this.qrCodeImage = null;
+          this.pairingCode = null;
+          this.initializeClient();
           throw error;
       }
   }
@@ -181,38 +221,35 @@ export class WhatsappService implements OnModuleInit {
   async restart() {
       this.logger.log('Force restarting WhatsApp client (Background Process)...');
       
-      // Run in background to prevent 504 Timeout
       (async () => {
           try {
               this.isReady = false;
               this.qrCodeImage = null;
+              this.pairingCode = null;
 
               if (this.client) {
                   this.logger.log('Destroying existing client...');
                   await this.client.destroy().catch(e => this.logger.warn('Error destroying client', e));
               }
               
-              // Wait a moment for file locks to release
-              await new Promise(resolve => setTimeout(resolve, 3000)); // Increased wait time
+              await new Promise(resolve => setTimeout(resolve, 3000));
               
               const fs = require('fs');
               const path = './whatsapp-auth';
               if (fs.existsSync(path)) {
                   this.logger.log('Clearing session data...');
                   try {
-                    // Try robust removal
                     fs.rmSync(path, { recursive: true, force: true });
                     this.logger.log('Session data cleared.');
                   } catch(e: any) {
-                      this.logger.warn('Could not remove auth folder immediately (likely locked). Proceeding anyway...', e.message);
-                      // In Render, ephemeral storage might be weird. failing to delete shouldn't block restart if possible.
+                      this.logger.warn('Could not remove auth folder immediately (likely locked).', e.message);
                   }
               }
 
               this.initializationError = null;
               
-              this.logger.log('Re-initializing client...');
-              await this.client.initialize();
+              this.logger.log('Re-initializing client in QR mode...');
+              this.initializeClient();
           } catch (e: any) {
               this.logger.error('Error during background restart', e);
               this.initializationError = e.message || 'Restart failed';
@@ -222,3 +259,4 @@ export class WhatsappService implements OnModuleInit {
       return { success: true, message: 'Restart triggered in background' };
   }
 }
+

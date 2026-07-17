@@ -1,7 +1,11 @@
-import { Controller, Post, Body, Get, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Get, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
 import { WhatsappService } from './whatsapp.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 
 @Controller('whatsapp')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class WhatsappController {
   constructor(private readonly whatsappService: WhatsappService) {}
 
@@ -19,11 +23,13 @@ export class WhatsappController {
   }
 
   @Get('status')
+  @Roles('ADMIN')
   getStatus() {
       return this.whatsappService.getStatus();
   }
 
   @Post('logout')
+  @Roles('ADMIN')
   async logout() {
       try {
           await this.whatsappService.logout();
@@ -34,6 +40,7 @@ export class WhatsappController {
   }
 
   @Post('restart')
+  @Roles('ADMIN')
   async restart() {
       try {
           await this.whatsappService.restart();
@@ -44,6 +51,7 @@ export class WhatsappController {
   }
 
   @Post('pairing-code')
+  @Roles('ADMIN')
   async getPairingCode(@Body() body: { number: string }) {
       try {
           if (!body.number) {
@@ -56,3 +64,4 @@ export class WhatsappController {
       }
   }
 }
+

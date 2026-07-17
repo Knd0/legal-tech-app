@@ -9,6 +9,7 @@ import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { TagModule } from 'primeng/tag';
+import { PaginatorModule } from 'primeng/paginator';
 
 import { AuthService } from '../../../../core/services/auth.service';
 import { ClientService } from '../../../../core/services/client.service';
@@ -20,7 +21,7 @@ import { GavelLoaderComponent } from '../../../../shared/components/gavel-loader
 @Component({
   selector: 'app-cuenta-corriente',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TableModule, ButtonModule, TooltipModule, TagModule, GavelLoaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, TableModule, ButtonModule, TooltipModule, TagModule, PaginatorModule, GavelLoaderComponent],
   templateUrl: './cuenta-corriente.component.html',
   styleUrls: ['./cuenta-corriente.component.scss']
 })
@@ -35,7 +36,12 @@ export class CuentaCorrienteComponent implements OnInit {
   fb = inject(FormBuilder);
 
   balance = signal<Balance | null>(null);
-  movimientos = computed(() => this.balance()?.movimientos || []);
+  movimientos = signal<Movimiento[]>([]);
+  movimientosTotalRecords = signal<number>(0);
+  movimientosLoading = signal<boolean>(false);
+  movimientosRows = signal<number>(10);
+  movimientosFirst = signal<number>(0);
+  movimientosPage = signal<number>(1);
   
   showModal = false;
   showSettingsModal = false;
@@ -79,6 +85,7 @@ export class CuentaCorrienteComponent implements OnInit {
   ngOnInit(): void {
     if (this.clientId) {
       this.loadBalance();
+      this.loadMovimientos();
       this.loadFacturas();
     }
   }
@@ -88,6 +95,30 @@ export class CuentaCorrienteComponent implements OnInit {
       next: (data) => this.balance.set(data),
       error: (err) => console.error('Error loading balance', err)
     });
+  }
+
+  loadMovimientos() {
+    if (!this.clientId) return;
+    this.movimientosLoading.set(true);
+    this.movimientoService.getMovementsPaginated(this.clientId, this.movimientosPage(), this.movimientosRows()).subscribe({
+      next: (res) => {
+        this.movimientos.set(res.data);
+        this.movimientosTotalRecords.set(res.total);
+        this.movimientosLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading movements', err);
+        this.movimientosLoading.set(false);
+      }
+    });
+  }
+
+  loadMovimientosLazy(event: any) {
+    const pageNum = Math.floor(event.first / event.rows) + 1;
+    this.movimientosPage.set(pageNum);
+    this.movimientosRows.set(event.rows);
+    this.movimientosFirst.set(event.first);
+    this.loadMovimientos();
   }
 
   openModal() {
@@ -149,6 +180,7 @@ export class CuentaCorrienteComponent implements OnInit {
       next: () => {
         this.isSubmitting = false;
         this.loadBalance();
+        this.loadMovimientos();
         this.closeModal();
         Swal.fire({
           icon: 'success',
@@ -199,6 +231,7 @@ export class CuentaCorrienteComponent implements OnInit {
               this.movimientoService.delete(id).subscribe({
                   next: () => {
                       this.loadBalance();
+                      this.loadMovimientos();
                       Swal.fire('Eliminado', 'El movimiento ha sido eliminado', 'success');
                   },
                   error: (err) => {
@@ -260,13 +293,34 @@ export class CuentaCorrienteComponent implements OnInit {
 
   // FACTURAS LOGIC
   facturas = signal<any[]>([]);
+  facturasTotalRecords = signal<number>(0);
+  facturasLoading = signal<boolean>(false);
+  facturasRows = signal<number>(5);
+  facturasFirst = signal<number>(0);
+  facturasPage = signal<number>(1);
 
   loadFacturas() {
       if (!this.clientId) return;
-      this.movimientoService.getFacturasByClient(this.clientId).subscribe({
-          next: (data) => this.facturas.set(data),
-          error: (err) => console.error('Error fetching invoices', err)
+      this.facturasLoading.set(true);
+      this.movimientoService.getFacturasByClientPaginated(this.clientId, this.facturasPage(), this.facturasRows()).subscribe({
+          next: (res) => {
+              this.facturas.set(res.data);
+              this.facturasTotalRecords.set(res.total);
+              this.facturasLoading.set(false);
+          },
+          error: (err) => {
+              console.error('Error fetching invoices', err);
+              this.facturasLoading.set(false);
+          }
       });
+  }
+
+  loadFacturasLazy(event: any) {
+      const pageNum = Math.floor(event.first / event.rows) + 1;
+      this.facturasPage.set(pageNum);
+      this.facturasRows.set(event.rows);
+      this.facturasFirst.set(event.first);
+      this.loadFacturas();
   }
 
   printFactura(factura: any) {

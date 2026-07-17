@@ -20,6 +20,7 @@ import { CalendarModule } from './calendar/calendar.module';
 import { FacturasModule } from './facturas/facturas.module';
 import { SeedService } from './seed.service';
 import { MercadopagoModule } from './mercadopago/mercadopago.module';
+import { AiModule } from './ai/ai.module';
 
 
 @Module({
@@ -31,13 +32,6 @@ import { MercadopagoModule } from './mercadopago/mercadopago.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
         const dbUrl = configService.get<string>('DATABASE_URL');
-        const nodeEnv = configService.get<string>('NODE_ENV');
-        
-        console.log(`[DEBUG] NODE_ENV: ${nodeEnv}`);
-        console.log(`[DEBUG] DATABASE_URL present: ${!!dbUrl}`);
-        if (!dbUrl) {
-             console.log(`[DEBUG] Fallback to LOCALHOST settings: Host=${configService.get('DB_HOST')}, Port=${configService.get('DB_PORT')}`);
-        }
 
         if (dbUrl) {
           return {
@@ -88,7 +82,7 @@ import { MercadopagoModule } from './mercadopago/mercadopago.module';
     CalendarModule,
     FacturasModule,
     MercadopagoModule,
-
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService, SeedService],

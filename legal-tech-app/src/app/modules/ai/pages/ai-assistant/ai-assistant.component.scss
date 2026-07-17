@@ -1,0 +1,59 @@
+.fade-in-up {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+textarea, input {
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  
+  &:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+  }
+}
+
+/* Nav Tabs styling */
+button {
+  &:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 2px;
+  }
+}
+
+/* Table styling for Cost Breakdown */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  
+  th, td {
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  }
+  
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+:host-context(.dark) {
+  table {
+    th, td {
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+    }
+  }
+}
+
+/* Custom layout alignments */
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}

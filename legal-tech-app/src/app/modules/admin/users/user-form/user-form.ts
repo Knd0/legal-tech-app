@@ -17,6 +17,7 @@ export class UserForm implements OnChanges {
   @Input() userToEdit: User | null = null;
   @Output() userCreated = new EventEmitter<void>();
   @Output() userUpdated = new EventEmitter<void>();
+  @Output() cancel = new EventEmitter<void>();
   
   userForm: FormGroup;
   loading: boolean = false;
@@ -106,5 +107,10 @@ export class UserForm implements OnChanges {
     } else {
         this.userForm.markAllAsTouched();
     }
+  }
+
+  onCancel() {
+    this.userForm.reset({ role: 'USER', subscriptionStatus: 'trial' });
+    this.cancel.emit();
   }
 }

@@ -1,7 +1,8 @@
-import { Component, OnInit, signal, effect } from '@angular/core';
+import { Component, OnInit, effect, signal, inject } from '@angular/core';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { ExpedienteService } from '../../../../core/services/expediente.service';
-import { Expediente } from '../../../../core/models/expediente.model';
+import { Expediente, EstadoExpediente } from '../../../../core/models/expediente.model';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-kanban-board',
@@ -11,77 +12,94 @@ import { Expediente } from '../../../../core/models/expediente.model';
 })
 export class KanbanBoard implements OnInit {
 
-  // Define columns based on EtapaProcesal
   columns = [
-    { id: 'INICIADO', title: 'Iniciado', items: signal<Expediente[]>([]) },
-    { id: 'PRUEBA', title: 'Prueba', items: signal<Expediente[]>([]) },
-    { id: 'ALEGATOS', title: 'Alegatos', items: signal<Expediente[]>([]) },
-    { id: 'SENTENCIA', title: 'Sentencia', items: signal<Expediente[]>([]) },
-    { id: 'ARCHIVADO', title: 'Archivado', items: signal<Expediente[]>([]) }
+    { id: 'INICIADO' as EstadoExpediente, title: 'Iniciado', color: 'bg-green-500', items: [] as Expediente[] },
+    { id: 'PRUEBA' as EstadoExpediente, title: 'Prueba', color: 'bg-blue-500', items: [] as Expediente[] },
+    { id: 'ALEGATOS' as EstadoExpediente, title: 'Alegatos', color: 'bg-purple-500', items: [] as Expediente[] },
+    { id: 'SENTENCIA' as EstadoExpediente, title: 'Sentencia', color: 'bg-orange-500', items: [] as Expediente[] },
+    { id: 'ARCHIVADO' as EstadoExpediente, title: 'Archivado', color: 'bg-gray-500', items: [] as Expediente[] }
   ];
 
-  constructor(private expedienteService: ExpedienteService) {
-      // React to changes in the service state
-      effect(() => {
-          const allExpedientes = this.expedienteService.expedientes();
-          this.distributeExpedientes(allExpedientes);
-      });
+  private dragging = false;
+  saving = signal<string | null>(null);
+
+  private expedienteService = inject(ExpedienteService);
+
+  constructor() {
+    effect(() => {
+      const all = this.expedienteService.expedientes();
+      if (!this.dragging) {
+        this.distributeExpedientes(all);
+      }
+    });
   }
 
-  ngOnInit(): void {
-      this.expedienteService.loadExpedientes();
-  }
+  ngOnInit(): void {}
 
   distributeExpedientes(expedientes: Expediente[]) {
-      this.columns.forEach(col => {
-          // Filter expedientes that match the column ID (state)
-          // Default to 'INICIADO' if state is missing or doesn't match known columns? 
-          // For now, strict match.
-          const filtered = expedientes.filter(e => e.estado === col.id);
-          col.items.set(filtered);
-      });
+    this.columns.forEach(col => {
+      col.items = expedientes.filter(e => e.estado === col.id);
+    });
+  }
+
+  onDragStarted() {
+    this.dragging = true;
+  }
+
+  trackByExpedienteId(_: number, item: Expediente): string {
+    return item.id;
   }
 
   drop(event: CdkDragDrop<Expediente[]>) {
     if (event.previousContainer === event.container) {
-      // Reorder within the same column
-      const currentItems = [...event.container.data]; // Copy for mutability
-      moveItemInArray(currentItems, event.previousIndex, event.currentIndex);
-      
-      // Update signal manually for UI feedback if strict
-      // In this setup, event.container.data comes from the template binding [cdkDropListData]="col.items()"
-      // But signals are read-only views often. 
-      // We need to find the column and update its signal.
-      const colId = event.container.id;
-      const column = this.columns.find(c => c.id === colId);
-      if(column) {
-          column.items.set(currentItems);
-      }
-
-    } else {
-      // Move to another column
-      const previousItems = [...event.previousContainer.data];
-      const currentItems = [...event.container.data];
-      
-      const item = previousItems[event.previousIndex];
-      const newStatus = event.container.id as any; // Cast to any to avoid strict type error, or import EstadoExpediente
-
-      transferArrayItem(
-        previousItems,
-        currentItems,
-        event.previousIndex,
-        event.currentIndex,
-      );
-
-       // Update UI immediately
-       const prevCol = this.columns.find(c => c.id === event.previousContainer.id);
-       const currCol = this.columns.find(c => c.id === event.container.id);
-       
-       if(prevCol) prevCol.items.set(previousItems);
-       if(currCol) currCol.items.set(currentItems);
-
-      // Update Backend
-      this.expedienteService.updateExpediente(item.id, { estado: newStatus });
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+      this.dragging = false;
+      return;
     }
+
+    // Detectar columna destino por referencia al array (más robusto que event.container.id)
+    const targetColumn = this.columns.find(c => c.items === event.container.data);
+    if (!targetColumn) {
+      this.dragging = false;
+      return;
+    }
+
+    const item = event.previousContainer.data[event.previousIndex];
+    const previousStatus = item.estado;
+    const newStatus = targetColumn.id;
+
+    // Actualización optimista
+    transferArrayItem(
+      event.previousContainer.data,
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex,
+    );
+    item.estado = newStatus;
+    this.dragging = false;
+    this.saving.set(item.id);
+
+    this.expedienteService.updateExpedienteKanban(item.id, newStatus, () => {
+      // Rollback si falla
+      this.saving.set(null);
+      item.estado = previousStatus;
+      transferArrayItem(
+        event.container.data,
+        event.previousContainer.data,
+        event.container.data.indexOf(item),
+        event.previousIndex,
+      );
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo actualizar el estado. Intenta de nuevo.',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+      });
+    }, () => {
+      this.saving.set(null);
+    });
   }
 }

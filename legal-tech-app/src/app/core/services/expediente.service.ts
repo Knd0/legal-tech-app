@@ -2,6 +2,9 @@ import { Injectable, signal, computed } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Expediente } from '../models/expediente.model';
+import { Observable, tap } from 'rxjs';
+import { PaginatedResponse } from '../models/paginated-response.model';
+import Swal from 'sweetalert2';
 
 @Injectable({
   providedIn: 'root'
@@ -18,10 +21,21 @@ export class ExpedienteService {
     this.loadExpedientes();
   }
 
+  getPaginatedExpedientes(page: number, limit: number, search?: string, estado?: string): Observable<PaginatedResponse<Expediente>> {
+    const params: any = { page: page.toString(), limit: limit.toString() };
+    if (search) {
+      params.search = search;
+    }
+    if (estado) {
+      params.estado = estado;
+    }
+    return this.http.get<PaginatedResponse<Expediente>>(this.API_URL, { params });
+  }
+
   loadExpedientes() {
       this.http.get<Expediente[]>(this.API_URL).subscribe({
           next: (data) => this.expedientesSignal.set(data),
-          error: (err) => console.error('Failed to load expedientes', err)
+          error: () => Swal.fire({ icon: 'error', title: 'Error al cargar expedientes', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
       });
   }
 
@@ -39,27 +53,40 @@ export class ExpedienteService {
       next: (newExp) => {
         this.expedientesSignal.update(list => [...list, newExp]);
       },
-      error: (err) => console.error('Failed to create expediente', err)
+      error: () => Swal.fire({ icon: 'error', title: 'Error al crear expediente', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
     });
   }
 
   updateExpediente(id: string, updatedData: Partial<Expediente>): void {
     this.http.put<void>(`${this.API_URL}/${id}`, updatedData).subscribe({
       next: () => {
-        this.expedientesSignal.update(list => 
+        this.expedientesSignal.update(list =>
           list.map(e => e.id === id ? { ...e, ...updatedData } : e)
         );
       },
-      error: (err) => console.error('Failed to update expediente', err)
+      error: () => Swal.fire({ icon: 'error', title: 'Error al actualizar expediente', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
     });
   }
 
-  deleteExpediente(id: string): void {
-    this.http.delete<void>(`${this.API_URL}/${id}`).subscribe({
+  updateExpedienteKanban(id: string, estado: string, onError: () => void, onComplete: () => void): void {
+    this.http.put<void>(`${this.API_URL}/${id}`, { estado }).subscribe({
       next: () => {
-        this.expedientesSignal.update(list => list.filter(e => e.id !== id));
+        this.expedientesSignal.update(list =>
+          list.map(e => e.id === id ? { ...e, estado: estado as any } : e)
+        );
+        onComplete();
       },
-      error: (err) => console.error('Failed to delete expediente', err)
+      error: () => {
+        onError();
+      }
     });
+  }
+
+  deleteExpediente(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${id}`).pipe(
+      tap(() => {
+        this.expedientesSignal.update(list => list.filter(e => e.id !== id));
+      })
+    );
   }
 }

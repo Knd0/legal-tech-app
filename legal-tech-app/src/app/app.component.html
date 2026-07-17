@@ -1,8 +1,17 @@
 <div
   class="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 pb-0 flex flex-col transition-colors duration-300">
 
+  <!-- Global Analog Grain Texture Overlay -->
+  <svg class="grain-overlay pointer-events-none fixed inset-0 z-[100] opacity-[0.025]" xmlns="http://www.w3.org/2000/svg">
+    <filter id="organicGrain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.07 0" />
+    </filter>
+    <rect width="100%" height="100%" filter="url(#organicGrain)" />
+  </svg>
+
   <!-- Global Subscription Banner (Grace Period) -->
-  <div *ngIf="authService.isGracePeriod() && !bannerDismissed()" 
+  <div *ngIf="subscriptionService.isGracePeriod() && !bannerDismissed()"
     class="fixed top-20 left-1/2 -translate-x-1/2 z-[60] w-[95%] max-w-2xl">
     <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-amber-200 dark:border-amber-800/50 shadow-xl rounded-2xl p-4 flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500 group relative">
       <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -27,26 +36,27 @@
     class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 fixed w-full top-0 z-50 h-16 px-6 flex justify-between items-center transition-colors duration-300">
 
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 bg-blue-900 dark:bg-blue-700 rounded-lg flex items-center justify-center shadow-sm">
-        <i class="pi pi-shield text-lg text-white"></i>
-      </div>
-      <span class="font-bold text-lg tracking-tight text-slate-800 dark:text-white">LegalTech</span>
+      <img src="/icons/themis.svg" alt="Themis Logo" class="w-8 h-8 rounded-lg shadow-sm object-cover">
+      <span class="font-bold text-lg tracking-tight text-slate-800 dark:text-white">Themis</span>
     </div>
 
     <div class="hidden md:flex items-center gap-8" *ngIf="authService.currentUser()?.role !== 'ADMIN'">
       <a routerLink="/dashboard"
-        routerLinkActive="text-blue-900 dark:text-blue-400 font-semibold border-b-2 border-blue-900 dark:border-blue-400"
+        routerLinkActive="text-[var(--accent-terracotta)] font-semibold border-b-2 border-[var(--accent-terracotta)]"
         [routerLinkActiveOptions]="{exact: true}"
-        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-blue-900 dark:hover:text-blue-300 h-16 flex items-center transition-colors">Inicio</a>
+        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[var(--accent-moss)] dark:hover:text-[var(--accent-sage)] h-16 flex items-center transition-colors">Inicio</a>
       <a routerLink="/clientes"
-        routerLinkActive="text-blue-900 dark:text-blue-400 font-semibold border-b-2 border-blue-900 dark:border-blue-400"
-        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-blue-900 dark:hover:text-blue-300 h-16 flex items-center transition-colors">Clientes</a>
+        routerLinkActive="text-[var(--accent-terracotta)] font-semibold border-b-2 border-[var(--accent-terracotta)]"
+        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[var(--accent-moss)] dark:hover:text-[var(--accent-sage)] h-16 flex items-center transition-colors">Clientes</a>
       <a routerLink="/expedientes"
-        routerLinkActive="text-blue-900 dark:text-blue-400 font-semibold border-b-2 border-blue-900 dark:border-blue-400"
-        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-blue-900 dark:hover:text-blue-300 h-16 flex items-center transition-colors">Expedientes</a>
+        routerLinkActive="text-[var(--accent-terracotta)] font-semibold border-b-2 border-[var(--accent-terracotta)]"
+        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[var(--accent-moss)] dark:hover:text-[var(--accent-sage)] h-16 flex items-center transition-colors">Expedientes</a>
       <a routerLink="/calendario"
-        routerLinkActive="text-blue-900 dark:text-blue-400 font-semibold border-b-2 border-blue-900 dark:border-blue-400"
-        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-blue-900 dark:hover:text-blue-300 h-16 flex items-center transition-colors">Calendario</a>
+        routerLinkActive="text-[var(--accent-terracotta)] font-semibold border-b-2 border-[var(--accent-terracotta)]"
+        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[var(--accent-moss)] dark:hover:text-[var(--accent-sage)] h-16 flex items-center transition-colors">Calendario</a>
+      <a routerLink="/ai"
+        routerLinkActive="text-[var(--accent-terracotta)] font-semibold border-b-2 border-[var(--accent-terracotta)]"
+        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[var(--accent-moss)] dark:hover:text-[var(--accent-sage)] h-16 flex items-center transition-colors">Copilot</a>
     </div>
 
     <!-- Mobile Helper & Hamburger -->
@@ -67,7 +77,7 @@
     <div class="hidden md:flex items-center gap-5">
       <!-- Dark Mode Toggle -->
       <button (click)="themeService.toggle()" pTooltip="Cambiar Tema" tooltipPosition="bottom"
-        class="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-blue-900 dark:hover:text-blue-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:outline-none">
+        class="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-[var(--accent-terracotta)] dark:hover:text-[var(--accent-sage)] hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:outline-none">
         <i class="pi text-lg" [ngClass]="themeService.darkMode() ? 'pi-sun' : 'pi-moon'"></i>
       </button>
 
@@ -84,7 +94,7 @@
             class="flex items-center text-sm font-medium text-slate-500 hover:text-slate-700 focus:outline-none transition duration-150 ease-in-out">
             <span class="sr-only">Open user menu</span>
             <div
-              class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800">
+              class="w-8 h-8 rounded-full bg-[var(--accent-terracotta)] flex items-center justify-center text-white font-bold shadow-sm">
               {{ authService.currentUser()?.fullName?.charAt(0) || 'U' }}
             </div>
             <i class="ml-1 pi pi-angle-down"></i>
@@ -110,7 +120,7 @@
               </a>
 
               <a *ngIf="showInstallButton()" (click)="installApp()"
-                class="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer font-bold">
+                class="block px-4 py-2 text-sm text-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta)]/10 cursor-pointer font-bold">
                 <i class="pi pi-download mr-2"></i> Instalar App
               </a>
 
@@ -133,10 +143,9 @@
   <div *ngIf="isMobileMenuOpen()"
     class="fixed top-16 right-0 left-0 z-50 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-xl md:hidden animate-in slide-in-from-top duration-200">
     <div class="flex flex-col p-4 w-full">
-      <!-- User Info Mobile -->
       <div class="flex items-center gap-3 p-3 mb-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
         <div
-          class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-bold">
+          class="w-10 h-10 rounded-full bg-[var(--accent-terracotta)] flex items-center justify-center text-white font-bold shadow-sm">
           {{ authService.currentUser()?.fullName?.charAt(0) || 'U' }}
         </div>
         <div class="flex flex-col">
@@ -148,40 +157,45 @@
 
       <!-- Navigation Links -->
       <a routerLink="/dashboard" (click)="closeMobileMenu()"
-        routerLinkActive="bg-blue-50 dark:bg-slate-700 text-blue-900 dark:text-blue-400"
+        routerLinkActive="bg-[var(--accent-terracotta)]/10 text-[var(--accent-terracotta)] font-semibold"
         [routerLinkActiveOptions]="{exact: true}"
         class="flex items-center gap-3 p-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         <i class="pi pi-home"></i> Inicio
       </a>
       <a routerLink="/clientes" (click)="closeMobileMenu()"
-        routerLinkActive="bg-blue-50 dark:bg-slate-700 text-blue-900 dark:text-blue-400"
+        routerLinkActive="bg-[var(--accent-terracotta)]/10 text-[var(--accent-terracotta)] font-semibold"
         class="flex items-center gap-3 p-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         <i class="pi pi-users"></i> Clientes
       </a>
       <a routerLink="/expedientes" (click)="closeMobileMenu()"
-        routerLinkActive="bg-blue-50 dark:bg-slate-700 text-blue-900 dark:text-blue-400"
+        routerLinkActive="bg-[var(--accent-terracotta)]/10 text-[var(--accent-terracotta)] font-semibold"
         class="flex items-center gap-3 p-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         <i class="pi pi-briefcase"></i> Expedientes
       </a>
       <a routerLink="/calendario" (click)="closeMobileMenu()"
-        routerLinkActive="bg-blue-50 dark:bg-slate-700 text-blue-900 dark:text-blue-400"
+        routerLinkActive="bg-[var(--accent-terracotta)]/10 text-[var(--accent-terracotta)] font-semibold"
         class="flex items-center gap-3 p-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         <i class="pi pi-calendar"></i> Calendario
       </a>
+      <a routerLink="/ai" (click)="closeMobileMenu()"
+        routerLinkActive="bg-[var(--accent-terracotta)]/10 text-[var(--accent-terracotta)] font-semibold"
+        class="flex items-center gap-3 p-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+        <i class="pi pi-sparkles"></i> Copilot
+      </a>
       <a routerLink="/profile" (click)="closeMobileMenu()"
-        routerLinkActive="bg-blue-50 dark:bg-slate-700 text-blue-900 dark:text-blue-400"
+        routerLinkActive="bg-[var(--accent-terracotta)]/10 text-[var(--accent-terracotta)] font-semibold"
         class="flex items-center gap-3 p-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         <i class="pi pi-user"></i> Mi Perfil
       </a>
       <a routerLink="/ayuda" (click)="closeMobileMenu()"
-        routerLinkActive="bg-blue-50 dark:bg-slate-700 text-blue-900 dark:text-blue-400"
+        routerLinkActive="bg-[var(--accent-terracotta)]/10 text-[var(--accent-terracotta)] font-semibold"
         class="flex items-center gap-3 p-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         <i class="pi pi-question-circle"></i> Ayuda
       </a>
 
       <!-- Install App Button (Mobile) -->
       <button *ngIf="showInstallButton()" (click)="installApp(); closeMobileMenu()"
-        class="flex items-center gap-3 p-3 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors w-full text-left font-bold">
+        class="flex items-center gap-3 p-3 rounded-lg text-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta)]/10 transition-colors w-full text-left font-bold">
         <i class="pi pi-download"></i> Instalar Aplicación
       </button>
 
@@ -195,7 +209,8 @@
   </div>
 
   <main [class.pt-24]="authService.isAuthenticated()"
-    class="container mx-auto px-4 md:px-6 max-w-7xl flex-grow relative">
+    [ngClass]="authService.isAuthenticated() ? 'container mx-auto px-4 md:px-6 max-w-[1600px]' : 'w-full'"
+    class="flex-grow relative">
     <router-outlet></router-outlet>
   </main>
 

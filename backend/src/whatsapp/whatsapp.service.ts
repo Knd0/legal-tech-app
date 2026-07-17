@@ -1,139 +1,287 @@
-import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { Client, LocalAuth } from 'whatsapp-web.js';
+import { Injectable, OnApplicationBootstrap, OnModuleDestroy, Logger } from '@nestjs/common';
+import makeWASocket, { 
+  useMultiFileAuthState, 
+  DisconnectReason, 
+  makeCacheableSignalKeyStore 
+} from '@whiskeysockets/baileys';
+import { Boom } from '@hapi/boom';
 import * as QRCode from 'qrcode';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { WhatsappSession } from './whatsapp-session.entity';
+import { WhatsappQueue } from './whatsapp-queue.entity';
+import { Client as ClientEntity } from '../clients/client.entity';
+import { Expediente } from '../expedientes/expediente.entity';
+import { Deadline } from '../deadlines/deadline.entity';
+import { Movimiento } from '../movimientos/entities/movimiento.entity';
+import * as path from 'path';
+import * as os from 'os';
 
 @Injectable()
-export class WhatsappService implements OnModuleInit {
-  private client: Client | null = null;
+export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy {
+  private socket: any = null;
   private readonly logger = new Logger(WhatsappService.name);
   private isReady = false;
   private qrCodeImage: string | null = null;
   private pairingCode: string | null = null;
   private initializationError: string | null = null;
+  private loadingScreen: { percent: number; message: string } | null = null;
+  private initializingPromise: Promise<void> | null = null;
+  private restartingPromise: Promise<any> | null = null;
+  private queueInterval: any;
 
-  onModuleInit() {
+  private getSessionPath(): string {
+    const isWindows = process.platform === 'win32';
+    const resolvedPath = isWindows
+      ? path.join(os.homedir(), 'themis-whatsapp-auth')
+      : path.resolve(process.cwd(), 'whatsapp-auth');
+    return resolvedPath;
+  }
+
+  async onApplicationBootstrap() {
     this.initializationError = null; 
     
-    // Delay initialization to prevent blocking NestJS bootstrap on low-resource environments (Render)
-    const delay = 8000; // 8 seconds
-    this.logger.log(`Scheduling WhatsApp Client initialization in ${delay/1000}s to allow server startup...`);
-
-    setTimeout(() => {
-        const botNumber = process.env.WHATSAPP_BOT_NUMBER;
-        if (botNumber) {
-            this.logger.log(`Initializing WhatsApp Client now (delayed start) with WHATSAPP_BOT_NUMBER environment variable: ${botNumber}...`);
-            this.initializeClient(botNumber.replace(/\D/g, ''));
-        } else {
-            this.logger.log('Initializing WhatsApp Client now (delayed start in QR mode)...');
-            this.initializeClient();
-        }
-    }, delay);
-  }
-
-
-  private initializeClient(phoneNumber?: string) {
-    this.logger.log(`Creating WhatsApp Client instance. PhoneNumber for pairing: ${phoneNumber || 'None (QR Mode)'}`);
-    
-    const clientOptions: any = {
-      authStrategy: new LocalAuth({ dataPath: './whatsapp-auth' }),
-      authTimeoutMs: 0, // Disable auth timeout to prevent unhandled rejection "auth timeout"
-      qrMaxRetries: 10,
-      puppeteer: {
-        headless: true,
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
-            '--no-first-run',
-            '--no-zygote',
-            '--single-process',
-            '--disable-gpu',
-            '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
-        ],
-        timeout: 60000,
-      }
-    };
-
-    if (phoneNumber) {
-      clientOptions.pairWithPhoneNumber = {
-        phoneNumber: phoneNumber
-      };
+    // Check if running in a CLI command (seeder, migration, test, etc.)
+    const isCLI = process.argv.some(arg => 
+      arg.includes('seed') || 
+      arg.includes('jest') || 
+      arg.includes('migration') || 
+      arg.includes('schema')
+    );
+    if (isCLI) {
+      this.logger.log('CLI or Test environment detected. Skipping WhatsApp initialization.');
+      return;
     }
 
-    this.client = new Client(clientOptions);
-
-    this.client.on('qr', async (qr: string) => {
-      this.logger.log('QR Code received from WhatsApp Web.');
-      this.pairingCode = null;
-      try {
-        const url = await QRCode.toDataURL(qr);
-        this.qrCodeImage = url;
-      } catch (err) {
-        this.logger.error('Failed to generate QR image via QRCode lib', err);
-      }
-    });
-
-    this.client.on('pairing_code', (code: string) => {
-      this.logger.log(`Pairing code received from WhatsApp Web: ${code}`);
-      this.pairingCode = code;
-      this.qrCodeImage = null;
-    });
-
-    this.client.on('ready', () => {
-      this.isReady = true;
-      this.qrCodeImage = null;
-      this.pairingCode = null;
-      this.logger.log('WhatsApp Client is ready!');
-      this.initializationError = null;
-    });
-
-    this.client.on('authenticated', () => {
-        this.logger.log('WhatsApp Authenticated');
-        this.qrCodeImage = null;
-        this.pairingCode = null;
-    });
-
-    this.client.on('auth_failure', (msg: string) => {
-        this.logger.error('WhatsApp Authentication Failure', msg);
-        this.initializationError = `Auth Failure: ${msg}`;
-    });
-    
-    this.client.on('disconnected', (reason) => {
-        this.logger.warn('WhatsApp Client Disconnected', reason);
-        this.isReady = false;
-        this.qrCodeImage = null;
-        this.pairingCode = null;
-    });
-
-    this.client.initialize().catch((err: any) => {
-        this.logger.error('Failed to initialize WhatsApp client', err);
-        this.initializationError = err.message || 'Unknown initialization error';
-    });
+    this.initializeOnBootWithRetry();
   }
+
+  private async initializeOnBootWithRetry(retries = 5, delayMs = 10000) {
+    try {
+      const sessionDir = this.getSessionPath();
+      
+      // Load all files from DB to local folder
+      await this.syncDbToLocalFolder(sessionDir);
+      
+      const fs = require('fs');
+      const credsExist = fs.existsSync(path.join(sessionDir, 'creds.json'));
+      const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
+      
+      if (!isProduction || credsExist) {
+        this.logger.log(`Automatically initializing WhatsApp client (credsExist=${credsExist})...`);
+        this.ensureInitialized().catch((err) => {
+          this.logger.error('Failed to initialize WhatsApp client in background', err);
+        });
+      } else {
+        this.logger.log('No WhatsApp credentials found in DB. WhatsApp client initialization deferred.');
+      }
+    } catch (err: any) {
+      this.logger.error(`Failed to check WhatsApp session on boot (retries left: ${retries})`, err);
+      
+      const isDbStartingOrRecovering = 
+        err.message?.toLowerCase().includes('starting up') || 
+        err.message?.toLowerCase().includes('recovery') || 
+        err.message?.toLowerCase().includes('terminated') ||
+        err.code === '57P03';
+
+      if (retries > 0 && isDbStartingOrRecovering) {
+        this.logger.log(`Database is starting up or in recovery. Retrying in ${delayMs / 1000}s...`);
+        setTimeout(() => {
+          this.initializeOnBootWithRetry(retries - 1, delayMs);
+        }, delayMs);
+      }
+    }
+  }
+
+  private async ensureInitialized(fromRestart = false) {
+    if (this.socket && this.isReady) return;
+    if (!fromRestart && this.restartingPromise) {
+      return this.restartingPromise;
+    }
+    if (this.initializingPromise) {
+      return this.initializingPromise;
+    }
+
+    this.initializationError = null;
+    this.logger.log('Initializing WhatsApp Client (Baileys)...');
+
+    this.initializingPromise = (async () => {
+      try {
+        const sessionDir = this.getSessionPath();
+        
+        // 1. Sync files from DB to local directory first
+        await this.syncDbToLocalFolder(sessionDir);
+        
+        // 2. Load auth state from local folder
+        const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
+        
+        // 3. Make socket
+        const sock = makeWASocket({
+          auth: {
+            creds: state.creds,
+            keys: makeCacheableSignalKeyStore(state.keys, this.logger as any),
+          },
+          printQRInTerminal: false,
+          browser: ['Themis Legal Tech', 'Chrome', '1.0.0']
+        });
+        
+        this.socket = sock;
+
+        // Auto-request pairing code on boot if bot number env variable is defined and not registered
+        const isRegistered = state.creds && state.creds.me;
+        if (!isRegistered && process.env.WHATSAPP_BOT_NUMBER) {
+          const cleanNumber = process.env.WHATSAPP_BOT_NUMBER.replace(/\D/g, '');
+          this.logger.log(`Automatically requesting pairing code on boot for WHATSAPP_BOT_NUMBER: ${cleanNumber}`);
+          setTimeout(async () => {
+            try {
+              if (sock && !this.isReady) {
+                const code = await sock.requestPairingCode(cleanNumber);
+                this.pairingCode = code;
+                this.logger.log(`Auto-generated pairing code: ${code}`);
+              }
+            } catch (err: any) {
+              this.logger.error('Failed to auto-request pairing code on boot', err);
+            }
+          }, 5000);
+        }
+
+        // 4. Handle credential updates
+        sock.ev.on('creds.update', async () => {
+          await saveCreds();
+          await this.syncLocalFolderToDb(sessionDir);
+        });
+
+        // 5. Handle connection updates
+        sock.ev.on('connection.update', async (update) => {
+          const { connection, lastDisconnect, qr } = update;
+
+          if (qr) {
+            this.logger.log('New WhatsApp QR code generated.');
+            this.pairingCode = null;
+            try {
+              this.qrCodeImage = await QRCode.toDataURL(qr);
+            } catch (err) {
+              this.logger.error('Failed to generate QR image via QRCode lib', err);
+            }
+          }
+
+          if (connection === 'close') {
+            const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
+            const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+            this.logger.log(`WhatsApp connection closed. Status code: ${statusCode}, Reconnecting: ${shouldReconnect}`);
+            
+            this.isReady = false;
+            this.qrCodeImage = null;
+            this.pairingCode = null;
+            this.socket = null;
+
+            if (shouldReconnect) {
+              this.logger.log('Attempting reconnection in 5 seconds...');
+              setTimeout(() => {
+                this.ensureInitialized().catch(err => {
+                  this.logger.error('Reconnection attempt failed', err);
+                });
+              }, 5000);
+            } else {
+              this.logger.log('Logged out. Cleaning up session...');
+              await this.logout();
+            }
+          } else if (connection === 'open') {
+            this.isReady = true;
+            this.qrCodeImage = null;
+            this.pairingCode = null;
+            this.initializationError = null;
+            this.logger.log('WhatsApp Client (Baileys) is ready!');
+            
+            // Start queue processor to send any pending queued messages
+            this.startQueueProcessor();
+          }
+        });
+
+      } catch (err: any) {
+        this.logger.error('Failed to initialize Baileys client', err);
+        this.initializationError = err.message || 'Unknown initialization error';
+        throw err;
+      } finally {
+        this.initializingPromise = null;
+      }
+    })();
+
+    return this.initializingPromise;
+  }
+
+  private async waitForInitialization() {
+    if (this.restartingPromise) {
+      this.logger.log('Waiting for active restart to complete before proceeding...');
+      try {
+        await this.restartingPromise;
+      } catch (e) {}
+    }
+    if (this.initializingPromise) {
+      this.logger.log('Waiting for active initialization to complete before proceeding...');
+      try {
+        await this.initializingPromise;
+      } catch (e) {}
+    }
+    if (!this.socket) {
+      await this.ensureInitialized();
+    }
+
+    if (this.initializationError) {
+      throw new Error(`WhatsApp client initialization failed: ${this.initializationError}`);
+    }
+  }
+
+  constructor(
+    @InjectRepository(WhatsappSession)
+    private readonly sessionRepository: Repository<WhatsappSession>,
+    @InjectRepository(WhatsappQueue)
+    private readonly queueRepository: Repository<WhatsappQueue>,
+    @InjectRepository(ClientEntity)
+    private readonly clientRepository: Repository<ClientEntity>,
+    @InjectRepository(Expediente)
+    private readonly expedienteRepository: Repository<Expediente>,
+    @InjectRepository(Deadline)
+    private readonly deadlineRepository: Repository<Deadline>,
+    @InjectRepository(Movimiento)
+    private readonly movimientoRepository: Repository<Movimiento>,
+  ) {}
 
   async sendMessage(number: string, message: string): Promise<any> {
-    if (!this.client || !this.isReady) {
-      throw new Error('WhatsApp client is not ready yet');
+    if (!this.isReady) {
+      this.logger.warn(`WhatsApp client is not ready. Queuing message to ${number} in DB...`);
+      const queueItem = this.queueRepository.create({
+        number,
+        message,
+        status: 'pending'
+      });
+      await this.queueRepository.save(queueItem);
+      return { success: true, queued: true, message: 'Message queued for sending when bot is connected' };
     }
 
-    // Format number: remove non-digits
+    return this.sendMessageDirectly(number, message);
+  }
+
+  private async sendMessageDirectly(number: string, message: string): Promise<any> {
     const cleanNumber = number.replace(/\D/g, '');
-    const sanitized_number = `${cleanNumber}@c.us`;
+    const jid = `${cleanNumber}@s.whatsapp.net`;
 
     try {
-        const numberDetails = await this.client.getNumberId(sanitized_number);
-        
-        if (!numberDetails) {
+        if (!this.socket) {
+          throw new Error('WhatsApp socket client not initialized');
+        }
+
+        // Check if number exists on WhatsApp using Baileys
+        const [result] = await this.socket.onWhatsApp(jid);
+        if (!result || !result.exists) {
              this.logger.warn(`Number ${cleanNumber} not registered on WhatsApp`);
              throw new Error('Number not registered on WhatsApp');
         }
 
-        const serializedId = numberDetails._serialized;
-        const response = await this.client.sendMessage(serializedId, message);
+        const serializedId = result.jid;
+        const response = await this.socket.sendMessage(serializedId, { text: message });
         this.logger.log(`Message sent to ${serializedId}`);
         return response;
-
     } catch (error: any) {
         this.logger.error(`Error sending message to ${cleanNumber}`, error);
         throw error;
@@ -141,41 +289,22 @@ export class WhatsappService implements OnModuleInit {
   }
 
   async requestPairingCode(phoneNumber: string): Promise<string> {
-      if (this.isReady) {
-          throw new Error('Client is already connected');
+      await this.waitForInitialization();
+      if (!this.socket) {
+          throw new Error('Client not initialized');
       }
-      
-      const cleanCode = phoneNumber.replace(/\D/g, '');
-      this.logger.log(`Requesting pairing code dynamically for ${cleanCode}`);
-
+      this.logger.log(`Requesting pairing code for ${phoneNumber}`);
       try {
-          if (this.client) {
-              this.logger.log('Destroying existing client for pairing code re-initialization...');
-              await this.client.destroy().catch(e => this.logger.warn('Error destroying client', e));
-          }
-
-          this.isReady = false;
-          this.qrCodeImage = null;
-          this.pairingCode = null;
-          this.initializationError = null;
-
-          // Re-initialize client in pairing code mode
-          this.initializeClient(cleanCode);
-
-          // Active wait for the pairing code event to fire (up to 20 seconds)
-          const start = Date.now();
-          while (!this.pairingCode && Date.now() - start < 20000) {
-              if (this.initializationError) {
-                  throw new Error(this.initializationError);
-              }
-              await new Promise(resolve => setTimeout(resolve, 500));
-          }
-
-          if (!this.pairingCode) {
-              throw new Error('Timeout waiting for pairing code generation');
-          }
-
-          return this.pairingCode;
+           if (this.isReady) {
+               throw new Error('Client is already connected');
+           }
+           
+           const cleanCode = phoneNumber.replace(/\D/g, '');
+           const code = await this.socket.requestPairingCode(cleanCode);
+           this.pairingCode = code;
+           this.qrCodeImage = null;
+           this.logger.log(`Pairing code generated: ${code}`);
+           return code;
       } catch (error) {
            this.logger.error('Error requesting pairing code', error);
            throw error;
@@ -187,76 +316,224 @@ export class WhatsappService implements OnModuleInit {
           ready: this.isReady,
           qr: this.qrCodeImage,
           pairingCode: this.pairingCode,
-          number: (this.isReady && this.client) ? this.client.info?.wid?.user : null,
-          error: this.initializationError
+          number: this.isReady ? (this.socket?.user?.id?.split('@')[0]?.split(':')[0]) : null,
+          loading: this.loadingScreen,
+          error: this.initializationError,
+          connecting: !!this.initializingPromise || !!this.restartingPromise || (this.socket && !this.isReady && !this.initializationError)
       };
   }
 
   async logout() {
       this.logger.log('Logging out WhatsApp client...');
+      
+      this.initializationError = null;
+      this.qrCodeImage = null;
+      this.loadingScreen = null;
+      this.isReady = false;
+      this.pairingCode = null;
+
       try {
-          if (this.client && this.isReady) {
-              await this.client.logout();
+          if (this.initializingPromise) {
+              try { await this.initializingPromise; } catch (e) {}
           }
-          if (this.client) {
-              await this.client.destroy();
+          if (this.restartingPromise) {
+              try { await this.restartingPromise; } catch (e) {}
           }
-          this.isReady = false;
-          this.qrCodeImage = null;
-          this.pairingCode = null;
-          this.logger.log('Client destroyed. Re-initializing in QR mode...');
-          
-          this.initializeClient();
+
+          if (this.socket) {
+              try {
+                await this.socket.logout();
+              } catch (e) {}
+              this.socket = null;
+          }
+
+          // Delete session from DB
+          const dbSessions = await this.sessionRepository.find();
+          for (const dbSession of dbSessions) {
+            if (dbSession.id.endsWith('.json')) {
+              await this.sessionRepository.delete({ id: dbSession.id });
+            }
+          }
+          await this.sessionRepository.delete({ id: 'RemoteAuth-themis-session' });
+
+          // Clear local session folder
+          const fs = require('fs');
+          const sessionDir = this.getSessionPath();
+          if (fs.existsSync(sessionDir)) {
+              try {
+                fs.rmSync(sessionDir, { recursive: true, force: true });
+                this.logger.log('Local session folder cleared.');
+              } catch (e: any) {
+                this.logger.warn('Could not clear local session folder: ' + e.message);
+              }
+          }
+
           return { success: true };
       } catch (error) {
           this.logger.error('Error during logout', error);
-          this.isReady = false;
-          this.qrCodeImage = null;
-          this.pairingCode = null;
-          this.initializeClient();
           throw error;
       }
   }
 
   async restart() {
-      this.logger.log('Force restarting WhatsApp client (Background Process)...');
-      
-      (async () => {
-          try {
-              this.isReady = false;
-              this.qrCodeImage = null;
-              this.pairingCode = null;
+      if (this.restartingPromise) {
+          this.logger.log('Restart already in progress. Returning existing restart status.');
+          return { success: true, message: 'Restart already in progress' };
+      }
 
-              if (this.client) {
-                  this.logger.log('Destroying existing client...');
-                  await this.client.destroy().catch(e => this.logger.warn('Error destroying client', e));
+      this.logger.log('Force restarting WhatsApp client...');
+      
+      this.initializationError = null;
+      this.qrCodeImage = null;
+      this.loadingScreen = null;
+      this.isReady = false;
+      this.pairingCode = null;
+
+      this.restartingPromise = (async () => {
+          try {
+              if (this.initializingPromise) {
+                  try { await this.initializingPromise; } catch (e) {}
+              }
+
+              if (this.socket) {
+                  this.isReady = false;
+                  try {
+                    this.socket.end(new Error('Manual restart'));
+                  } catch (e) {}
+                  this.socket = null;
               }
               
               await new Promise(resolve => setTimeout(resolve, 3000));
               
+              // Clear local session folder to force a completely clean load from DB
               const fs = require('fs');
-              const path = './whatsapp-auth';
-              if (fs.existsSync(path)) {
-                  this.logger.log('Clearing session data...');
+              const sessionDir = this.getSessionPath();
+              if (fs.existsSync(sessionDir)) {
                   try {
-                    fs.rmSync(path, { recursive: true, force: true });
-                    this.logger.log('Session data cleared.');
-                  } catch(e: any) {
-                      this.logger.warn('Could not remove auth folder immediately (likely locked).', e.message);
-                  }
+                    fs.rmSync(sessionDir, { recursive: true, force: true });
+                  } catch(e: any) {}
               }
 
-              this.initializationError = null;
-              
-              this.logger.log('Re-initializing client in QR mode...');
-              this.initializeClient();
+              await this.ensureInitialized(true);
           } catch (e: any) {
               this.logger.error('Error during background restart', e);
               this.initializationError = e.message || 'Restart failed';
+          } finally {
+              this.restartingPromise = null;
           }
       })();
 
       return { success: true, message: 'Restart triggered in background' };
   }
-}
 
+  private async syncDbToLocalFolder(folder: string) {
+    try {
+      const fs = require('fs');
+      if (!fs.existsSync(folder)) {
+        fs.mkdirSync(folder, { recursive: true });
+      }
+
+      const dbSessions = await this.sessionRepository.find();
+      let restoredCount = 0;
+      
+      for (const dbSession of dbSessions) {
+        if (dbSession.id.endsWith('.json')) {
+          const filePath = path.join(folder, dbSession.id);
+          fs.writeFileSync(filePath, dbSession.sessionData);
+          restoredCount++;
+        }
+      }
+      this.logger.log(`Restored ${restoredCount} session files from database to local folder.`);
+    } catch (err: any) {
+      this.logger.error('Failed to sync WhatsApp files from database to local folder', err);
+    }
+  }
+
+  private async syncLocalFolderToDb(folder: string) {
+    try {
+      const fs = require('fs');
+      if (!fs.existsSync(folder)) return;
+      const files = fs.readdirSync(folder);
+      
+      const jsonFiles = files.filter(f => f.endsWith('.json'));
+      
+      for (const file of jsonFiles) {
+        const filePath = path.join(folder, file);
+        const data = fs.readFileSync(filePath);
+        
+        let session = await this.sessionRepository.findOne({ where: { id: file } });
+        if (!session) {
+          session = this.sessionRepository.create({ id: file });
+        }
+        session.sessionData = data;
+        session.updatedAt = new Date();
+        await this.sessionRepository.save(session);
+      }
+
+      const dbSessions = await this.sessionRepository.find();
+      for (const dbSession of dbSessions) {
+        if (dbSession.id.endsWith('.json') && !jsonFiles.includes(dbSession.id)) {
+          await this.sessionRepository.delete({ id: dbSession.id });
+        }
+      }
+    } catch (err: any) {
+      this.logger.error('Failed to sync WhatsApp files from local folder to database', err);
+    }
+  }
+
+  private startQueueProcessor() {
+    if (this.queueInterval) return;
+
+    this.logger.log('Starting WhatsApp Queue Processor...');
+    this.queueInterval = setInterval(async () => {
+      if (!this.isReady || !this.socket) {
+        return;
+      }
+
+      try {
+        const pendingMessages = await this.queueRepository.find({
+          where: { status: 'pending' },
+          order: { createdAt: 'ASC' },
+          take: 5
+        });
+
+        for (const msg of pendingMessages) {
+          msg.status = 'processing';
+          await this.queueRepository.save(msg);
+
+          try {
+            this.logger.log(`Processing queued message to ${msg.number}...`);
+            await this.sendMessageDirectly(msg.number, msg.message);
+            msg.status = 'sent';
+            msg.processedAt = new Date();
+            await this.queueRepository.save(msg);
+            this.logger.log(`Queued message to ${msg.number} sent successfully.`);
+          } catch (sendErr: any) {
+            this.logger.error(`Failed to send queued message to ${msg.number}`, sendErr);
+            msg.status = 'failed';
+            msg.error = sendErr.message || 'Unknown send error';
+            msg.processedAt = new Date();
+            await this.queueRepository.save(msg);
+          }
+        }
+      } catch (err: any) {
+        this.logger.error('Error in WhatsApp Queue Processor interval', err);
+      }
+    }, 5000);
+  }
+
+  async onModuleDestroy() {
+    this.logger.log('Closing WhatsApp client due to module destroy...');
+    if (this.queueInterval) {
+      clearInterval(this.queueInterval);
+      this.queueInterval = null;
+    }
+    if (this.socket) {
+      try {
+        this.socket.end(new Error('Module destroy'));
+      } catch (err: any) {
+        this.logger.error('Error destroying WhatsApp socket on module destroy', err);
+      }
+    }
+  }
+}

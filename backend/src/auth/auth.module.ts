@@ -8,9 +8,12 @@ import { JwtStrategy } from './jwt.strategy';
 import { AuthController } from './auth.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { WhatsappModule } from '../whatsapp/whatsapp.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Otp } from './otp.entity';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([Otp]),
     UsersModule,
     PassportModule,
     JwtModule.registerAsync({

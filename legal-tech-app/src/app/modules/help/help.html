@@ -2,234 +2,220 @@
 
     <!-- Sidebar Navigation -->
     <aside
-        class="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 hidden md:flex flex-col h-full sticky top-0 overflow-y-auto">
+        class="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 hidden lg:flex flex-col h-full sticky top-0 overflow-y-auto">
         <div class="p-6 border-b border-slate-100 dark:border-slate-700">
             <h2 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
                 <i class="pi pi-question-circle text-blue-600 dark:text-blue-400"></i>
                 Centro de Ayuda
             </h2>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Guía de usuario y soporte</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Guía de usuario y soporte</p>
         </div>
 
-        <nav class="flex-1 p-4 space-y-1">
-            <button *ngFor="let section of sections" (click)="scrollTo(section.id)"
-                class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors"
-                [ngClass]="activeSection === section.id ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold shadow-sm ring-1 ring-blue-100 dark:ring-blue-800' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'">
-                <i [class]="section.icon"></i>
+        <nav class="flex-grow p-4 space-y-1">
+            <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase px-4 mb-2 tracking-wider">
+                Secciones Disponibles
+            </div>
+            <button *ngFor="let section of getFilteredSections()" (click)="scrollTo(section.id)"
+                class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all duration-200 group"
+                [ngClass]="activeSection === section.id ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold shadow-sm ring-1 ring-blue-100 dark:ring-blue-800' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white'">
+                <i [class]="section.icon" class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 transition-colors" [ngClass]="{'text-blue-600 dark:text-blue-400 font-bold': activeSection === section.id}"></i>
                 <span class="text-sm">{{ section.label }}</span>
             </button>
         </nav>
 
         <div class="p-4 border-t border-slate-100 dark:border-slate-700">
-            <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4">
-                <p class="text-xs font-bold text-indigo-800 dark:text-indigo-300 mb-1">¿Necesitas soporte técnico?</p>
-                <p class="text-xs text-indigo-600 dark:text-indigo-400 mb-3">Contacta al administrador del sistema si
-                    encuentras un error.
+            <div class="bg-indigo-50 dark:bg-indigo-950/30 rounded-xl p-4 border border-indigo-100/50 dark:border-indigo-900/30">
+                <p class="text-xs font-bold text-indigo-800 dark:text-indigo-300 mb-1 flex items-center gap-1.5">
+                    <i class="pi pi-envelope text-indigo-500"></i> ¿Necesitas soporte técnico?
                 </p>
-                <button
-                    class="text-xs bg-indigo-600 dark:bg-indigo-500 text-white px-3 py-1.5 rounded hover:bg-indigo-700 dark:hover:bg-indigo-600 w-full font-medium transition-colors">
+                <p class="text-[11px] text-indigo-600 dark:text-indigo-400 mb-3 leading-relaxed">
+                    Contacta al administrador del estudio para reportar errores o solicitar ayuda adicional.
+                </p>
+                <a href="mailto:soporte@themis.com"
+                    class="text-xs bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-3 py-2 rounded-lg font-bold block text-center transition-colors shadow-sm">
                     Contactar Soporte
-                </button>
+                </a>
             </div>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 h-full overflow-y-auto p-6 md:p-10 scroll-smooth">
+    <main class="flex-grow h-full overflow-y-auto p-4 md:p-8 lg:p-12 scroll-smooth">
         <div class="max-w-4xl mx-auto space-y-16">
 
+            <!-- Search and Category Bar (Top Header) -->
+            <div class="space-y-6">
+                <!-- Search bar -->
+                <div class="relative max-w-2xl">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="pi pi-search text-slate-400 dark:text-slate-500 text-lg"></i>
+                    </div>
+                    <input type="text" [(ngModel)]="searchQuery" 
+                        placeholder="Buscar ayuda sobre AFIP, Copilot, WhatsApp, PDFs de causas..."
+                        class="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 text-sm">
+                    <button *ngIf="searchQuery" (click)="searchQuery = ''" class="absolute inset-y-0 right-0 pr-4 flex items-center">
+                        <i class="pi pi-times text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm cursor-pointer"></i>
+                    </button>
+                </div>
+
+                <!-- Dynamic Search Results -->
+                <div *ngIf="searchQuery">
+                    <div *ngIf="getSearchResults().length > 0" class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-blue-100 dark:border-blue-900/50 shadow-md animate-fade-in space-y-3">
+                        <h3 class="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="pi pi-search"></i> Temas encontrados ({{ getSearchResults().length }}):
+                        </h3>
+                        <div class="divide-y divide-slate-100 dark:divide-slate-700 max-h-[250px] overflow-y-auto pr-2">
+                            <button *ngFor="let result of getSearchResults()" (click)="scrollTo(result.section); searchQuery = ''" 
+                                class="w-full text-left py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 px-3 rounded-lg transition-colors flex justify-between items-center group">
+                                <div class="space-y-0.5">
+                                    <p class="text-sm font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ result.title }}</p>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-normal">{{ result.description }}</p>
+                                </div>
+                                <i class="pi pi-chevron-right text-xs text-slate-400 group-hover:translate-x-1 transition-transform"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div *ngIf="getSearchResults().length === 0" class="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 text-center animate-fade-in">
+                        <i class="pi pi-search text-3xl text-slate-300 dark:text-slate-600 mb-2 block"></i>
+                        <p class="text-sm font-bold text-slate-700 dark:text-slate-300">No encontramos resultados para tu búsqueda.</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Prueba con palabras clave más generales como CUIT, IA, PDF, WhatsApp o Clientes.</p>
+                    </div>
+                </div>
+
+                <!-- Category selector tabs -->
+                <div class="flex flex-wrap gap-2 pb-2 overflow-x-auto border-b border-slate-200 dark:border-slate-700">
+                    <button *ngFor="let cat of categories" (click)="selectedCategory = cat.id"
+                        class="px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-2 border whitespace-nowrap"
+                        [ngClass]="selectedCategory === cat.id ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700'">
+                        <i [class]="cat.icon"></i>
+                        {{ cat.label }}
+                    </button>
+                </div>
+            </div>
+
             <!-- INTRODUCCION -->
-            <section id="intro" class="scroll-mt-6">
-                <div
-                    class="bg-indigo-600 dark:bg-indigo-700 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
-                    <div class="absolute right-0 top-0 opacity-10 transform translate-x-10 -translate-y-10">
-                        <i class="pi pi-compass text-[15rem]"></i>
+            <section id="intro" class="scroll-mt-24 space-y-6" *ngIf="selectedCategory === 'all' || selectedCategory === 'general'">
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-6 md:p-10 text-white shadow-xl relative overflow-hidden">
+                    <div class="absolute right-0 top-0 opacity-10 transform translate-x-12 -translate-y-12 select-none pointer-events-none">
+                        <i class="pi pi-compass text-[18rem]"></i>
                     </div>
-                    <h1 class="text-3xl font-black mb-4 relative z-10">Bienvenid@ a LegalTech</h1>
-                    <p class="text-indigo-100 text-lg leading-relaxed max-w-2xl relative z-10">
-                        Esta plataforma ha sido diseñada para optimizar la gestión de tu estudio jurídico.
-                        Aquí encontrarás todas las herramientas necesarias para administrar clientes, expedientes,
-                        vencimientos y contabilidad de manera eficiente.
-                    </p>
+                    <div class="relative z-10 max-w-2xl space-y-4">
+                        <span class="bg-blue-500/30 text-blue-100 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">Guía Completa</span>
+                        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Centro de Ayuda Themis</h1>
+                        <p class="text-blue-100 text-base md:text-lg leading-relaxed font-medium">
+                            Themis es una plataforma diseñada para digitalizar, organizar y potenciar estudios jurídicos. 
+                            Aprende a sacarle el máximo partido a cada módulo utilizando nuestras guías interactivas paso a paso.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-amber-50/50 dark:bg-amber-950/15 p-6 rounded-2xl border border-amber-100 dark:border-amber-900/30">
+                        <h3 class="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-2 mb-3 text-sm">
+                            <i class="pi pi-lightbulb text-amber-500"></i> Consejos Clave para Empezar
+                        </h3>
+                        <ul class="space-y-2.5 text-xs text-amber-900 dark:text-amber-200 font-medium">
+                            <li class="flex items-start gap-1.5">• <span><strong>Carga tus datos primero:</strong> Asegúrate de configurar tu perfil y vincular el bot de WhatsApp para recibir alertas.</span></li>
+                            <li class="flex items-start gap-1.5">• <span><strong>Atajos Rápidos:</strong> Presiona <kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 rounded border border-amber-200 dark:border-slate-600 font-mono text-[10px] shadow-sm">Ctrl + F</kbd> en tu computadora para buscar un término directo en este centro de ayuda.</span></li>
+                            <li class="flex items-start gap-1.5">• <span><strong>Visualización:</strong> Si trabajas de noche, recuerda cambiar al <strong>Modo Oscuro</strong> desde el menú superior.</span></li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50/50 dark:bg-blue-950/15 p-6 rounded-2xl border border-blue-100 dark:border-blue-900/30">
+                        <h3 class="font-bold text-blue-800 dark:text-blue-400 flex items-center gap-2 mb-3 text-sm">
+                            <i class="pi pi-question-circle text-blue-500"></i> Preguntas Frecuentes
+                        </h3>
+                        <div class="space-y-3 text-xs text-blue-900 dark:text-blue-200 font-medium">
+                            <div>
+                                <strong class="block text-slate-800 dark:text-slate-200">¿El sistema hace copia de seguridad?</strong>
+                                <span class="text-slate-600 dark:text-slate-400 block mt-0.5">Sí, toda la base de datos se respalda automáticamente de forma diaria para evitar pérdidas de información.</span>
+                            </div>
+                            <div>
+                                <strong class="block text-slate-800 dark:text-slate-200">¿Cómo modifico mis datos profesionales?</strong>
+                                <span class="text-slate-600 dark:text-slate-400 block mt-0.5">Desde el módulo "Mi Perfil", puedes actualizar tu nombre, teléfono, domicilio fiscal y datos de facturación.</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <!-- FAQ & TIPS (Intro) -->
-            <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div
-                    class="bg-amber-50 dark:bg-amber-900/10 p-6 rounded-xl border border-amber-100 dark:border-amber-900/30">
-                    <h3 class="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-2 mb-3">
-                        <i class="pi pi-lightbulb"></i> Tips Rápidos
-                    </h3>
-                    <ul class="space-y-2 text-sm text-amber-900 dark:text-amber-200">
-                        <li>• Usa <kbd
-                                class="px-2 py-0.5 bg-white dark:bg-slate-800 rounded border border-amber-200 dark:border-slate-600 font-mono text-xs">Ctrl
-                                +
-                                F</kbd> para buscar en esta página.</li>
-                        <li>• Mantén los datos de tus clientes actualizados para el bot de WhatsApp.</li>
-                        <li>• Revisa el Dashboard cada mañana para ver tus prioridades.</li>
-                    </ul>
-                </div>
-                <div
-                    class="bg-blue-50 dark:bg-blue-900/10 p-6 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                    <h3 class="font-bold text-blue-800 dark:text-blue-400 flex items-center gap-2 mb-3">
-                        <i class="pi pi-question"></i> Preguntas Frecuentes
-                    </h3>
-                    <ul class="space-y-2 text-sm text-blue-900 dark:text-blue-200">
-                        <li><strong>¿Cómo cambio mi contraseña?</strong> Desde Perfil > Seguridad.</li>
-                        <li><strong>¿El sistema hace backup?</strong> Sí, automático cada noche.</li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- DASHBOARD -->
-            <section id="dashboard"
-                class="scroll-mt-6 pt-6 border-t border-slate-200 dark:border-slate-700 scroll-spy-target">
-                <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-3">
-                    <div
-                        class="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                        <i class="pi pi-home text-xl"></i>
+            <!-- PANEL DE CONTROL -->
+            <section id="dashboard" class="scroll-mt-24 space-y-6 border-t border-slate-200 dark:border-slate-700 pt-10" *ngIf="selectedCategory === 'all' || selectedCategory === 'gestion'">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm">
+                        <i class="pi pi-home text-lg"></i>
                     </div>
-                    Panel de Control
-                </h2>
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Panel de Control (Dashboard)</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Estadísticas, métricas y estado del estudio jurídico</p>
+                    </div>
+                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div
-                        class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                        <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-2">Métricas Clave (KPIs)</h3>
-                        <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">
-                            En la parte superior verás contadores en tiempo real. Son indicadores vitales de la salud de
-                            tu estudio:
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-2">
+                            <i class="pi pi-chart-bar text-blue-500"></i> Métricas Principales (KPIs)
+                        </h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
+                            Al iniciar sesión, la plataforma te muestra un resumen gráfico de la actividad del estudio:
                         </p>
                         <ul class="space-y-3">
                             <li class="flex gap-3 items-start">
-                                <div
-                                    class="bg-blue-50 dark:bg-blue-900/20 p-2 rounded text-blue-600 dark:text-blue-400">
-                                    <i class="pi pi-users"></i>
+                                <div class="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg text-blue-600 dark:text-blue-400">
+                                    <i class="pi pi-users text-sm"></i>
                                 </div>
                                 <div>
-                                    <span
-                                        class="font-bold text-slate-700 dark:text-slate-200 block text-sm">Clientes</span>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Total de clientes activos
-                                        en tu base de
-                                        datos.</span>
+                                    <span class="font-bold text-slate-700 dark:text-slate-200 text-xs">Clientes Activos</span>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">El volumen total de tu cartera de clientes cargados.</p>
                                 </div>
                             </li>
                             <li class="flex gap-3 items-start">
-                                <div
-                                    class="bg-purple-50 dark:bg-purple-900/20 p-2 rounded text-purple-600 dark:text-purple-400">
-                                    <i class="pi pi-briefcase"></i>
+                                <div class="bg-purple-50 dark:bg-purple-900/20 p-2 rounded-lg text-purple-600 dark:text-purple-400">
+                                    <i class="pi pi-briefcase text-sm"></i>
                                 </div>
                                 <div>
-                                    <span
-                                        class="font-bold text-slate-700 dark:text-slate-200 block text-sm">Expedientes</span>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Causas en trámite (excluye
-                                        archivados).</span>
+                                    <span class="font-bold text-slate-700 dark:text-slate-200 text-xs">Expedientes en Curso</span>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Causas judiciales que se encuentran en trámite activo.</p>
                                 </div>
                             </li>
                             <li class="flex gap-3 items-start">
-                                <div
-                                    class="bg-green-50 dark:bg-green-900/20 p-2 rounded text-green-600 dark:text-green-400">
-                                    <i class="pi pi-dollar"></i>
+                                <div class="bg-green-50 dark:bg-green-900/20 p-2 rounded-lg text-green-600 dark:text-green-400">
+                                    <i class="pi pi-dollar text-sm"></i>
                                 </div>
                                 <div>
-                                    <span class="font-bold text-slate-700 dark:text-slate-200 block text-sm">Balance
-                                        Mes</span>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Ingresos Totales - Gastos
-                                        Totales del mes
-                                        corriente.</span>
+                                    <span class="font-bold text-slate-700 dark:text-slate-200 text-xs">Balance del Mes</span>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Diferencia neta entre los honorarios cobrados y los gastos incurridos durante el mes.</p>
                                 </div>
                             </li>
                         </ul>
                     </div>
-                    <div
-                        class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                        <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-2">Semáforo de Vencimientos</h3>
-                        <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">
-                            El widget de alertas utiliza un sistema de semáforo para priorizar:
+
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-2">
+                            <i class="pi pi-exclamation-triangle text-amber-500"></i> Semáforo de Vencimientos
+                        </h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
+                            Una herramienta visual e interactiva que te advierte sobre la urgencia de tus próximos plazos procesales:
                         </p>
-                        <div class="space-y-3">
-                            <div
-                                class="flex items-center gap-3 p-2 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-lg">
-                                <div class="h-3 w-3 rounded-full bg-red-500 animate-pulse"></div>
-                                <span class="text-sm font-bold text-red-700 dark:text-red-300">Urgente (<= 2
-                                        días)</span>
-                            </div>
-                            <div
-                                class="flex items-center gap-3 p-2 bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 rounded-lg">
-                                <div class="h-3 w-3 rounded-full bg-orange-500"></div>
-                                <span class="text-sm font-bold text-orange-700 dark:text-orange-300">Atención (<= 1
-                                        semana)</span>
-                            </div>
-                            <div
-                                class="flex items-center gap-3 p-2 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded-lg">
-                                <div class="h-3 w-3 rounded-full bg-emerald-500"></div>
-                                <span class="text-sm font-bold text-emerald-700 dark:text-emerald-300">Normal (> 1
-                                    semana)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- CLIENTES -->
-            <section id="clientes"
-                class="scroll-mt-6 pt-6 border-t border-slate-200 dark:border-slate-700 scroll-spy-target">
-                <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-3">
-                    <div
-                        class="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                        <i class="pi pi-users text-xl"></i>
-                    </div>
-                    Gestión de Clientes
-                </h2>
-
-                <div class="space-y-8">
-                    <!-- Workflow 1 -->
-                    <div class="flex gap-6">
-                        <div class="hidden md:flex flex-col items-center">
-                            <div
-                                class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">
-                                1</div>
-                            <div class="h-full w-0.5 bg-slate-200 dark:bg-slate-700 my-2"></div>
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-2">Alta de Cliente</h3>
-                            <p class="text-slate-600 dark:text-slate-400 text-sm mb-3">
-                                Al crear un cliente, intenta completar todos los campos posibles. El
-                                <strong>celular</strong> es crucial para las notificaciones de WhatsApp.
-                            </p>
-                            <div
-                                class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg text-xs font-mono text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                                Clientes > Botón "Nuevo Cliente" > Completar formulario
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Workflow 2 -->
-                    <div class="flex gap-6">
-                        <div class="hidden md:flex flex-col items-center">
-                            <div
-                                class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">
-                                2</div>
-                            <div class="h-full w-0.5 bg-slate-200 dark:bg-slate-700 my-2"></div>
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-2">Seguimiento y Contacto
-                            </h3>
-                            <p class="text-slate-600 dark:text-slate-400 text-sm mb-3">
-                                Desde la lista de clientes puedes realizar acciones rápidas sin entrar al detalle.
-                            </p>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="p-3 border dark:border-slate-700 rounded bg-white dark:bg-slate-800">
-                                    <i class="pi pi-whatsapp text-green-500 mb-1"></i>
-                                    <p class="font-bold text-xs dark:text-slate-200">WhatsApp Directo</p>
-                                    <p class="text-[10px] text-slate-500 dark:text-slate-400">Abre chat sin agendar.</p>
+                        <div class="space-y-2.5">
+                            <div class="flex items-center gap-3 p-3 bg-red-50/50 dark:bg-red-950/15 border border-red-100 dark:border-red-950/40 rounded-xl">
+                                <div class="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                                <div>
+                                    <span class="text-xs font-bold text-red-700 dark:text-red-400">Urgente (Vence en menos de 2 días)</span>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Requiere atención inmediata y presentación de escritos.</p>
                                 </div>
-                                <div class="p-3 border dark:border-slate-700 rounded bg-white dark:bg-slate-800">
-                                    <i class="pi pi-pencil text-blue-500 mb-1"></i>
-                                    <p class="font-bold text-xs dark:text-slate-200">Edición Rápida</p>
-                                    <p class="text-[10px] text-slate-500 dark:text-slate-400">Actualiza teléfono/email.
-                                    </p>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 bg-orange-50/50 dark:bg-orange-950/15 border border-orange-100 dark:border-orange-950/40 rounded-xl">
+                                <div class="h-2.5 w-2.5 rounded-full bg-orange-500"></div>
+                                <div>
+                                    <span class="text-xs font-bold text-orange-700 dark:text-orange-400 flex items-center">Atención (Vence en 2 a 7 días)</span>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Borradores en preparación o traslados en curso.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 bg-emerald-50/50 dark:bg-emerald-950/15 border border-emerald-100 dark:border-emerald-950/40 rounded-xl">
+                                <div class="h-2.5 w-2.5 rounded-full bg-emerald-500"></div>
+                                <div>
+                                    <span class="text-xs font-bold text-emerald-700 dark:text-emerald-400">Estable (Vence en más de 7 días)</span>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Plazos procesales normales de control regular.</p>
                                 </div>
                             </div>
                         </div>
@@ -237,176 +223,564 @@
                 </div>
             </section>
 
-            <!-- EXPEDIENTES -->
-            <section id="expedientes"
-                class="scroll-mt-6 pt-6 border-t border-slate-200 dark:border-slate-700 scroll-spy-target">
-                <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-3">
-                    <div
-                        class="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                        <i class="pi pi-briefcase text-xl"></i>
+            <!-- GESTION DE CLIENTES -->
+            <section id="clientes" class="scroll-mt-24 space-y-6 border-t border-slate-200 dark:border-slate-700 pt-10" *ngIf="selectedCategory === 'all' || selectedCategory === 'gestion'">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center shadow-sm">
+                        <i class="pi pi-users text-lg"></i>
                     </div>
-                    Expedientes y Causas
-                </h2>
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Gestión de Clientes</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Fichas de clientes, filtros eficientes y acciones de contacto rápido</p>
+                    </div>
+                </div>
 
-                <div class="bg-blue-50 dark:bg-blue-900/10 border-l-4 border-blue-500 p-4 mb-6">
-                    <p class="text-sm text-blue-800 dark:text-blue-300">
-                        <strong>Nota Importante:</strong> Un expediente siempre debe pertenecer a un Cliente. Si el
-                        cliente no existe, créalo primero.
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-6">
+                    <div class="space-y-4">
+                        <h3 class="font-bold text-slate-800 dark:text-white text-sm">Flujo de Trabajo y Tecnologías Incorporadas</h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
+                            El módulo de clientes cuenta con optimizaciones de rendimiento y de experiencia de usuario premium:
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 rounded-xl border border-slate-100 dark:border-slate-750 bg-slate-50/50 dark:bg-slate-900/30 space-y-2">
+                                <span class="font-bold text-slate-700 dark:text-slate-200 text-xs flex items-center gap-1.5">
+                                    <i class="pi pi-spin pi-spinner text-blue-500"></i> Paginación Server-Side y Lazy Loading
+                                </span>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                                    Para estudios con miles de clientes, los datos no se descargan de golpe. La tabla solicita únicamente la página actual del servidor y los carga bajo demanda (lazy), reduciendo a cero el consumo de datos y memoria.
+                                </p>
+                            </div>
+                            <div class="p-4 rounded-xl border border-slate-100 dark:border-slate-750 bg-slate-50/50 dark:bg-slate-900/30 space-y-2">
+                                <span class="font-bold text-slate-700 dark:text-slate-200 text-xs flex items-center gap-1.5">
+                                    <i class="pi pi-bolt text-amber-500"></i> Buscador con Debounce de 300ms
+                                </span>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                                    Cuando escribes en el cuadro de búsqueda, el sistema no bombardea al servidor con peticiones por cada tecla pulsada. Espera a que te detengas 300 milisegundos para enviar la solicitud de filtrado, optimizando la red.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        <h4 class="font-bold text-slate-800 dark:text-white text-xs">Acciones Rápidas en la Lista de Clientes:</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="p-3 border dark:border-slate-700 rounded-xl bg-slate-50/20 dark:bg-slate-900/10 space-y-1">
+                                <i class="pi pi-whatsapp text-green-500 text-sm"></i>
+                                <span class="font-bold text-xs text-slate-700 dark:text-slate-200 block">WhatsApp Directo</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block">Abre un chat directo con el cliente sin necesidad de agendar su número en tu teléfono móvil.</span>
+                            </div>
+                            <div class="p-3 border dark:border-slate-700 rounded-xl bg-slate-50/20 dark:bg-slate-900/10 space-y-1">
+                                <i class="pi pi-receipt text-purple-500 text-sm"></i>
+                                <span class="font-bold text-xs text-slate-700 dark:text-slate-200 block">Cuenta Corriente</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block">Registra adelantos, gastos judiciales y honorarios regulados, calculando el saldo contable al instante.</span>
+                            </div>
+                            <div class="p-3 border dark:border-slate-700 rounded-xl bg-slate-50/20 dark:bg-slate-900/10 space-y-1">
+                                <i class="pi pi-trash text-red-500 text-sm"></i>
+                                <span class="font-bold text-xs text-slate-700 dark:text-slate-200 block">SweetAlert2 Integrado</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block">El borrado accidental se previene mediante modales de advertencia estéticos en lugar de popups nativos molestos.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- EXPEDIENTES Y KANBAN -->
+            <section id="expedientes" class="scroll-mt-24 space-y-6 border-t border-slate-200 dark:border-slate-700 pt-10" *ngIf="selectedCategory === 'all' || selectedCategory === 'gestion'">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm">
+                        <i class="pi pi-briefcase text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Expedientes y Tablero Kanban</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Seguimiento de causas judiciales y organización visual de flujos de trabajo</p>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50/50 dark:bg-blue-950/15 border-l-4 border-blue-500 p-5 rounded-r-2xl">
+                    <h4 class="font-bold text-blue-900 dark:text-blue-300 text-sm mb-1">Estructura del Expediente</h4>
+                    <p class="text-xs text-blue-800 dark:text-blue-400 leading-relaxed">
+                        Todo expediente judicial cargado en la plataforma requiere asociarse a un **Cliente** de la base de datos. 
+                        Reúne información clave de litigación como Carátula, Número, Fuero, Juzgado, Secretaría, Contraparte, Abogado de la contraparte, Contabilidad específica de la causa y Documentos digitales adjuntos.
+                    </p>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
+                        <i class="pi pi-sliders-h text-purple-500"></i> Tablero Kanban Interactivo
+                    </h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
+                        El tablero Kanban organiza visualmente tus expedientes por columnas que corresponden a los **Estados Procesales** (ej. *Iniciado, Traslado de Demanda, Apertura a Prueba, Autos para Sentencia, Sentencia Firme, Archivado*).
+                    </p>
+                    
+                    <div class="p-4 rounded-xl border border-dashed border-slate-350 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 space-y-3">
+                        <h4 class="font-bold text-xs text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                            <i class="pi pi-info-circle"></i> ¿Cómo usar el Kanban?
+                        </h4>
+                        <ul class="list-disc list-inside text-xs text-slate-650 dark:text-slate-400 space-y-2">
+                            <li><strong>Arrastrar y Soltar (Drag and Drop):</strong> Haz clic sostenido en la tarjeta de un expediente, arrástrala hacia otra columna de estado y suéltala. La base de datos se actualizará al instante de manera transparente.</li>
+                            <li><strong>Filtros rápidos:</strong> Usa el buscador superior o el selector de fueros para aislar rápidamente un expediente específico del tablero sin salir de la vista visual.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GESTION DOCUMENTAL -->
+            <section id="documentos" class="scroll-mt-24 space-y-6 border-t border-slate-200 dark:border-slate-700 pt-10" *ngIf="selectedCategory === 'all' || selectedCategory === 'gestion'">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 flex items-center justify-center shadow-sm">
+                        <i class="pi pi-folder-open text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Gestión Documental</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Carga digital de escritos, resoluciones y pruebas</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-2">
+                        <div class="h-8 w-8 rounded-lg bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+                            <i class="pi pi-cloud-upload"></i>
+                        </div>
+                        <h4 class="font-bold text-xs text-slate-800 dark:text-white">Almacenamiento Cloudinary</h4>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Los archivos se suben y persisten de forma segura en la nube (Cloudinary), evitando almacenamiento temporal en discos locales efímeros del servidor. Tus PDFs no se borrarán con reinicios de servidor.
+                        </p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-2">
+                        <div class="h-8 w-8 rounded-lg bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+                            <i class="pi pi-eye"></i>
+                        </div>
+                        <h4 class="font-bold text-xs text-slate-800 dark:text-white">Previsualizador en Vivo</h4>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Los archivos PDF y las imágenes cargadas pueden visualizarse de forma interactiva en la app mediante un visor con zoom y rotación integrado en modales, evitando redirecciones del navegador.
+                        </p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-2">
+                        <div class="h-8 w-8 rounded-lg bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+                            <i class="pi pi-lock"></i>
+                        </div>
+                        <h4 class="font-bold text-xs text-slate-800 dark:text-white">Seguridad y Permisos (IDOR)</h4>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Los endpoints de descarga y visualización en el backend validan estrictamente tu JWT y los privilegios de propiedad. Ningún usuario externo puede leer tus archivos modificando identificadores numéricos.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COPILOTO LEGAL IA -->
+            <section id="ia" class="scroll-mt-24 space-y-6 border-t border-slate-200 dark:border-slate-700 pt-10" *ngIf="selectedCategory === 'all' || selectedCategory === 'ia'">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 flex items-center justify-center shadow-sm">
+                        <i class="pi pi-sparkles text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Copilot</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Inteligencia Artificial premium integrada para escritos y auditorías rápidas</p>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-violet-600 to-fuchsia-700 rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden">
+                    <div class="absolute right-0 top-0 opacity-10 transform translate-x-6 -translate-y-6 select-none pointer-events-none">
+                        <i class="pi pi-sparkles text-[15rem]"></i>
+                    </div>
+                    <div class="relative z-10 space-y-3">
+                        <span class="bg-white/20 text-violet-100 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full">Tecnología Premium</span>
+                        <h3 class="text-lg font-bold">Un Abogado Experto a un clic</h3>
+                        <p class="text-xs text-violet-100 leading-relaxed">
+                            Alimentado por Gemini 2.5 Flash y ChatGPT de OpenAI como respaldo. El Copilot analiza el expediente judicial completo seleccionado para proveerte cuatro flujos fundamentales:
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-[11px] text-violet-100 font-medium">
+                            <div class="flex items-center gap-1.5"><i class="pi pi-check text-[10px]"></i> Redactor de escritos adaptado a la terminología forense argentina.</div>
+                            <div class="flex items-center gap-1.5"><i class="pi pi-check text-[10px]"></i> Resumen estratégico procesal que extrae hechos y plan de acción.</div>
+                            <div class="flex items-center gap-1.5"><i class="pi pi-check text-[10px]"></i> Estimador de probabilidad de éxito basado en doctrina y riesgo.</div>
+                            <div class="flex items-center gap-1.5"><i class="pi pi-check text-[10px]"></i> Analizador general de textos para auditar cláusulas abusivas.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulator widget -->
+                <div class="space-y-3">
+                    <h4 class="font-bold text-slate-800 dark:text-white text-xs flex items-center gap-1">
+                        <i class="pi pi-play-circle text-blue-500"></i> Laboratorio de Pruebas: Simulador de Copilot
+                    </h4>
+                    
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-sm">
+                        <!-- Tab header -->
+                        <div class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 p-2.5 flex gap-2">
+                            <button (click)="selectedAiTab = 'draft'" [ngClass]="selectedAiTab === 'draft' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200">
+                                Redactor de Escritos
+                            </button>
+                            <button (click)="selectedAiTab = 'risk'" [ngClass]="selectedAiTab === 'risk' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200">
+                                Análisis de Riesgo
+                            </button>
+                        </div>
+                        
+                        <!-- Tab content -->
+                        <div class="p-6 space-y-4">
+                            <div *ngIf="selectedAiTab === 'draft'" class="space-y-4">
+                                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                    Simula la redacción instantánea de escritos judiciales. Selecciona el tipo de escrito y observa cómo el Copilot recopila los detalles del expediente:
+                                </p>
+                                <div class="flex flex-wrap gap-2">
+                                    <button (click)="generateMockDraft('demanda')" class="bg-slate-100 hover:bg-blue-50 dark:bg-slate-700 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-300 text-slate-700 dark:text-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                                        <i class="pi pi-file-edit text-blue-500"></i> Demanda de Daños
+                                    </button>
+                                    <button (click)="generateMockDraft('contestacion')" class="bg-slate-100 hover:bg-blue-50 dark:bg-slate-700 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-300 text-slate-700 dark:text-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                                        <i class="pi pi-file text-purple-500"></i> Contestar Demanda
+                                    </button>
+                                    <button (click)="generateMockDraft('resumen')" class="bg-slate-100 hover:bg-blue-50 dark:bg-slate-700 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-300 text-slate-700 dark:text-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                                        <i class="pi pi-align-justify text-emerald-500"></i> Resumen de Causa
+                                    </button>
+                                </div>
+                                
+                                <div class="relative bg-slate-900 text-slate-100 rounded-2xl p-5 font-mono text-xs min-h-[140px] max-h-[220px] overflow-y-auto border border-slate-950 shadow-inner">
+                                    <div *ngIf="isAiGenerating" class="absolute inset-0 bg-slate-900/85 flex flex-col items-center justify-center gap-2 rounded-2xl">
+                                        <i class="pi pi-spin pi-spinner text-blue-400 text-xl"></i>
+                                        <span class="text-xs text-blue-200">Redactando escrito judicial...</span>
+                                    </div>
+                                    <div *ngIf="!aiOutput && !isAiGenerating" class="text-slate-500 italic text-center pt-8">
+                                        Haz clic en uno de los botones superiores para ejecutar el simulador de IA en tiempo real.
+                                    </div>
+                                    <pre class="whitespace-pre-wrap leading-relaxed">{{ aiOutput }}</pre>
+                                </div>
+                            </div>
+                            
+                            <div *ngIf="selectedAiTab === 'risk'" class="space-y-4">
+                                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                    El sistema analiza doctrina judicial y los detalles cargados del caso para predecir probabilidades matemáticas y listar riesgos procesales:
+                                </p>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="bg-emerald-50/50 dark:bg-emerald-950/10 p-4 rounded-xl border border-emerald-100/50 dark:border-emerald-900/30">
+                                        <h4 class="text-xs font-bold text-emerald-800 dark:text-emerald-400 mb-2.5 flex items-center gap-1.5">
+                                            <i class="pi pi-check-circle"></i> Puntos Fuertes (Simulación)
+                                        </h4>
+                                        <ul class="space-y-2 text-[11px] text-emerald-700 dark:text-emerald-350">
+                                            <li class="flex items-start gap-1">• <span>Actas y fotos policiales adjuntas en el visor digital.</span></li>
+                                            <li class="flex items-start gap-1">• <span>Testigos presenciales uniformes y contestes.</span></li>
+                                        </ul>
+                                    </div>
+                                    <div class="bg-red-50/50 dark:bg-red-950/10 p-4 rounded-xl border border-red-100/50 dark:border-red-900/30">
+                                        <h4 class="text-xs font-bold text-red-800 dark:text-red-400 mb-2.5 flex items-center gap-1.5">
+                                            <i class="pi pi-exclamation-circle"></i> Riesgos Identificados
+                                        </h4>
+                                        <ul class="space-y-2 text-[11px] text-red-700 dark:text-red-350">
+                                            <li class="flex items-start gap-1">• <span>La aseguradora se encuentra en concurso preventivo.</span></li>
+                                            <li class="flex items-start gap-1">• <span>Falta de pericia mecánica oficial consolidada.</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <div class="w-full flex-grow">
+                                        <div class="flex justify-between items-center text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                            <span>Probabilidad Proyectada de Éxito:</span>
+                                            <span class="text-blue-600 dark:text-blue-400">{{ mockSuccessRate }}%</span>
+                                        </div>
+                                        <div class="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
+                                            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-full rounded-full transition-all duration-1000" [style.width.%]="mockSuccessRate"></div>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2 shrink-0">
+                                        <button (click)="mockSuccessRate = 48" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-750 dark:hover:bg-slate-700 text-[10px] rounded-lg font-bold transition-colors">Caso Complejo (48%)</button>
+                                        <button (click)="mockSuccessRate = 85" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-750 dark:hover:bg-slate-700 text-[10px] rounded-lg font-bold transition-colors">Caso Sólido (85%)</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AGENDA Y CALENDARIO (PDF SCANNER) -->
+            <section id="calendario" class="scroll-mt-24 space-y-6 border-t border-slate-200 dark:border-slate-700 pt-10" *ngIf="selectedCategory === 'all' || selectedCategory === 'gestion'">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 flex items-center justify-center shadow-sm">
+                        <i class="pi pi-calendar text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Agenda, Vencimientos y PDFs</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Calendario interactivo y extracción automatizada de plazos por IA</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-2">
+                            <i class="pi pi-sync text-orange-500 animate-spin" style="animation-duration: 8s;"></i> Sincronización Google Calendar
+                        </h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
+                            Al vincular tu cuenta de Google en tu Perfil, cada audiencia, reunión o vencimiento perentorio que cargues en Themis se sincronizará automáticamente en tu calendario de Google en tiempo real, permitiendo alertas móviles instantáneas.
+                        </p>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-2">
+                            <i class="pi pi-file-pdf text-red-500"></i> Escáner de PDFs Judiciales (Notificaciones)
+                        </h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
+                            ¿Recibiste una cédula o notificación judicial con plazos ajustados? En lugar de calcular a mano, Themis te permite subir el archivo PDF. La IA de Gemini leerá el texto legal, deducirá los plazos otorgados, verificará la fecha de notificación y los fines de semana/feriados de Argentina, calculando de inmediato tu fecha límite exacta.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Simulator widget -->
+                <div class="space-y-3">
+                    <h4 class="font-bold text-slate-800 dark:text-white text-xs flex items-center gap-1">
+                        <i class="pi pi-play-circle text-orange-500"></i> Laboratorio de Pruebas: Escaneo de Notificaciones PDF
+                    </h4>
+                    
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-sm p-6">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+                            Simula cómo la IA analiza y extrae plazos procesales en base a un documento PDF simulado:
+                        </p>
+                        
+                        <div *ngIf="pdfSimState === 'idle'" (click)="simulatePdfScan()" 
+                            class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 rounded-2xl p-8 text-center hover:bg-blue-50/20 dark:hover:bg-blue-900/10 cursor-pointer transition-all duration-200 group">
+                            <i class="pi pi-file-pdf text-4xl text-red-500 mb-3 block group-hover:scale-110 transition-transform"></i>
+                            <p class="text-xs font-bold text-slate-750 dark:text-slate-200">Simular Carga de Cedula_Notificacion.pdf</p>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Haz clic aquí para iniciar el escaneo de simulación</p>
+                        </div>
+                        
+                        <div *ngIf="pdfSimState === 'reading'" class="py-8 text-center bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-2">
+                            <i class="pi pi-spin pi-spinner text-orange-500 text-2xl"></i>
+                            <p class="text-xs font-bold text-slate-750 dark:text-slate-200">Leyendo y decodificando PDF...</p>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400">La IA está extrayendo los plazos procesales según días hábiles en Argentina</p>
+                        </div>
+                        
+                        <div *ngIf="pdfSimState === 'analyzed'" class="space-y-4">
+                            <div class="bg-emerald-50/50 dark:bg-emerald-950/15 text-emerald-800 dark:text-emerald-350 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-950/30">
+                                <h4 class="text-xs font-bold mb-3 flex items-center gap-1.5">
+                                    <i class="pi pi-check-circle"></i> Plazos Detectados por el Copilot
+                                </h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                    <div>
+                                        <span class="text-slate-500 dark:text-slate-400 block text-[9px] uppercase font-bold tracking-wider">Acción Requerida</span>
+                                        <span class="font-bold text-slate-800 dark:text-slate-200 text-xs">{{ pdfResult.title }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-500 dark:text-slate-400 block text-[9px] uppercase font-bold tracking-wider">Plazo Otorgado</span>
+                                        <span class="font-bold text-slate-800 dark:text-slate-200 text-xs">{{ pdfResult.deadline }} días hábiles judiciales</span>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <span class="text-slate-500 dark:text-slate-400 block text-[9px] uppercase font-bold tracking-wider">Fundamento / Proveído</span>
+                                        <span class="text-slate-700 dark:text-slate-300 text-[11px] leading-relaxed block mt-0.5">{{ pdfResult.description }}</span>
+                                    </div>
+                                    <div class="sm:col-span-2 bg-white dark:bg-slate-800 p-3.5 rounded-xl border dark:border-slate-750 flex justify-between items-center mt-2 shadow-sm">
+                                        <div>
+                                            <span class="text-slate-500 dark:text-slate-400 block text-[8px] uppercase font-bold tracking-wider">Vencimiento Calculado (Sin fines de semana ni feriados)</span>
+                                            <span class="font-bold text-orange-600 dark:text-orange-400 text-sm">{{ pdfResult.dueDate | date:'dd/MM/yyyy' }}</span>
+                                        </div>
+                                        <span class="bg-emerald-600 text-white font-bold text-[9px] uppercase px-2.5 py-1 rounded-full shadow-sm">Agendado</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button (click)="resetPdfMock()" class="w-full bg-slate-200 hover:bg-slate-350 dark:bg-slate-750 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold py-2.5 rounded-xl transition-colors">
+                                Resetear Escáner
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FACTURACION AFIP / ARCA -->
+            <section id="afip" class="scroll-mt-24 space-y-6 border-t border-slate-200 dark:border-slate-700 pt-10" *ngIf="selectedCategory === 'all' || selectedCategory === 'facturacion'">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center shadow-sm">
+                        <i class="pi pi-receipt text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Facturación Electrónica AFIP / ARCA</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Emisión de Factura C oficial, CAE digital y cálculo de aranceles JUS</p>
+                    </div>
+                </div>
+
+                <div class="bg-purple-50 dark:bg-purple-950/20 border-l-4 border-purple-500 p-5 rounded-r-2xl space-y-2">
+                    <h4 class="font-bold text-purple-900 dark:text-purple-300 text-sm">¿Cómo funciona la emisión integrada?</h4>
+                    <p class="text-xs text-purple-800 dark:text-purple-450 leading-relaxed">
+                        Para simplificar la contabilidad, Themis utiliza el sistema oficial de **Delegación de Relaciones** del portal de la AFIP. 
+                        No necesitas cargar tu certificado digital ni tu clave privada del certificado `.key` en la plataforma; simplemente autorizas al CUIT central de Themis a facturar y el sistema se comunica de forma segura con el WebService (wsfe) para obtener el **CAE**.
                     </p>
                 </div>
 
                 <div class="space-y-6">
-                    <div>
-                        <h3 class="font-bold text-slate-800 dark:text-white mb-2">Estructura de un Expediente</h3>
-                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">El expediente es el contenedor
-                            digital de toda la causa.
-                            Contiene:</p>
+                    <h3 class="font-bold text-slate-850 dark:text-white text-sm">Proceso de Activación en 3 Pasos</h3>
+                    
+                    <div class="space-y-6 relative border-l-2 border-slate-200 dark:border-slate-700 pl-6 ml-4">
+                        <!-- Paso 1 -->
+                        <div class="relative">
+                            <div class="absolute -left-[35px] top-0.5 w-6 h-6 rounded-full bg-purple-600 text-white font-bold text-xs flex items-center justify-center shadow">1</div>
+                            <h4 class="font-bold text-slate-800 dark:text-white text-xs">Adherir el Servicio en el Portal de AFIP</h4>
+                            <p class="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed mt-1">
+                                Ingresa con tu CUIT y Clave Fiscal al portal de <a href="https://auth.afip.gob.ar/contribuyente_/login.xhtml" target="_blank" class="text-blue-500 hover:underline">AFIP/ARCA <i class="pi pi-external-link text-[9px]"></i></a>. 
+                                Dirígete al **"Administrador de Relaciones de Clave Fiscal"** > click en **"Adherir Servicio"** > selecciona el logo de **"AFIP"** > **"Webservices"** > selecciona **"Facturación Electrónica (wsfe)"**. 
+                                En el campo "Representante", ingresa el CUIT administrador provisto en el correo de bienvenida.
+                            </p>
+                        </div>
+                        
+                        <!-- Paso 2 -->
+                        <div class="relative">
+                            <div class="absolute -left-[35px] top-0.5 w-6 h-6 rounded-full bg-purple-600 text-white font-bold text-xs flex items-center justify-center shadow">2</div>
+                            <h4 class="font-bold text-slate-800 dark:text-white text-xs">Ingresar tu CUIT en Themis</h4>
+                            <p class="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed mt-1">
+                                En Themis, ve a la sección <a routerLink="/profile" class="text-blue-500 hover:underline">Mi Perfil</a>, busca la tarjeta de AFIP y escribe tu CUIT de 11 dígitos sin guiones y el número de tu **Punto de Venta** (debe estar habilitado para factura electrónica / factura en línea). Guarda los cambios.
+                            </p>
+                        </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <!-- Card 1 -->
-                            <div
-                                class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow">
-                                <div
-                                    class="h-8 w-8 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center mb-3">
-                                    <i class="pi pi-id-card"></i>
-                                </div>
-                                <h4 class="font-bold text-sm text-slate-800 dark:text-white">Carátula</h4>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Datos judiciales: Nro, Fuero,
-                                    Juzgado, Carátula
-                                    completa.</p>
-                            </div>
-                            <!-- Card 2 -->
-                            <div
-                                class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow">
-                                <div
-                                    class="h-8 w-8 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center mb-3">
-                                    <i class="pi pi-wallet"></i>
-                                </div>
-                                <h4 class="font-bold text-sm text-slate-800 dark:text-white">Contabilidad</h4>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                    Registra <strong>Gastos</strong> (Bonos, Tasas) y <strong>Pagos</strong>
-                                    (Honorarios).
-                                    El sistema calcula el saldo automáticamente.
-                                </p>
-                            </div>
-                            <!-- Card 3 -->
-                            <div
-                                class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow">
-                                <div
-                                    class="h-8 w-8 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center mb-3">
-                                    <i class="pi pi-file-pdf"></i>
-                                </div>
-                                <h4 class="font-bold text-sm text-slate-800 dark:text-white">Archivos</h4>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Sube PDFs de cédulas,
-                                    escritos o sentencias para
-                                    tener copia digital.</p>
-                            </div>
+                        <!-- Paso 3 -->
+                        <div class="relative">
+                            <div class="absolute -left-[35px] top-0.5 w-6 h-6 rounded-full bg-purple-600 text-white font-bold text-xs flex items-center justify-center shadow">3</div>
+                            <h4 class="font-bold text-slate-800 dark:text-white text-xs">Emitir Factura C en Un Clic</h4>
+                            <p class="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed mt-1">
+                                En la ficha del cliente, ve a la pestaña **Cuenta Corriente**. Al lado de cualquier cobro de Honorarios, haz clic en el botón de ticket <i class="pi pi-receipt text-purple-600"></i>. 
+                                La plataforma facturará el monto directamente en AFIP, recuperará el CAE oficial e imprimirá la factura con tu membrete en formato PDF profesional para el cliente.
+                            </p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- CALENDARIO -->
-            <section id="calendario"
-                class="scroll-mt-6 pt-6 border-t border-slate-200 dark:border-slate-700 scroll-spy-target">
-                <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-3">
-                    <div
-                        class="h-10 w-10 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 flex items-center justify-center">
-                        <i class="pi pi-calendar text-xl"></i>
+            <!-- SUSCRIPCIONES Y MERCADOPAGO -->
+            <section id="suscripciones" class="scroll-mt-24 space-y-6 border-t border-slate-200 dark:border-slate-700 pt-10" *ngIf="selectedCategory === 'all' || selectedCategory === 'facturacion'">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-sm">
+                        <i class="pi pi-credit-card text-lg"></i>
                     </div>
-                    Agenda y Vencimientos
-                </h2>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div>
-                        <h3 class="font-bold text-slate-800 dark:text-white mb-3">Tipos de Vencimiento</h3>
-                        <ul class="space-y-3">
-                            <li
-                                class="flex gap-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
-                                <span
-                                    class="text-red-500 font-bold text-xs uppercase bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded h-fit">Perentorio</span>
-                                <div>
-                                    <p class="text-sm font-bold text-slate-800 dark:text-white">Plazos Fatales</p>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">Contestación de demandas,
-                                        apelaciones. Generan
-                                        alertas más agresivas.</p>
-                                </div>
-                            </li>
-                            <li
-                                class="flex gap-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
-                                <span
-                                    class="text-blue-500 font-bold text-xs uppercase bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded h-fit">Audiencia</span>
-                                <div>
-                                    <p class="text-sm font-bold text-slate-800 dark:text-white">Presencial / Virtual</p>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">Requiere preparación previa y
-                                        asistencia puntual.
-                                    </p>
-                                </div>
-                            </li>
-                        </ul>
+                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Suscripciones y Licencia (MercadoPago)</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Planes mensuales de uso, pasarela integrada y periodos de gracia</p>
                     </div>
+                </div>
 
-                    <div class="bg-slate-800 dark:bg-slate-700 text-white p-6 rounded-xl">
-                        <h3 class="font-bold text-lg mb-2 flex items-center gap-2">
-                            <i class="pi pi-google"></i> Google Calendar
-                        </h3>
-                        <p class="text-sm text-slate-300 mb-4">
-                            Si vinculas tu cuenta, todo lo que cargues aquí aparecerá en tu celular.
-                        </p>
-                        <div class="space-y-2 text-xs opacity-80">
-                            <p>✓ Sincronización automática al crear.</p>
-                            <p>✓ Título y Descripción incluidos.</p>
-                            <p>✓ Recordatorios nativos de Google.</p>
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 dark:text-white text-sm">Control de Suscripciones Activas</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
+                        Para operar en la plataforma, los usuarios con rol `USER` requieren una suscripción activa a través de débito automático mensual con MercadoPago (flujo `PreApproval` API).
+                    </p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl border border-slate-100 dark:border-slate-750 bg-slate-50/50 dark:bg-slate-900/30 space-y-2">
+                            <span class="font-bold text-slate-750 dark:text-slate-200 text-xs flex items-center gap-1">
+                                <i class="pi pi-calendar-plus text-blue-500"></i> Periodo de Gracia de 7 días
+                            </span>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                                Si hay un retraso en el débito automático de MercadoPago, la plataforma te otorga un periodo de gracia adicional de 7 días. Durante este lapso recibirás avisos en la cabecera, pero la app permanecerá utilizable.
+                            </p>
+                        </div>
+                        
+                        <div class="p-4 rounded-xl border border-slate-100 dark:border-slate-750 bg-slate-50/50 dark:bg-slate-900/30 space-y-2">
+                            <span class="font-bold text-slate-750 dark:text-slate-200 text-xs flex items-center gap-1">
+                                <i class="pi pi-lock text-red-500"></i> Bloqueo de Creación
+                            </span>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                                Vencido el periodo de gracia sin saldar la suscripción, se activará el bloqueo preventivo (`isCreationBlocked`). Conservarás acceso de lectura para consultar tus datos y expedientes cargados, pero no podrás agregar nuevos clientes ni causas.
+                            </p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- CONFIGURACION -->
-            <section id="configuracion"
-                class="scroll-mt-6 pt-6 border-t border-slate-200 dark:border-slate-700 pb-20 scroll-spy-target">
-                <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-3">
-                    <div
-                        class="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center">
-                        <i class="pi pi-cog text-xl"></i>
+            <!-- AJUSTES, BOT WHATSAPP Y NOTIFICACIONES PUSH -->
+            <section id="configuracion" class="scroll-mt-24 space-y-6 border-t border-slate-200 dark:border-slate-700 pb-20 pt-10" *ngIf="selectedCategory === 'all' || selectedCategory === 'general'">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center shadow-sm">
+                        <i class="pi pi-cog text-lg"></i>
                     </div>
-                    Configuración Avanzada
-                </h2>
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Ajustes del Sistema y WhatsApp</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Vinculación de WhatsApp Web, sesiones de bases de datos y notificaciones Web Push profundas</p>
+                    </div>
+                </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div
-                        class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <div class="flex items-start justify-between mb-4">
+                    <!-- WhatsApp card info -->
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                        <div class="flex items-start justify-between">
                             <div>
-                                <h4 class="font-bold text-slate-800 dark:text-white">WhatsApp Bot</h4>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">Asistente 24/7</p>
+                                <h4 class="font-bold text-slate-800 dark:text-white text-sm">Bot de WhatsApp Integrado</h4>
+                                <p class="text-[10px] text-slate-400 dark:text-slate-500">Automatizaciones directas 24/7</p>
                             </div>
                             <i class="pi pi-whatsapp text-2xl text-green-500"></i>
                         </div>
-                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-                            Al escanear el QR, permites que el sistema envíe mensajes <strong>como si fueras
-                                tú</strong>.
-                            Esto se usa para enviar recordatorios de vencimientos a tus clientes automáticamente.
+                        <p class="text-xs text-slate-650 dark:text-slate-400 leading-relaxed">
+                            Al enlazar tu número mediante código QR o código de emparejamiento, el sistema inicia un navegador en segundo plano en el servidor Railway. 
+                            Las credenciales se guardan en la base de datos PostgreSQL (`whatsapp_sessions`) para evitar desconexiones accidentales al reiniciar el servidor. 
+                            De este modo, se despacharán recordatorios de plazos procesales directamente desde tu número telefónico a tus clientes.
                         </p>
-                        <div
-                            class="text-xs bg-slate-50 dark:bg-slate-700 p-3 rounded text-slate-500 dark:text-slate-300 italic">
-                            "Hola [Nombre], te recordamos que mañana vence el plazo para presentar..."
-                        </div>
                     </div>
 
-                    <div
-                        class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <div class="flex items-start justify-between mb-4">
+                    <!-- Push notifications VAPID card -->
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                        <div class="flex items-start justify-between">
                             <div>
-                                <h4 class="font-bold text-slate-800 dark:text-white">Valores de Referencia</h4>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">JUS y Honorarios</p>
+                                <h4 class="font-bold text-slate-800 dark:text-white text-sm">Push en Segundo Plano Profundo</h4>
+                                <p class="text-[10px] text-slate-400 dark:text-slate-500">Alertas de sistema con navegador cerrado</p>
                             </div>
-                            <i class="pi pi-calculator text-2xl text-slate-400 dark:text-slate-500"></i>
+                            <i class="pi pi-bell text-2xl text-blue-500 animate-bounce" style="animation-duration: 3s;"></i>
                         </div>
-                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-                            Mantén actualizado el valor del JUS Arancelario. El sistema lo usará para convertir
-                            automáticamente los montos regulados en JUS a Pesos en el momento del pago.
+                        <p class="text-xs text-slate-650 dark:text-slate-400 leading-relaxed">
+                            Gracias a la tecnología Angular Service Worker y al firmado criptográfico VAPID, puedes autorizar notificaciones en tu computadora o celular. 
+                            Incluso si apagas o cierras el navegador, cuando la tarea diaria de Themis detecte un vencimiento inminente a las 9:00 AM, el sistema enviará un push que aparecerá directamente en tu centro de alertas del sistema operativo.
                         </p>
+                    </div>
+                </div>
+
+                <!-- WhatsApp Simulator -->
+                <div class="space-y-3">
+                    <h4 class="font-bold text-slate-800 dark:text-white text-xs flex items-center gap-1">
+                        <i class="pi pi-play-circle text-green-500"></i> Laboratorio de Pruebas: Simulación del Bot de WhatsApp
+                    </h4>
+                    
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-sm p-6">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+                            Observa cómo opera el bot en segundo plano enviando alertas reales de vencimiento procesal:
+                        </p>
+                        
+                        <div class="flex flex-col md:flex-row gap-6 items-stretch">
+                            <!-- Simulated Control Panel -->
+                            <div class="flex-1 flex flex-col justify-center gap-4">
+                                <button *ngIf="whatsappSimState === 'idle'" (click)="sendMockWhatsapp()" 
+                                    class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all duration-200 flex items-center justify-center gap-2">
+                                    <i class="pi pi-whatsapp"></i> Enviar Mensaje de Prueba
+                                </button>
+                                <div *ngIf="whatsappSimState === 'sending'" class="text-center py-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-dashed dark:border-slate-750 flex flex-col items-center justify-center gap-2">
+                                    <i class="pi pi-spin pi-spinner text-green-500 text-xl"></i>
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Conectando al bot de WhatsApp...</span>
+                                </div>
+                                <div *ngIf="whatsappSimState === 'success'" class="space-y-3">
+                                    <div class="bg-emerald-50 dark:bg-emerald-950/15 text-emerald-800 dark:text-emerald-300 p-3.5 rounded-xl border border-emerald-100 dark:border-emerald-900/30 text-xs flex items-center gap-2 font-medium">
+                                        <i class="pi pi-check-circle text-lg text-emerald-500"></i>
+                                        <span>Mensaje enviado correctamente al cliente.</span>
+                                    </div>
+                                    <button (click)="resetWhatsappMock()" class="w-full bg-slate-200 hover:bg-slate-350 dark:bg-slate-750 dark:hover:bg-slate-705 text-slate-700 dark:text-slate-200 text-xs font-bold py-2 rounded-xl transition-colors">
+                                        Reiniciar Simulación
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Simulated Phone screen -->
+                            <div class="w-full md:w-64 bg-slate-950 rounded-3xl p-3.5 border-[6px] border-slate-800 flex flex-col justify-between shadow-md max-w-[280px] mx-auto min-h-[220px]">
+                                <div class="flex justify-between items-center text-[9px] text-slate-500 px-2 pb-2 border-b border-slate-900 font-bold">
+                                    <span>WhatsApp Themis</span>
+                                    <span>10:30</span>
+                                </div>
+                                <div class="flex-grow py-4 flex flex-col justify-end">
+                                    <!-- Message bubble -->
+                                    <div *ngIf="whatsappSimState === 'success'" class="bg-[#dcf8c6] dark:bg-emerald-900 text-slate-950 dark:text-slate-100 p-3 rounded-xl text-[10px] max-w-[90%] self-end shadow-sm leading-relaxed border-l-4 border-green-500 animate-fade-in font-medium">
+                                        {{ whatsappSimText }}
+                                        <span class="block text-[8px] text-right text-slate-500 dark:text-emerald-350 mt-1 font-bold">10:30 ✓✓</span>
+                                    </div>
+                                    <div *ngIf="whatsappSimState !== 'success'" class="text-slate-700 dark:text-slate-650 italic text-[10px] text-center">
+                                        Esperando simulación...
+                                    </div>
+                                </div>
+                                <div class="bg-slate-900 p-2 rounded-xl text-[9px] text-slate-500 text-center font-bold">
+                                    Chat de Cliente
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

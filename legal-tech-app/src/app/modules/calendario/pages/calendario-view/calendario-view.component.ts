@@ -17,7 +17,11 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { DeadlineService } from '../../../../core/services/deadline.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { SubscriptionService } from '../../../../core/services/subscription.service';
+import { ExpedienteService } from '../../../../core/services/expediente.service';
+import { CalendarEventService } from '../../../../core/services/calendar-event.service';
 import { Vencimiento } from '../../../../core/models/vencimiento.model';
+import { CalendarEvent } from '../../../../core/models/calendar-event.model';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -45,21 +49,42 @@ export class CalendarioViewComponent {
   deadlineService = inject(DeadlineService);
   notificationService = inject(NotificationService);
   authService = inject(AuthService);
+  subscriptionService = inject(SubscriptionService);
+  expedienteService = inject(ExpedienteService);
+  calendarEventService = inject(CalendarEventService);
 
   fb = inject(FormBuilder);
 
+  expedienteOptions = computed(() =>
+    this.expedienteService.expedientes().map(e => ({
+      label: `${e.nroExpediente} — ${e.caratula}`,
+      value: e.id
+    }))
+  );
+
   // Properties
-  deadlines = this.deadlineService.deadlines; 
-  
+  deadlines = this.deadlineService.deadlines;
+  calendarEvents = this.calendarEventService.events;
+
   // View State
   viewMode = signal<'LIST' | 'MONTH'>('LIST');
+  listTab = signal<'VENCIMIENTOS' | 'EVENTOS'>('VENCIMIENTOS');
   currentMonth = signal<Date>(new Date());
-  
-  // Dialog & Form
+
+  // Deadline Dialog & Form
   deadlineDialog: boolean = false;
   form: FormGroup;
   isEditMode: boolean = false;
   currentId: string | null = null;
+
+  // Event Dialog & Form
+  eventDialog: boolean = false;
+  eventForm: FormGroup;
+  isEventEditMode: boolean = false;
+  currentEventId: string | null = null;
+
+  // PDF Upload & Extraction State
+  analyzingPdf = signal<boolean>(false);
 
   // Options
   tipos = [
@@ -74,6 +99,21 @@ export class CalendarioViewComponent {
       { label: 'CUMPLIDO', value: 'CUMPLIDO' },
       { label: 'CANCELADO', value: 'CANCELADO' },
       { label: 'EXPIRADO', value: 'EXPIRADO' }
+  ];
+
+  tiposEvento = [
+    { label: 'Reunión', value: 'REUNION' },
+    { label: 'Llamada', value: 'LLAMADA' },
+    { label: 'Recordatorio', value: 'RECORDATORIO' },
+    { label: 'Otro', value: 'OTRO' },
+  ];
+
+  coloresEvento = [
+    { label: 'Azul',    value: '#3b82f6' },
+    { label: 'Verde',   value: '#22c55e' },
+    { label: 'Violeta', value: '#a855f7' },
+    { label: 'Naranja', value: '#f97316' },
+    { label: 'Rosa',    value: '#ec4899' },
   ];
 
   // Calendar Grid Generation
@@ -101,18 +141,22 @@ export class CalendarioViewComponent {
     // Current month days
     for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
       const date = new Date(year, month, day);
-      // Filter deadlines for this day
       const dayDeadlines = this.deadlines().filter(v => {
           if (!v.fechaVencimiento) return false;
           const vDate = new Date(v.fechaVencimiento);
           return vDate.getDate() === day && vDate.getMonth() === month && vDate.getFullYear() === year;
       });
-      
-      days.push({ 
-          date, 
-          isCurrentMonth: true, 
-          isToday: date.toDateString() === today.toDateString(), 
-          deadlines: dayDeadlines 
+      const dayEvents = this.calendarEvents().filter(e => {
+          if (!e.fecha) return false;
+          const eDate = new Date(e.fecha);
+          return eDate.getDate() === day && eDate.getMonth() === month && eDate.getFullYear() === year;
+      });
+      days.push({
+          date,
+          isCurrentMonth: true,
+          isToday: date.toDateString() === today.toDateString(),
+          deadlines: dayDeadlines,
+          events: dayEvents
       });
     }
     
@@ -134,7 +178,16 @@ export class CalendarioViewComponent {
       tipo: ['VENCIMIENTO_PLAZO', Validators.required],
       estado: ['PENDIENTE', Validators.required],
       esPerentorio: [false],
-      expedienteId: [null] // Keep track of relation
+      expedienteId: [null]
+    });
+
+    this.eventForm = this.fb.group({
+      titulo: ['', Validators.required],
+      descripcion: [''],
+      fecha: [null, Validators.required],
+      fechaFin: [null],
+      tipo: ['REUNION', Validators.required],
+      color: ['#3b82f6'],
     });
   }
 
@@ -157,26 +210,33 @@ export class CalendarioViewComponent {
       return this.currentMonth().toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
   }
 
-  getUrgencyClass(urgency: string | undefined): string {
-      switch (urgency) {
+  urgencyLevel(v: Vencimiento): 'URGENTE' | 'ALTA' | 'MEDIA' | 'BAJA' {
+      if (v.esPerentorio) return 'URGENTE';
+      if (v.tipo === 'AUDIENCIA') return 'ALTA';
+      if (v.tipo === 'VENCIMIENTO_PLAZO') return 'MEDIA';
+      return 'BAJA';
+  }
+
+  getUrgencyClass(v: Vencimiento): string {
+      switch (this.urgencyLevel(v)) {
           case 'URGENTE': return 'bg-red-100 text-red-700 border-red-200';
           case 'ALTA': return 'bg-orange-100 text-orange-700 border-orange-200';
           case 'MEDIA': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-          default: return 'bg-blue-50 text-blue-700 border-blue-200'; // ORDINARIO / BAJA
+          default: return 'bg-blue-50 text-blue-700 border-blue-200';
       }
   }
 
-  getUrgencyBorder(urgency: string | undefined): string {
-      switch (urgency) {
+  getUrgencyBorder(v: Vencimiento): string {
+      switch (this.urgencyLevel(v)) {
           case 'URGENTE': return 'border-red-200 hover:border-red-300 bg-red-50';
           case 'ALTA': return 'border-orange-200 hover:border-orange-300 bg-orange-50';
           case 'MEDIA': return 'border-yellow-200 hover:border-yellow-300 bg-yellow-50';
-          default: return 'border-slate-200 hover:border-slate-300 bg-white'; 
+          default: return 'border-slate-200 hover:border-slate-300 bg-white';
       }
   }
 
-  getUrgencyDot(urgency: string | undefined): string {
-      switch (urgency) {
+  getUrgencyDot(v: Vencimiento): string {
+      switch (this.urgencyLevel(v)) {
           case 'URGENTE': return 'bg-red-500';
           case 'ALTA': return 'bg-orange-500';
           case 'MEDIA': return 'bg-yellow-500';
@@ -264,6 +324,74 @@ export class CalendarioViewComponent {
     this.deadlineDialog = false;
   }
 
+  triggerPdfUpload() {
+    const fileInput = document.getElementById('pdfFileInput');
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
+  onPdfFileSelected(event: any) {
+    const file = event.target?.files?.[0];
+    if (!file) return;
+
+    this.analyzingPdf.set(true);
+    
+    Swal.fire({
+      title: 'Analizando PDF...',
+      text: 'Gemini está leyendo el escrito y extrayendo los plazos judiciales.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    this.deadlineService.analyzePdf(file).subscribe({
+      next: (data) => {
+        Swal.close();
+        this.analyzingPdf.set(false);
+        
+        // Open the review/confirm dialog with a prefilled form
+        this.isEditMode = false;
+        this.currentId = null;
+        
+        this.form.patchValue({
+          titulo: data.titulo,
+          descripcion: data.descripcion,
+          fechaVencimiento: data.fechaVencimiento ? new Date(data.fechaVencimiento) : new Date(),
+          tipo: 'VENCIMIENTO_PLAZO',
+          estado: 'PENDIENTE',
+          esPerentorio: true,
+          expedienteId: null
+        });
+        
+        this.deadlineDialog = true;
+        
+        Swal.fire({
+          icon: 'info',
+          title: 'Datos Extraídos',
+          text: 'Completamos el formulario con los datos del PDF. Selecciona el expediente y confirma.',
+          timer: 5000,
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false
+        });
+      },
+      error: (err) => {
+        Swal.close();
+        this.analyzingPdf.set(false);
+        console.error(err);
+        Swal.fire(
+          'Error de Análisis', 
+          err.error?.message || 'No se pudo analizar el PDF con Gemini. Verifica que GEMINI_API_KEY esté configurada en el servidor.', 
+          'error'
+        );
+      }
+    });
+    
+    event.target.value = '';
+  }
+
   deleteDeadline(id: string) {
     Swal.fire({
       title: '¿Estás seguro?',
@@ -282,32 +410,58 @@ export class CalendarioViewComponent {
     });
   }
 
+  // --- EVENT CRUD ---
+
+  openNewEvent() {
+    this.isEventEditMode = false;
+    this.currentEventId = null;
+    this.eventForm.reset({ tipo: 'REUNION', color: '#3b82f6' });
+    this.eventDialog = true;
+  }
+
+  editEvent(ev: CalendarEvent) {
+    this.isEventEditMode = true;
+    this.currentEventId = ev.id;
+    this.eventForm.patchValue({ ...ev, fecha: new Date(ev.fecha), fechaFin: ev.fechaFin ? new Date(ev.fechaFin) : null });
+    this.eventDialog = true;
+  }
+
+  saveEvent() {
+    if (this.eventForm.invalid) { this.eventForm.markAllAsTouched(); return; }
+    const val = this.eventForm.value;
+    if (this.isEventEditMode && this.currentEventId) {
+      this.calendarEventService.updateEvent(this.currentEventId, val);
+      Swal.fire({ title: 'Actualizado', icon: 'success', timer: 1500, showConfirmButton: false });
+    } else {
+      this.calendarEventService.addEvent(val);
+      Swal.fire({ title: 'Evento creado', icon: 'success', timer: 1500, showConfirmButton: false });
+    }
+    this.eventDialog = false;
+  }
+
+  deleteEvent(id: string) {
+    Swal.fire({ title: '¿Eliminar evento?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar' })
+      .then(r => { if (r.isConfirmed) this.calendarEventService.deleteEvent(id); });
+  }
+
   simulateNotification(deadline: Vencimiento) {
-    const alertDays = this.notificationService.daysBeforeAlert();
-    const alertHours = this.notificationService.checkFrequencyHours();
     const whatsappEnabled = this.notificationService.enableWhatsapp();
     const waNumber = this.notificationService.whatsappNumber();
-    
-    let waText = '';
-    if (whatsappEnabled && waNumber) {
-        waText = ' y WhatsApp';
-        // Simulating the actual message sending for the demo
-        const daysRemaining = Math.ceil((new Date(deadline.fechaVencimiento).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-        const template = this.notificationService.getNotificationTemplate(deadline, daysRemaining);
-        
-        // Send real message via service
-        this.notificationService.sendWhatsappMessage(waNumber, template);
+
+    if (!whatsappEnabled || !waNumber) {
+      Swal.fire({
+        title: 'WhatsApp no configurado',
+        text: 'Activá el Bot de WhatsApp en tu perfil para poder enviar alertas.',
+        icon: 'warning',
+      });
+      return;
     }
 
-    Swal.fire({
-      title: 'Simulación de Alerta',
-      text: `Configuración: ${alertDays} días antes, cada ${alertHours}hs.\nEnviando a App${waText}.\n\nNotificación: "Vence ${deadline.titulo}"`,
-      icon: 'info',
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 5000
-    });
+    const daysRemaining = Math.ceil(
+      (new Date(deadline.fechaVencimiento).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const template = this.notificationService.getNotificationTemplate(deadline, daysRemaining);
+    this.notificationService.sendWhatsappMessage(waNumber, template);
   }
 
 

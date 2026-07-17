@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Request, Query } from '@nestjs/common';
 import { ClientsService } from './clients.service';
 import { Client } from './client.entity';
 import { AuthGuard } from '@nestjs/passport';
@@ -9,8 +9,15 @@ export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
   @Get()
-  findAll(@Request() req) {
-    return this.clientsService.findAll(req.user.userId);
+  findAll(
+    @Request() req,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : undefined;
+    const limitNum = limit ? parseInt(limit, 10) : undefined;
+    return this.clientsService.findAll(req.user.userId, pageNum, limitNum, search);
   }
 
   @Get(':id')

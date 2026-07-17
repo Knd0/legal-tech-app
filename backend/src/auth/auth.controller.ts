@@ -26,7 +26,6 @@ export class AuthController {
           passwordHash: hashedPassword,
           fullName,
           phoneNumber,
-          subscriptionStatus: 'trial',
           isActive: true
       });
   }
@@ -35,6 +34,18 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   getProfile(@Request() req) {
     return req.user;
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: { email: string }) {
+    const { channel } = await this.authService.requestForgotPasswordOtp(body.email);
+    return { message: 'OTP sent', channel };
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: { email: string; otp: string; newPassword: string }) {
+    await this.authService.resetPassword(body.email, body.otp, body.newPassword);
+    return { message: 'Password reset successfully' };
   }
 
   @Post('request-password-otp')
@@ -50,5 +61,19 @@ export class AuthController {
       const { otp, newPassword } = body;
       await this.authService.changePassword(req.user.userId, otp, newPassword);
       return { message: 'Password updated successfully' };
+  }
+
+  @Post('request-phone-verification-otp')
+  @UseGuards(AuthGuard('jwt'))
+  async requestPhoneVerificationOtp(@Request() req, @Body() body: { phoneNumber: string }) {
+      await this.authService.requestPhoneVerificationOtp(req.user.userId, body.phoneNumber);
+      return { message: 'OTP sent' };
+  }
+
+  @Post('verify-phone-otp')
+  @UseGuards(AuthGuard('jwt'))
+  async verifyPhoneOtp(@Request() req, @Body() body: { phoneNumber: string; otp: string }) {
+      await this.authService.verifyPhoneOtp(req.user.userId, body.phoneNumber, body.otp);
+      return { message: 'Phone verified successfully' };
   }
 }

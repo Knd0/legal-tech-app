@@ -1,85 +1,98 @@
-<div class="min-h-screen flex items-center justify-center p-4">
-  <div class="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl shadow-xl overflow-hidden border border-slate-100 dark:border-slate-700">
-    <div class="px-8 pt-10 pb-8 sm:px-12">
-      <div class="mb-10 text-center">
-        <a routerLink="/" class="flex justify-center mb-6 hover:opacity-80 transition-opacity">
-          <img src="favicon.png" alt="Logo" class="h-16 w-auto rounded-2xl shadow-sm">
-        </a>
-        <h2 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Crear cuenta</h2>
-        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-          Unete a LexSaaS y potencia tu estudio
-        </p>
+<div class="min-h-screen bg-[var(--surface-sand)] flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors">
+  <div class="sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="flex justify-center">
+      <div class="bg-[var(--accent-terracotta)] text-white p-4 rounded-full shadow-lg">
+        <i class="pi pi-briefcase text-3xl"></i>
       </div>
+    </div>
+    <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-[var(--text-earth)] font-serif-organic">
+      Themis
+    </h2>
+    <p class="mt-2 text-center text-sm text-[var(--text-earth)]/80">
+      Sistema de Gestión Integral
+    </p>
+  </div>
+
+  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="bg-white dark:bg-slate-800 py-8 px-4 shadow-xl shadow-slate-200 dark:shadow-slate-900/50 sm:rounded-lg sm:px-10 border border-slate-100 dark:border-slate-700">
+      <h3 class="text-xl font-medium text-slate-700 dark:text-slate-200 mb-6 text-center">Crear Cuenta</h3>
 
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-6">
         <div>
-          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Nombre Completo</label>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nombre Completo</label>
           <p-inputGroup>
-            <p-inputGroupAddon>
-              <i class="pi pi-user text-slate-400"></i>
+            <p-inputGroupAddon styleClass="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600">
+              <i class="pi pi-user text-slate-500 dark:text-slate-400"></i>
             </p-inputGroupAddon>
-            <input pInputText type="text" formControlName="fullName" placeholder="Dr. Juan Pérez" class="w-full" />
+            <input pInputText type="text" formControlName="fullName" placeholder="Dr. Juan Pérez" class="w-full dark:bg-slate-700 dark:text-white dark:border-slate-600" />
           </p-inputGroup>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Correo Electrónico</label>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Correo Electrónico</label>
           <p-inputGroup>
-            <p-inputGroupAddon>
-              <i class="pi pi-envelope text-slate-400"></i>
+            <p-inputGroupAddon styleClass="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600">
+              <i class="pi pi-envelope text-slate-500 dark:text-slate-400"></i>
             </p-inputGroupAddon>
-            <input pInputText type="email" formControlName="email" placeholder="abogado@estudio.com" class="w-full" />
+            <input pInputText type="email" formControlName="email" placeholder="abogado@estudio.com" class="w-full dark:bg-slate-700 dark:text-white dark:border-slate-600" />
           </p-inputGroup>
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Teléfono / WhatsApp (Opcional)</label>
-            <p-inputGroup>
-              <p-inputGroupAddon>
-                <i class="pi pi-phone text-slate-400"></i>
-              </p-inputGroupAddon>
-              <input pInputText type="text" formControlName="phoneNumber" placeholder="+54 9 11 1234 5678" class="w-full" />
-            </p-inputGroup>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Contraseña</label>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Teléfono / WhatsApp (Opcional)</label>
           <p-inputGroup>
-            <p-inputGroupAddon>
-              <i class="pi pi-lock text-slate-400"></i>
+            <p-inputGroupAddon styleClass="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600">
+              <i class="pi pi-phone text-slate-500 dark:text-slate-400"></i>
             </p-inputGroupAddon>
-            <input pInputText type="password" formControlName="password" placeholder="••••••••" class="w-full" />
+            <input pInputText type="text" formControlName="phoneNumber" placeholder="+54 9 11 1234 5678" class="w-full dark:bg-slate-700 dark:text-white dark:border-slate-600" />
           </p-inputGroup>
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Confirmar Contraseña</label>
-            <p-inputGroup>
-              <p-inputGroupAddon>
-                <i class="pi pi-lock text-slate-400"></i>
-              </p-inputGroupAddon>
-              <input pInputText type="password" formControlName="confirmPassword" placeholder="••••••••" class="w-full" />
-            </p-inputGroup>
-          </div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Contraseña</label>
+          <p-inputGroup>
+            <p-inputGroupAddon styleClass="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600">
+              <i class="pi pi-lock text-slate-500 dark:text-slate-400"></i>
+            </p-inputGroupAddon>
+            <input pInputText type="password" formControlName="password" placeholder="••••••••" class="w-full dark:bg-slate-700 dark:text-white dark:border-slate-600" />
+          </p-inputGroup>
+          <small class="text-slate-500 dark:text-slate-400 text-xs mt-1 block">
+            Mínimo 8 caracteres, una mayúscula y un número.
+          </small>
+        </div>
 
         <div>
-          <button type="submit" [disabled]="loading() || registerForm.invalid" 
-                  class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
-            @if (loading()) {
-              <i class="pi pi-spin pi-spinner mr-2"></i> Procesando...
-            } @else {
-              Registrarse
-            }
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Confirmar Contraseña</label>
+          <p-inputGroup>
+            <p-inputGroupAddon styleClass="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600">
+              <i class="pi pi-lock text-slate-500 dark:text-slate-400"></i>
+            </p-inputGroupAddon>
+            <input pInputText type="password" formControlName="confirmPassword" placeholder="••••••••" class="w-full dark:bg-slate-700 dark:text-white dark:border-slate-600" />
+          </p-inputGroup>
+        </div>
+
+        <div>
+          <button pButton type="submit" label="Registrarse" [loading]="loading()" [disabled]="loading() || registerForm.invalid"
+            class="w-full disabled:opacity-50 disabled:cursor-not-allowed">
           </button>
         </div>
       </form>
-    </div>
-    
-    <div class="px-8 py-6 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 text-center flex flex-col items-center gap-3">
-      <span class="text-sm text-slate-500 dark:text-slate-400">
-        ¿Ya tienes una cuenta? 
-        <a routerLink="/auth/login" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">Iniciar sesión</a>
-      </span>
+
+      <div class="mt-6">
+        <div class="relative">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-slate-200 dark:border-slate-700"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-white dark:bg-slate-800 text-sm text-slate-500 dark:text-slate-400">
+              ¿Ya tienes una cuenta?
+              <a routerLink="/auth/login" class="font-medium text-[var(--accent-terracotta)] hover:text-[var(--accent-moss)] transition-colors hover:underline ml-1">
+                Iniciar sesión
+              </a>
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

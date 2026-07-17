@@ -3,344 +3,516 @@
 @tailwind components;
 @tailwind utilities;
 
+// =========================================
+// ORGANIC DESIGN SYSTEM VARIABLES
+// =========================================
 :root {
-    --primary-color: #3b82f6;
-    --text-color: #334155;
-    --bg-surface: #ffffff;
-    --text-main: #334155;
-    --border-color: #e2e8f0;
+    // Organic Palette Colors
+    --surface-sand: #E8DCC7;
+    --surface-oat: #D4B895;
+    --accent-terracotta: #C66B3D;
+    --accent-moss: #606C38;
+    --accent-sage: #8B9D83;
+    --accent-clay: #B08B6E;
+    --accent-ochre: #C08E3A;
+    --border-organic: rgba(96, 60, 30, 0.08);
+    --border-organic-strong: rgba(96, 60, 30, 0.16);
+    --text-earth: #2B2521;
+
+    // App variables mapping
+    --bg-app: var(--surface-sand);
+    --bg-surface: #FAF6F0; // light warm cream paper
+    --text-main: var(--text-earth);
+    --text-body: var(--text-earth);
+    --text-muted: rgba(43, 37, 33, 0.65);
+    --border-color: var(--border-organic);
+
+    // Primary action colors (mapped to Terracotta)
+    --brand-navy: var(--accent-terracotta);
+    --brand-gold: var(--accent-ochre);
+    --brand-alert: #A04030; // warm terracotta alert
+    --primary-color: var(--brand-navy);
+    --primary-color-text: #ffffff;
+    --font-family: 'Epilogue', sans-serif;
+    --border-radius: 1.25rem; // 20px
 }
 
 .dark {
-    --primary-color: #60a5fa;
-    --text-color: #f8fafc;
-    --bg-surface: #1e293b;
-    /* slate-800 */
-    --text-main: #f8fafc;
-    --border-color: #475569;
-    /* slate-600 */
-}
+    // Organic Palette Dark Colors
+    --surface-sand: #1c1815; // Dark warm-earth
+    --surface-oat: #231f1c;  // slightly lighter deep warm brown
+    --text-earth: #E8DCC7;
+    --border-organic: rgba(232, 220, 199, 0.08);
+    --border-organic-strong: rgba(232, 220, 199, 0.18);
 
-/* =========================================
-   VISUAL REBOOT: HIGH-FIDELITY CORPORATE
-   ========================================= */
+    // App variables mapping
+    --bg-app: var(--surface-sand);
+    --bg-surface: var(--surface-oat);
+    --text-main: var(--text-earth);
+    --text-body: var(--text-earth);
+    --text-muted: rgba(232, 220, 199, 0.65);
+    --border-color: var(--border-organic);
 
-:root {
-    /* --- 1. Refined Palette (Deep & Corporate) --- */
-    --bg-app: #f1f5f9;
-    /* slate-100: Darker than 50 for card contrast */
-    --bg-surface: #ffffff;
-    /* pure white */
-
-    --text-main: #0f172a;
-    /* slate-900: Sharper text */
-    --text-body: #334155;
-    /* slate-700: Softer body text */
-    --text-muted: #64748b;
-    /* slate-500 */
-
-    --brand-navy: #0f172a;
-    /* Navy Blue (Primary) */
-    --brand-gold: #b45309;
-    /* Amber-700 (Subtle Accent, barely used) */
-    --brand-alert: #be123c;
-    /* Rose-700 (Urgent) */
-
-    --border-color: #e2e8f0;
-    /* slate-200 */
-
-    /* --- 2. PrimeNG Token Mapping --- */
+    // Primary action colors
+    --brand-navy: var(--accent-terracotta);
+    --brand-gold: var(--accent-ochre);
+    --brand-alert: #A04030;
     --primary-color: var(--brand-navy);
     --primary-color-text: #ffffff;
-    --font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    --border-radius: 0.5rem;
-    /* rounded-lg */
 }
 
-/* Base Reset */
-body {
-    background-color: var(--bg-app);
+// =========================================
+// GLOBAL TYPOGRAPHY & TEXT OVERRIDES
+// =========================================
+h1, h2, h3, h4, h5, h6, .p-dialog-title, .p-column-title, .font-serif-organic {
+    font-family: 'Fraunces', serif !important;
+    color: var(--text-main) !important;
+}
+
+body, p, span, a, button, input, textarea, select, td, th, li, label, .p-inputtext, .p-button, .p-dropdown, .p-datepicker {
+    font-family: 'Epilogue', sans-serif !important;
+}
+
+.pi {
+    font-family: 'primeicons' !important;
+}
+
+// =========================================
+// TAILWIND CLASS INTERCEPTION / OVERRIDES
+// =========================================
+
+// Page Backgrounds & containers
+body, .bg-slate-50, .bg-gray-50, .bg-slate-100, .bg-gray-100 {
+    background-color: var(--bg-app) !important;
     color: var(--text-body);
-    font-family: var(--font-family);
-    -webkit-font-smoothing: antialiased;
-    transition: background-color 0.3s ease, color 0.3s ease;
+}
+.dark body, .dark .bg-slate-900, .dark .bg-slate-950, .dark .dark\:bg-slate-900, .dark .dark\:bg-slate-950 {
+    background-color: var(--bg-app) !important;
+    color: var(--text-body) !important;
 }
 
-.dark body {
-    background-color: #0f172a;
-    /* slate-900 */
-    color: #f8fafc;
-    /* slate-50 */
-    --bg-app: #0f172a;
-    --bg-surface: #1e293b;
-    /* slate-800 */
-    --text-main: #f8fafc;
-    --text-body: #94a3b8;
-    /* slate-400 */
-    --border-color: #334155;
-    /* slate-700 */
+// Cards & surfaces
+.bg-white, .bg-slate-50\/50, .bg-slate-100\/50, .bg-gray-50\/50 {
+    background-color: var(--bg-surface) !important;
+}
+.dark .dark\:bg-slate-800, .dark .dark\:bg-slate-850, .dark .dark\:bg-slate-900\/50, .dark .bg-slate-800 {
+    background-color: var(--bg-surface) !important;
 }
 
-/* Prevent Zoom on Mobile Inputs */
-input,
-textarea,
-select,
-.p-inputtext,
-.p-dropdown-label {
-    font-size: 16px !important;
+// Borders
+.border-slate-100, .border-slate-200, .border-gray-200, .border-slate-300 {
+    border-color: var(--border-color) !important;
+}
+.dark .dark\:border-slate-700, .dark .dark\:border-slate-800, .dark .border-slate-700 {
+    border-color: var(--border-color) !important;
 }
 
-/* =========================================
-   COMPONENT UTILITIES (The "Pro" Look)
-   ========================================= */
+// Text Color mappings
+.text-slate-900, .text-slate-800, .text-gray-900, .text-gray-800, .text-slate-700, .text-gray-700 {
+    color: var(--text-main) !important;
+}
+.text-slate-600, .text-slate-500, .text-slate-400, .text-gray-500, .text-gray-400 {
+    color: var(--text-muted) !important;
+}
+.dark .dark\:text-slate-100, .dark .dark\:text-slate-200, .dark .dark\:text-slate-350, .dark .text-slate-200 {
+    color: var(--text-main) !important;
+}
+.dark .dark\:text-slate-400, .dark .dark\:text-slate-500, .dark .text-slate-400 {
+    color: var(--text-muted) !important;
+}
 
-/* 1. Pro Cards */
+// Hover states mapping
+.hover\:bg-slate-50:hover, .hover\:bg-gray-50:hover, .hover\:bg-slate-100:hover {
+    background-color: rgba(198, 107, 61, 0.08) !important;
+}
+.dark .dark\:hover\:bg-slate-700:hover, .dark .hover\:bg-slate-700:hover {
+    background-color: rgba(198, 107, 61, 0.15) !important;
+}
+
+// Indigo/Blue elements mapping to Organic palette
+.bg-indigo-100, .bg-blue-100 {
+    background-color: rgba(198, 107, 61, 0.15) !important; // soft terracotta
+}
+.text-indigo-700, .text-blue-700, .text-indigo-600, .text-blue-600 {
+    color: var(--accent-terracotta) !important;
+}
+.border-indigo-200, .border-blue-200 {
+    border-color: rgba(198, 107, 61, 0.3) !important;
+}
+.dark .bg-indigo-900, .dark .bg-blue-900\/30 {
+    background-color: rgba(198, 107, 61, 0.25) !important;
+}
+.dark .text-indigo-300, .dark .text-blue-300 {
+    color: #e8dcc7 !important;
+}
+.dark .border-indigo-800, .dark .border-blue-800\/30 {
+    border-color: rgba(198, 107, 61, 0.4) !important;
+}
+
+// =========================================
+// PREMIUM COMPONENT OVERRIDES
+// =========================================
+
+// 1. Pro Cards
 .card-pro {
-    background-color: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: 0.75rem;
-    /* rounded-xl */
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    /* shadow-md */
+    background-color: var(--bg-surface) !important;
+    border: 1.5px solid var(--border-color) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 4px 25px -3px rgba(43, 37, 33, 0.03) !important;
     overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    
+    &:hover {
+        box-shadow: 0 8px 30px -4px rgba(43, 37, 33, 0.06) !important;
+    }
 }
 
-/* 2. Pro Inputs (PrimeNG Override) */
-.p-inputtext {
-    padding: 0.65rem 0.75rem;
-    border-color: #cbd5e1;
-    /* slate-300 */
-    color: var(--text-main);
-    border-radius: 0.375rem;
+// 2. Pro Inputs (PrimeNG Override)
+.p-inputtext, .p-dropdown, .p-calendar, .p-inputtextarea {
+    background-color: var(--bg-surface) !important;
+    color: var(--text-main) !important;
+    border: 1.5px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    padding: 0.65rem 0.75rem !important;
+    transition: all 0.3s ease !important;
+
+    &:enabled:focus, &:enabled:hover {
+        border-color: var(--accent-terracotta) !important;
+        box-shadow: 0 0 0 1px var(--accent-terracotta) !important;
+    }
 }
 
-.p-inputtext:enabled:focus {
-    border-color: var(--brand-navy);
-    box-shadow: 0 0 0 1px var(--brand-navy);
-}
-
-/* 3. Pro Buttons */
+// 3. Pro Buttons (Pill shaped, Organic branding)
 .p-button {
-    background: var(--brand-navy);
-    border: 1px solid var(--brand-navy);
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    border-radius: 0.5rem;
-}
+    background: var(--brand-navy) !important;
+    border: 1.5px solid var(--brand-navy) !important;
+    border-radius: 9999px !important; // Pill shape
+    font-weight: 700 !important;
+    letter-spacing: 0.03em !important;
+    text-transform: uppercase !important;
+    font-size: 11px !important;
+    padding: 0.75rem 1.5rem !important;
+    transition: all 0.3s ease !important;
+    color: white !important;
 
-.p-button:enabled:hover {
-    background: #1e293b;
-    /* slate-800 */
-    border-color: #1e293b;
+    &:enabled:hover {
+        background: var(--accent-moss) !important;
+        border-color: var(--accent-moss) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(96, 108, 56, 0.15);
+    }
 }
 
 .p-button.p-button-outlined {
-    background: transparent;
-    color: var(--brand-navy);
-    border-color: #e2e8f0;
+    background: transparent !important;
+    color: var(--brand-navy) !important;
+    border: 1.5px solid var(--brand-navy) !important;
+    
+    &:enabled:hover {
+        background: rgba(198, 107, 61, 0.08) !important;
+        color: var(--brand-navy) !important;
+    }
 }
-
 .dark .p-button.p-button-outlined {
-    color: #f8fafc !important;
-    /* white text in dark mode */
-    border-color: #475569 !important;
-    /* slate-600 */
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+    
+    &:enabled:hover {
+        background: rgba(232, 220, 199, 0.08) !important;
+        color: var(--text-main) !important;
+    }
 }
 
-.p-button.p-button-outlined:enabled:hover {
-    background: #f8fafc;
-    color: var(--brand-navy);
-    border-color: #cbd5e1;
+// Sub-classes overrides to prevent distortion
+.p-button.p-button-text {
+    background: transparent !important;
+    border-color: transparent !important;
+    color: var(--text-main) !important;
+    box-shadow: none !important;
+    padding: 0.5rem !important;
+    border-radius: 9999px !important;
+    text-transform: none !important;
+    font-size: inherit !important;
+    
+    &:enabled:hover {
+        background: rgba(198, 107, 61, 0.08) !important;
+        border-color: transparent !important;
+        transform: none !important;
+        box-shadow: none !important;
+        color: var(--accent-terracotta) !important;
+    }
+}
+.dark .p-button.p-button-text:enabled:hover {
+    background: rgba(232, 220, 199, 0.08) !important;
+    color: var(--accent-terracotta) !important;
 }
 
-.dark .p-button.p-button-outlined:enabled:hover {
-    background: #1e293b !important;
-    /* slate-800 */
-    color: #ffffff !important;
-    border-color: #64748b !important;
-    /* slate-500 */
+.p-button.p-button-icon-only {
+    padding: 0 !important;
+    width: 2.25rem !important;
+    height: 2.25rem !important;
+    justify-content: center !important;
+    align-items: center !important;
+    display: inline-flex !important;
 }
 
-/* 4. Menubar Clean */
-.p-menubar {
-    border: none;
-    background: var(--brand-navy);
-    color: white;
-    border-radius: 0;
-    padding: 1rem 2rem;
+.p-button.p-button-sm {
+    padding: 0.45rem 1rem !important;
+    font-size: 10px !important;
+}
+.p-button.p-button-sm.p-button-icon-only {
+    padding: 0 !important;
+    width: 2rem !important;
+    height: 2rem !important;
 }
 
-/* 5. Mobile Bottom Nav Utility */
-.bottom-nav-fixed {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: white;
-    border-top: 1px solid #e2e8f0;
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-bottom: env(safe-area-inset-bottom);
-    z-index: 1000;
+// 4. Authenticated Navigation Header override
+nav.fixed.top-0 {
+    background: rgba(250, 246, 240, 0.9) !important; // semi-transparent sand
+    backdrop-filter: blur(12px);
+    border-bottom: 1.5px solid var(--border-color) !important;
+    box-shadow: 0 4px 20px -5px rgba(43, 37, 33, 0.05);
+    
+    .dark & {
+        background: rgba(28, 24, 21, 0.9) !important;
+    }
+
+    // Active link states in navbar
+    a.text-sm {
+        color: var(--text-muted) !important;
+        border-bottom: 2px solid transparent !important;
+        transition: all 0.3s ease;
+        
+        &:hover {
+            color: var(--brand-navy) !important;
+        }
+        
+        &.font-semibold {
+            color: var(--brand-navy) !important;
+            border-bottom-color: var(--brand-navy) !important;
+        }
+    }
 }
 
-/* 6. SweetAlert2 Z-Index Fix */
-.swal2-container {
-    z-index: 11000 !important;
-    /* Higher than PrimeNG masks (approx 10000) */
+// Mobile navigation dropdown override
+.fixed.top-16 {
+    background-color: var(--bg-surface) !important;
+    border-color: var(--border-color) !important;
+    
+    a.flex {
+        color: var(--text-muted) !important;
+        
+        &:hover {
+            background-color: rgba(198, 107, 61, 0.06) !important;
+            color: var(--brand-navy) !important;
+        }
+        
+        &.bg-blue-50, &.dark\:bg-slate-700 {
+            background-color: rgba(198, 107, 61, 0.12) !important;
+            color: var(--brand-navy) !important;
+            font-weight: 700 !important;
+        }
+    }
 }
 
-/* 7. PrimeNG Dark Mode Overrides */
-.dark .p-dialog .p-dialog-content,
-.dark .p-dialog .p-dialog-header,
-.dark .p-dropdown-panel,
-.dark .p-datepicker,
-.dark .p-paginator,
-.dark .p-datatable-header,
-.dark .p-datatable-footer {
+// =========================================
+// PRIMENG GLOBAL OVERRIDES (LIGHT & DARK)
+// =========================================
+.p-dialog {
+    border-radius: 20px !important;
+    overflow: hidden;
+    border: 1.5px solid var(--border-color) !important;
+    box-shadow: 0 10px 40px -10px rgba(43, 37, 33, 0.15) !important;
+}
+
+.p-dialog .p-dialog-content,
+.p-dialog .p-dialog-header,
+.p-dialog .p-dialog-footer,
+.p-dropdown-panel,
+.p-datepicker,
+.p-datepicker-header,
+.p-paginator,
+.p-datatable-header,
+.p-datatable-footer,
+.p-multiselect-panel {
     background-color: var(--bg-surface) !important;
     color: var(--text-main) !important;
     border-color: var(--border-color) !important;
 }
 
-.dark .p-dropdown-item:hover,
-.dark .p-datepicker table td>span:hover {
-    background-color: #334155 !important;
-    /* slate-700 */
+.p-dropdown-item:hover,
+.p-multiselect-item:hover,
+.p-datepicker table td>span:hover {
+    background-color: rgba(198, 107, 61, 0.08) !important;
+    color: var(--brand-navy) !important;
 }
 
-.dark .p-highlight {
-    background-color: rgba(59, 130, 246, 0.2) !important;
-    /* blue-500/20 */
-    color: #93c5fd !important;
-    /* blue-300 */
+.p-highlight {
+    background-color: rgba(198, 107, 61, 0.15) !important;
+    color: var(--accent-terracotta) !important;
 }
 
-/* 8. Table Body & Rows Dark Mode */
-.dark .p-datatable .p-datatable-tbody>tr {
-    background-color: var(--bg-surface);
-    color: var(--text-main);
-}
-
-.dark .p-datatable .p-datatable-tbody>tr>td {
-    border-color: var(--border-color);
-}
-
-/* Dark Mode Overrides for PrimeNG Components */
-.dark .p-dialog .p-dialog-content,
-.dark .p-dialog .p-dialog-header,
-.dark .p-dialog .p-dialog-footer {
-    background-color: #1e293b !important;
-    /* slate-800 */
-    color: #f8fafc !important;
-    border-color: #334155 !important;
-    /* slate-700 */
-}
-
-.dark .p-dialog-footer {
-    border-top: 1px solid #334155 !important;
-    /* Separator line */
-}
-
-.dark .p-dropdown,
-.dark .p-dropdown-panel,
-.dark .p-datepicker,
-.dark .p-calendar,
-.dark .p-inputtext,
-.dark .p-inputtextarea {
-    background-color: #0f172a !important;
-    /* slate-900 (darker for inputs) */
-    color: #f8fafc !important;
-    border-color: #475569 !important;
-    /* slate-600 */
-}
-
-.dark .p-dropdown-panel .p-dropdown-items .p-dropdown-item {
-    color: #f8fafc !important;
-    background: transparent;
-}
-
-.dark .p-dropdown-panel .p-dropdown-items .p-dropdown-item:hover,
-.dark .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight {
-    background-color: #334155 !important;
-    /* slate-700 */
-}
-
-.dark .p-datepicker-header {
-    background-color: #1e293b !important;
-    color: #f8fafc !important;
-    border-bottom: 1px solid #334155 !important;
-}
-
-.dark .p-datepicker table td>span {
-    color: #f8fafc !important;
-}
-
-.dark .p-datepicker table td.p-datepicker-today>span {
-    background-color: #334155 !important;
-    font-weight: bold;
-}
-
-.dark .p-icon {
-    color: #94a3b8 !important;
-    /* slate-400 */
-}
-
-.dark .p-datatable .p-sortable-column:hover {
-    background-color: #334155 !important;
-    /* slate-700 */
-}
-
-.dark .p-datatable .p-datatable-thead>tr>th {
-    background-color: #334155 !important;
-    /* slate-700 */
-    color: #e2e8f0 !important;
-    /* slate-200 */
-    border-color: #475569 !important;
-    /* slate-600 */
-}
-
-.dark .p-paginator .p-paginator-pages .p-paginator-page {
-    color: var(--text-muted);
-}
-
-.dark .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
-    background-color: var(--brand-navy);
-    color: white;
-}
-
-/* 9. Global Input & Dropdown Dark Mode */
-.dark .p-multiselect,
-.dark .p-multiselect-panel,
-.dark .p-inputgroup-addon {
-    background-color: #1e293b !important;
-    /* slate-800 */
+.p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+    background-color: var(--brand-navy) !important;
     color: white !important;
-    border-color: #475569 !important;
-    /* slate-600 */
 }
 
-.dark .p-float-label label {
-    color: #94a3b8 !important;
-    /* slate-400 */
+.p-datatable .p-datatable-tbody > tr {
+    background-color: var(--bg-surface) !important;
+    color: var(--text-main) !important;
+    
+    &:hover {
+        background-color: rgba(198, 107, 61, 0.05) !important;
+    }
+    
+    > td {
+        border-color: var(--border-color) !important;
+    }
 }
 
-/* 10. Premium Locked Utility */
+.p-datatable .p-datatable-thead > tr > th {
+    background-color: var(--bg-surface) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+    font-family: 'Fraunces', serif !important;
+    font-weight: 700 !important;
+}
+
+// =========================================
+// KANBAN BOARD & DRAG AND DROP
+// =========================================
+.flex-shrink-0.w-72 {
+    background-color: var(--surface-sand) !important;
+    border: 1.5px solid var(--border-color) !important;
+    border-radius: 20px !important;
+    
+    .dark & {
+        background-color: rgba(28, 24, 21, 0.4) !important;
+    }
+    
+    // Column header
+    div.border-b {
+        background-color: var(--bg-surface) !important;
+        border-color: var(--border-color) !important;
+        border-radius: 20px 20px 0 0 !important;
+        
+        h3 {
+            font-family: 'Fraunces', serif !important;
+            font-weight: 700 !important;
+            color: var(--text-main) !important;
+        }
+        
+        span.bg-indigo-100 {
+            background-color: rgba(198, 107, 61, 0.15) !important;
+            color: var(--accent-terracotta) !important;
+            
+            .dark & {
+                background-color: rgba(198, 107, 61, 0.25) !important;
+                color: #e8dcc7 !important;
+            }
+        }
+    }
+}
+
+div.cdk-drag {
+    background-color: var(--bg-surface) !important;
+    border-color: var(--border-color) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 12px -3px rgba(43, 37, 33, 0.03) !important;
+    
+    &:hover {
+        box-shadow: 0 6px 18px -4px rgba(43, 37, 33, 0.06) !important;
+        border-color: var(--accent-terracotta) !important;
+    }
+    
+    h4 a {
+        font-family: 'Epilogue', sans-serif !important;
+        font-weight: 700 !important;
+        color: var(--text-main) !important;
+        
+        &:hover {
+            color: var(--accent-terracotta) !important;
+        }
+    }
+    
+    .bg-indigo-100 {
+        background-color: rgba(96, 108, 56, 0.15) !important; // soft moss
+        color: var(--accent-moss) !important;
+        
+        .dark & {
+            background-color: rgba(139, 157, 131, 0.25) !important;
+            color: #e8dcc7 !important;
+        }
+    }
+}
+
+::ng-deep .cdk-drag-preview {
+    background-color: var(--bg-surface) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 30px -5px rgba(43, 37, 33, 0.12) !important;
+}
+
+.custom-placeholder {
+    background: rgba(96, 60, 30, 0.04) !important;
+    border: 2px dashed rgba(96, 60, 30, 0.2) !important;
+    border-radius: 20px !important;
+    min-height: 100px;
+    
+    .dark & {
+        background: rgba(232, 220, 199, 0.04) !important;
+        border-color: rgba(232, 220, 199, 0.2) !important;
+    }
+}
+
+// =========================================
+// GRAIN FILM TEXTURE GLOBAL OVERLAY
+// =========================================
+.grain-overlay {
+    pointer-events: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    opacity: 0.025; // 2.5% opacity as specified in anchor rules
+}
+
+// =========================================
+// ALREADY STABLISHED UTILITIES (NO REGRESSION)
+// =========================================
+.swal2-container {
+    z-index: 11000 !important;
+}
+
+.bottom-nav-fixed {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--bg-surface) !important;
+    border-top: 1px solid var(--border-color) !important;
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 1000;
+}
+
 .premium-locked:disabled {
     filter: grayscale(1);
     opacity: 0.5;
     cursor: not-allowed !important;
     position: relative;
-    pointer-events: auto !important; /* Allow tooltip to show */
+    pointer-events: auto !important;
 }
 
 .premium-locked:disabled::after {
-    content: '\e91d'; /* pi-lock from primeicons */
+    content: '\e91d';
     font-family: 'primeicons';
     position: absolute;
     top: -5px;
     right: -5px;
-    background: #b45309; /* amber-700 */
+    background: #b45309;
     color: white;
     width: 16px;
     height: 16px;

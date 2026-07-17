@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Request, Query } from '@nestjs/common';
 import { ExpedientesService } from './expedientes.service';
 import { Expediente } from './expediente.entity';
 import { AuthGuard } from '@nestjs/passport';
@@ -9,8 +9,16 @@ export class ExpedientesController {
   constructor(private readonly expedientesService: ExpedientesService) {}
 
   @Get()
-  findAll(@Request() req) {
-    return this.expedientesService.findAll(req.user.userId);
+  findAll(
+    @Request() req,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('estado') estado?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : undefined;
+    const limitNum = limit ? parseInt(limit, 10) : undefined;
+    return this.expedientesService.findAll(req.user.userId, pageNum, limitNum, search, estado);
   }
 
   @Get(':id')

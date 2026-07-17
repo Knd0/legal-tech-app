@@ -1,15 +1,15 @@
 <div
-    class="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors">
+    class="min-h-screen bg-[var(--surface-sand)] flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
         <div class="flex justify-center">
-            <div class="bg-blue-900 dark:bg-blue-800 text-white p-3 rounded-lg shadow-lg">
+            <div class="bg-[var(--accent-terracotta)] text-white p-4 rounded-full shadow-lg">
                 <i class="pi pi-briefcase text-3xl"></i>
             </div>
         </div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-slate-900 dark:text-white">
-            Estudio Jurídico
+        <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-[var(--text-earth)] font-serif-organic">
+            Themis
         </h2>
-        <p class="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
+        <p class="mt-2 text-center text-sm text-[var(--text-earth)]/80">
             Sistema de Gestión Integral
         </p>
     </div>
@@ -56,16 +56,18 @@
                                     class="dark:bg-slate-700 dark:text-white dark:border-slate-600"
                                     placeholder="••••••••" />
                             </p-inputGroup>
+                            <small *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+                                class="text-red-500 dark:text-red-400 text-xs mt-1">
+                                Ingrese su contraseña.
+                            </small>
                         </div>
                     </div>
                 </div>
 
                 <!-- Submit -->
                 <div>
-                    <button type="submit" [disabled]="loading"
-                        class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-900 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all">
-                        <i *ngIf="loading" class="pi pi-spin pi-spinner mr-2"></i>
-                        <span>Iniciar Sesión</span>
+                    <button pButton type="submit" label="Iniciar Sesión" [loading]="loading" [disabled]="loading"
+                        class="w-full disabled:opacity-70 disabled:cursor-not-allowed">
                     </button>
                 </div>
             </form>
@@ -76,8 +78,11 @@
                         <div class="w-full border-t border-slate-200 dark:border-slate-700"></div>
                     </div>
                     <div class="relative flex justify-center text-sm">
-                        <span class="px-2 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-                            ¿Olvidaste tu contraseña?
+                        <span class="px-2 bg-white dark:bg-slate-800">
+                            <a routerLink="/auth/forgot-password"
+                                class="text-[var(--accent-terracotta)] hover:text-[var(--accent-moss)] transition-colors hover:underline font-medium text-sm">
+                                ¿Olvidaste tu contraseña?
+                            </a>
                         </span>
                     </div>
                 </div>

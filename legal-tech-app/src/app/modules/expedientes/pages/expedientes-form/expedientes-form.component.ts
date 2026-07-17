@@ -26,6 +26,17 @@ export class ExpedientesFormComponent implements OnInit {
     { label: 'Archivado', value: 'ARCHIVADO' }
   ];
 
+  fueros: string[] = [
+    'Civil y Comercial',
+    'Laboral',
+    'Familia',
+    'Penal',
+    'Contencioso Administrativo',
+    'Federal',
+    'Ejecuciones Fiscales',
+    'Concursal',
+  ];
+
   constructor(
     private fb: FormBuilder,
     private expedienteService: ExpedienteService,

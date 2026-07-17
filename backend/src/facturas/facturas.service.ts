@@ -3,21 +3,24 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Factura } from './entities/factura.entity';
 import { ConfigService } from '@nestjs/config';
-// const Afip = require('afip.js'); // Use require for afip.js
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class FacturasService {
   private afip: any;
+  private afipClients = new Map<string, any>();
 
   constructor(
     @InjectRepository(Factura)
     private facturasRepository: Repository<Factura>,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private usersService: UsersService
   ) {
-    // Initialize AFIP SDK
+    // Initialize global system AFIP SDK as fallback
     try {
         const fs = require('fs');
         const path = require('path');
+        const os = require('os');
         const Afip = require('@afipsdk/afip.js');
         
         // Prepare Cert paths
@@ -32,48 +35,104 @@ export class FacturasService {
         console.log(`[DEBUG] AFIP_KEY present: ${!!envKey}, Length: ${envKey ? envKey.length : 0}`);
 
         if (envCert && envKey) {
-            const tmpDir = '/tmp'; // Standard temp dir for Linux/Render
-            // Ensure temp dir exists (it should)
-            if (!fs.existsSync(tmpDir)) {
-                 try { fs.mkdirSync(tmpDir); } catch(e) {}
-            }
-            
-            const tmpCertPath = path.join(tmpDir, 'cert.crt');
-            const tmpKeyPath = path.join(tmpDir, 'cert.key');
+            // Private directory per-process prevents symlink attacks and cross-process file reuse
+            const secureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'afip-global-'));
+            fs.chmodSync(secureDir, 0o700);
 
-            // Write files
-            fs.writeFileSync(tmpCertPath, envCert);
-            fs.writeFileSync(tmpKeyPath, envKey);
+            const tmpCertPath = path.join(secureDir, 'cert.crt');
+            const tmpKeyPath = path.join(secureDir, 'cert.key');
+
+            // O_EXCL ensures we never follow a pre-existing file or symlink
+            const certFd = fs.openSync(tmpCertPath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL, 0o600);
+            fs.writeSync(certFd, envCert); fs.closeSync(certFd);
+            const keyFd = fs.openSync(tmpKeyPath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL, 0o600);
+            fs.writeSync(keyFd, envKey); fs.closeSync(keyFd);
 
             certPath = tmpCertPath;
             keyPath = tmpKeyPath;
-            console.log('AFIP Certs loaded from ENV and written to temp:', certPath);
+            console.log('Global AFIP Certs loaded from ENV and written to temp:', certPath);
         } else {
-             console.log('AFIP Certs using local files (Dev mode):', certPath);
+             console.log('Global AFIP Certs using local files (Dev mode):', certPath);
         }
+
+        const isProduction = this.configService.get('AFIP_PRODUCTION') === 'true';
 
         this.afip = new Afip({
             CUIT: this.configService.get('AFIP_CUIT'),
             cert: certPath,
             key: keyPath,
-            production: true,
-            res_folder: path.dirname(certPath) // Force using the same dir as certs (e.g. /tmp)
+            production: isProduction,
+            res_folder: path.dirname(certPath) // Force using the same dir as certs
         });
         
-        console.log('AFIP Service Initialized with res_folder:', path.dirname(certPath));
+        console.log('Global AFIP Service Initialized with res_folder:', path.dirname(certPath));
 
-    } catch (e) {
-        console.warn('AFIP SDK not initialized (Missing certs or dependecy):', e.message);
+    } catch (e: any) {
+        console.warn('Global AFIP SDK not initialized (Missing certs or dependency):', e.message);
+    }
+  }
+
+  async getAfipInstanceForUser(userId: string): Promise<any> {
+    if (this.afipClients.has(userId)) {
+      return this.afipClients.get(userId);
+    }
+
+    const user = await this.usersService.findOneById(userId);
+    if (!user || !user.cuit || !user.afipCert || !user.afipKey) {
+      return null; // Fallback to global or simulation mode
+    }
+
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const os = require('os');
+      const Afip = require('@afipsdk/afip.js');
+
+      // Private directory per-user prevents symlink attacks and cross-process file reuse
+      const secureDir = fs.mkdtempSync(path.join(os.tmpdir(), `afip-${userId}-`));
+      fs.chmodSync(secureDir, 0o700);
+
+      const certPath = path.join(secureDir, 'cert.crt');
+      const keyPath = path.join(secureDir, 'cert.key');
+
+      // O_EXCL ensures we never follow a pre-existing file or symlink
+      const certFd = fs.openSync(certPath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL, 0o600);
+      fs.writeSync(certFd, user.afipCert); fs.closeSync(certFd);
+      const keyFd = fs.openSync(keyPath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL, 0o600);
+      fs.writeSync(keyFd, user.afipKey); fs.closeSync(keyFd);
+
+      const client = new Afip({
+        CUIT: user.cuit.replace(/\D/g, ''), // Ensure no dashes or spaces
+        cert: certPath,
+        key: keyPath,
+        production: user.afipProduction || false,
+        res_folder: secureDir
+      });
+
+      this.afipClients.set(userId, client);
+      return client;
+    } catch (e: any) {
+      console.error(`Failed to initialize AFIP client for user ${userId}:`, e.message);
+      return null;
     }
   }
 
   async createFactura(data: any, userId: string) {
+    const user = await this.usersService.findOneById(userId);
+    const puntoVenta = (user && user.puntoVenta) ? user.puntoVenta : 1;
+
+    // Get the dynamic AFIP instance for this user
+    const afipClient = await this.getAfipInstanceForUser(userId);
+    
+    // Fall back to global system AFIP if user-level config is missing
+    const activeAfip = afipClient || this.afip;
+
     // SIMULATION MODE if AFIP is not configured
-    if (!this.afip) {
+    if (!activeAfip) {
         console.warn('AFIP Service not configured. Using SIMULATION MODE.');
         
         const mockFactura = this.facturasRepository.create({
-            puntoVenta: 1,
+            puntoVenta: puntoVenta,
             tipoCbte: 11, // Factura C
             nroCbte: Math.floor(Math.random() * 10000),
             fechaCbte: new Date().toISOString().split('T')[0].replace(/-/g, ''), // YYYYMMDD
@@ -89,12 +148,11 @@ export class FacturasService {
     }
 
     const date = new Date(Date.now() - ((new Date()).getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-
     const totalAmount = parseFloat(data.total);
 
     let payload = {
         'CantReg': 1, // Cantidad de comprobantes a registrar
-        'PtoVta': 1, // Punto de venta
+        'PtoVta': puntoVenta, // Punto de venta
         'CbteTipo': 11, // Tipo de comprobante (ver tipos disponibles) 
         'Concepto': 1, // Concepto del Comprobante: (1)Productos, (2)Servicios, (3)Productos y Servicios
         'DocTipo': 99, // Tipo de documento del comprador (99 consumidor final, ver tipos disponibles)
@@ -113,12 +171,12 @@ export class FacturasService {
     };
 
     try {
-        // Retrieve Last Voucher to set CbteDesde/Hasta correctly
-        const lastVoucher = await this.afip.ElectronicBilling.getLastVoucher(1, 11);
+        // Retrieve Last Voucher to set CbteDesde/Hasta correctly using user's configured puntoVenta
+        const lastVoucher = await activeAfip.ElectronicBilling.getLastVoucher(puntoVenta, 11);
         payload['CbteDesde'] = lastVoucher + 1;
         payload['CbteHasta'] = lastVoucher + 1;
 
-        const res = await this.afip.ElectronicBilling.createVoucher(payload);
+        const res = await activeAfip.ElectronicBilling.createVoucher(payload);
         
         // Save to DB
         const factura = this.facturasRepository.create({
@@ -136,17 +194,58 @@ export class FacturasService {
 
         return (await this.facturasRepository.save(factura)) as Factura;
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error AFIP', error);
         throw new BadRequestException('Error creating invoice with AFIP: ' + error.message);
     }
   }
 
-  findAll() {
-    return this.facturasRepository.find();
+  async findAll(page?: number, limit?: number): Promise<any> {
+    if (page !== undefined && limit !== undefined) {
+      const skip = (page - 1) * limit;
+      const take = limit;
+
+      const [data, total] = await this.facturasRepository.findAndCount({
+        order: { createdAt: 'DESC' },
+        skip,
+        take,
+      });
+
+      return {
+        data,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    }
+
+    return this.facturasRepository.find({
+      order: { createdAt: 'DESC' },
+    });
   }
 
-  findByClient(clientId: string) {
+  async findByClient(clientId: string, page?: number, limit?: number): Promise<any> {
+    if (page !== undefined && limit !== undefined) {
+      const skip = (page - 1) * limit;
+      const take = limit;
+
+      const [data, total] = await this.facturasRepository.findAndCount({
+        where: { clientId },
+        order: { createdAt: 'DESC' },
+        skip,
+        take,
+      });
+
+      return {
+        data,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    }
+
     return this.facturasRepository.find({
         where: { clientId },
         order: { createdAt: 'DESC' }

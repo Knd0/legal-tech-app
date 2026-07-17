@@ -4,11 +4,11 @@
         <div>
                 <div class="flex items-center gap-3">
                     <h2 class="text-2xl font-bold text-slate-800 dark:text-white">{{ authService.currentUser()?.fullName }}</h2>
-                    <span *ngIf="authService.isSubscriptionExpired()" 
+                    <span *ngIf="subscriptionService.isSubscriptionExpired()" 
                         class="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider animate-pulse border border-red-200 dark:border-red-800/50">
                         Suscripción Vencida
                     </span>
-                    <span *ngIf="!authService.isSubscriptionExpired() && authService.currentUser()?.subscriptionStatus === 'active'" 
+                    <span *ngIf="!subscriptionService.isSubscriptionExpired() && authService.currentUser()?.subscriptionStatus === 'active'" 
                         class="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border border-green-200 dark:border-green-800/50">
                         Pro Activo
                     </span>
@@ -48,13 +48,30 @@
                                 class="w-full text-sm bg-slate-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400" />
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Teléfono
-                                (WhatsApp)</label>
-                            <input pInputText formControlName="phoneNumber"
-                                class="w-full text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                                placeholder="54911..." />
-                            <small class="text-slate-400 dark:text-slate-500 text-xs">Requerido para recuperar
-                                contraseña.</small>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Teléfono (WhatsApp)</label>
+                                <span *ngIf="authService.currentUser()?.isPhoneVerified" 
+                                    class="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-green-200 dark:border-green-800/50">
+                                    Verificado
+                                </span>
+                                <span *ngIf="!authService.currentUser()?.isPhoneVerified" 
+                                    class="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-red-200 dark:border-red-800/50 animate-pulse">
+                                    Sin Verificar
+                                </span>
+                            </div>
+                            <div class="flex gap-2">
+                                <input pInputText formControlName="phoneNumber"
+                                    class="flex-1 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                                    placeholder="54911..." />
+                                <button *ngIf="!authService.currentUser()?.isPhoneVerified" 
+                                    pButton type="button" label="Verificar" icon="pi pi-verified"
+                                    [disabled]="!whatsappBotReady()"
+                                    [pTooltip]="!whatsappBotReady() ? 'El bot de WhatsApp debe estar conectado primero' : 'Verificar número vía OTP'"
+                                    tooltipPosition="left"
+                                    class="p-button-outlined p-button-success p-button-sm text-xs py-1 px-3"
+                                    (click)="openPhoneVerification()"></button>
+                            </div>
+                            <small class="text-slate-400 dark:text-slate-500 text-xs">Requerido en formato internacional (ej: 54911...) para alertas y recuperar contraseña.</small>
                         </div>
                     </div>
 
@@ -84,35 +101,89 @@
                     <p class="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">Acceso ilimitado al sistema.</p>
                 </div>
 
-                <div *ngIf="authService.currentUser()?.role !== 'ADMIN' && authService.currentUser()?.subscriptionStatus === 'active'" class="space-y-3">
-                    <!-- Case: Active & Not Expired -->
-                    <div *ngIf="!authService.isSubscriptionExpired()" class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-100 dark:border-green-800/50 text-center shadow-sm relative">
+                <!-- Active & Not Expired -->
+                <div *ngIf="authService.currentUser()?.role !== 'ADMIN' && authService.currentUser()?.subscriptionStatus === 'active' && !subscriptionService.isSubscriptionExpired()" class="space-y-3">
+                    <div [ngClass]="authService.currentUser()?.subscriptionPlan === 'basic' ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/50' : 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/50'" 
+                         class="p-4 rounded-lg border shadow-sm relative">
                         <div class="absolute -right-2 -top-2">
                             <span class="flex h-3 w-3">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                <span [ngClass]="authService.currentUser()?.subscriptionPlan === 'basic' ? 'bg-blue-400' : 'bg-green-400'" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
+                                <span [ngClass]="authService.currentUser()?.subscriptionPlan === 'basic' ? 'bg-blue-500' : 'bg-green-500'" class="relative inline-flex rounded-full h-3 w-3"></span>
                             </span>
                         </div>
-                        <i class="pi pi-check-circle text-green-500 text-3xl mb-2 drop-shadow-sm"></i>
-                        <p class="text-green-800 dark:text-green-300 font-extrabold text-lg tracking-tight">Estudio Pro Activo</p>
-                        <p class="text-xs font-medium text-green-600 dark:text-green-400 mt-1 mb-4">Tenés acceso a todas las funcionalidades integradas.</p>
-                        <a routerLink="/subscription/pricing" class="inline-flex w-full justify-center px-4 py-2 text-sm font-bold rounded-lg bg-white dark:bg-slate-800 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 hover:bg-green-100 transition-colors shadow-sm">Gestionar Plan</a>
-                    </div>
-
-                    <!-- Case: Active but EXPIRED (Grace Period) -->
-                    <div *ngIf="authService.isSubscriptionExpired()" class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-100 dark:border-red-800/50 text-center shadow-sm relative animate-pulse">
-                        <i class="pi pi-exclamation-circle text-red-500 text-3xl mb-2"></i>
-                        <p class="text-red-800 dark:text-red-300 font-extrabold text-lg tracking-tight uppercase">Plan Vencido</p>
-                        <p class="text-xs font-medium text-red-600 dark:text-red-400 mt-1 mb-4">Tu suscripción ha expirado. Renová para evitar el bloqueo total.</p>
-                        <a routerLink="/subscription/pricing" class="inline-flex w-full justify-center px-4 py-2 text-sm font-bold rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors shadow-md shadow-red-500/20">Renovar Ahora</a>
+                        <div class="flex items-center gap-2 mb-3">
+                            <i [ngClass]="authService.currentUser()?.subscriptionPlan === 'basic' ? 'pi-info-circle text-blue-500' : 'pi-check-circle text-green-500'" class="pi text-2xl drop-shadow-sm"></i>
+                            <p [ngClass]="authService.currentUser()?.subscriptionPlan === 'basic' ? 'text-blue-800 dark:text-blue-300' : 'text-green-800 dark:text-green-300'" class="font-extrabold text-base tracking-tight">
+                              {{ authService.currentUser()?.subscriptionPlan === 'basic' ? 'Plan Básico Activo' : 'Estudio Pro Activo' }}
+                            </p>
+                        </div>
+                        <p [ngClass]="authService.currentUser()?.subscriptionPlan === 'basic' ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'" class="text-xs font-medium mb-3">
+                          {{ authService.currentUser()?.subscriptionPlan === 'basic' ? 'Tenés acceso a la gestión de expedientes básica.' : 'Tenés acceso a todas las funcionalidades integradas.' }}
+                        </p>
+                        <div *ngIf="subscriptionData()?.expiresAt" class="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-green-100 dark:border-green-800/50 mb-3">
+                            <i class="pi pi-calendar text-slate-400 text-sm"></i>
+                            <div>
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wide block">Próximo cobro</span>
+                                <span class="text-sm font-bold text-slate-700 dark:text-slate-200">{{ subscriptionData()?.expiresAt | date:'dd/MM/yyyy' }}</span>
+                            </div>
+                        </div>
+                        <button pButton label="Cancelar Suscripción" icon="pi pi-times"
+                            class="p-button-outlined p-button-danger p-button-sm w-full"
+                            [loading]="cancellingSubscription()"
+                            (click)="cancelSubscription()"></button>
                     </div>
                 </div>
 
-                <div *ngIf="authService.currentUser()?.role !== 'ADMIN' && authService.currentUser()?.subscriptionStatus !== 'active'" class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-100 dark:border-amber-800/50 text-center shadow-sm group">
+                <!-- Historial de pagos -->
+                <div *ngIf="authService.currentUser()?.role !== 'ADMIN' && paymentHistory().length > 0" class="mt-3">
+                    <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Historial de pagos</p>
+                    <div class="space-y-1.5">
+                        <div *ngFor="let p of paymentHistory()" class="flex items-center justify-between bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-700 text-xs">
+                            <div class="flex items-center gap-2">
+                                <span [class]="p.status === 'approved' ? 'w-2 h-2 rounded-full bg-green-500' : 'w-2 h-2 rounded-full bg-red-400'"></span>
+                                <span class="text-slate-600 dark:text-slate-300 font-medium">{{ p.description }}</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-right">
+                                <span class="text-slate-500 dark:text-slate-400">{{ p.date | date:'dd/MM/yyyy' }}</span>
+                                <span class="font-bold text-slate-700 dark:text-slate-200">${{ p.amount | number:'1.0-0' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active but EXPIRED (Grace Period) -->
+                <div *ngIf="authService.currentUser()?.role !== 'ADMIN' && authService.currentUser()?.subscriptionStatus === 'active' && subscriptionService.isSubscriptionExpired()" class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-100 dark:border-red-800/50 text-center shadow-sm animate-pulse">
+                    <i class="pi pi-exclamation-circle text-red-500 text-3xl mb-2"></i>
+                    <p class="text-red-800 dark:text-red-300 font-extrabold text-lg tracking-tight uppercase">Plan Vencido</p>
+                    <p class="text-xs font-medium text-red-600 dark:text-red-400 mt-1 mb-4">Tu suscripción ha expirado. Renová para evitar el bloqueo total.</p>
+                    <a routerLink="/subscription/pricing" class="inline-flex w-full justify-center px-4 py-2 text-sm font-bold rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors shadow-md shadow-red-500/20">Renovar Ahora</a>
+                </div>
+
+                <!-- Cancelled -->
+                <div *ngIf="authService.currentUser()?.role !== 'ADMIN' && authService.currentUser()?.subscriptionStatus === 'cancelled'" class="bg-slate-50 dark:bg-slate-700/30 p-4 rounded-lg border border-slate-200 dark:border-slate-600 text-center shadow-sm">
+                    <i class="pi pi-ban text-slate-400 text-3xl mb-2"></i>
+                    <p class="text-slate-700 dark:text-slate-300 font-extrabold text-base tracking-tight">Suscripción Cancelada</p>
+                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1 mb-4">Reactivá tu plan para volver a tener acceso completo.</p>
+                    <a routerLink="/subscription/pricing" class="inline-flex justify-center w-full text-center px-4 py-2 text-sm font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-md">Reactivar Plan</a>
+                </div>
+
+                <!-- Paused -->
+                <div *ngIf="authService.currentUser()?.role !== 'ADMIN' && authService.currentUser()?.subscriptionStatus === 'paused'" class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700 text-center shadow-sm space-y-2">
+                    <i class="pi pi-pause-circle text-yellow-500 text-3xl mb-2"></i>
+                    <p class="text-yellow-800 dark:text-yellow-300 font-extrabold text-base tracking-tight">Plan Pausado</p>
+                    <p class="text-xs font-medium text-yellow-600 dark:text-yellow-400 mt-1 mb-4">MercadoPago pausó tu suscripción (generalmente por un pago fallido).</p>
+                    <button pButton label="Reactivar Suscripción" icon="pi pi-play"
+                        class="p-button-warning p-button-sm w-full"
+                        [loading]="reactivating()"
+                        (click)="reactivateSubscription()"></button>
+                </div>
+
+                <!-- Trial / No active subscription -->
+                <div *ngIf="authService.currentUser()?.role !== 'ADMIN' && (authService.currentUser()?.subscriptionStatus === 'trial' || !authService.currentUser()?.subscriptionStatus)" class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-100 dark:border-amber-800/50 text-center shadow-sm group">
                     <i class="pi pi-star text-amber-500 text-3xl mb-2 group-hover:scale-110 transition-transform"></i>
-                    <p class="text-amber-800 dark:text-amber-300 font-extrabold text-lg tracking-tight uppercase">Plan Básico (Gratis)</p>
-                    <p class="text-xs font-medium text-amber-600 dark:text-amber-400 mt-1 mb-4">Mejorá tu plan para conectar bots y recursos ilimitados.</p>
-                    <a routerLink="/subscription/pricing" class="inline-flex justify-center w-full text-center px-4 py-2 text-sm font-bold rounded-lg bg-amber-500 text-white hover:bg-amber-600 hover:-translate-y-0.5 transition-all shadow-md shadow-amber-500/30">Mejorar a Plan Pro</a>
+                    <p class="text-amber-800 dark:text-amber-300 font-extrabold text-lg tracking-tight uppercase">Periodo de Prueba (Trial)</p>
+                    <p class="text-xs font-medium text-amber-600 dark:text-amber-400 mt-1 mb-4">Estás disfrutando de una prueba gratuita del sistema. Elegí un plan para continuar.</p>
+                    <a routerLink="/subscription/pricing" class="inline-flex justify-center w-full text-center px-4 py-2 text-sm font-bold rounded-lg bg-amber-500 text-white hover:bg-amber-600 hover:-translate-y-0.5 transition-all shadow-md shadow-amber-500/30">Adquirir un Plan</a>
                 </div>
                        <!-- ONLY FOR ADMIN: Global Settings (Alerts & WhatsApp Bot) -->
             <div *ngIf="authService.currentUser()?.role === 'ADMIN'"
@@ -141,15 +212,31 @@
                         </div>
                     </div>
 
+                    <!-- Desktop Notifications -->
+                    <div class="border-t border-slate-100 dark:border-slate-700 pt-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                <i class="pi pi-desktop text-blue-500"></i> Alertas PC / Celular (Pop-ups)
+                            </h3>
+                            <p-checkbox [(ngModel)]="configDesktop" [binary]="true" (onChange)="onDesktopToggle($event)"></p-checkbox>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                            Muestra alertas emergentes nativas en tu PC o celular cuando hay eventos o vencimientos cercanos.
+                        </p>
+                    </div>
+
                     <!-- WhatsApp -->
                     <div class="border-t border-slate-100 dark:border-slate-700 pt-4">
-                        <div class="flex items-center justify-between mb-2" [pTooltip]="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial' ? 'Requiere Plan Pro' : ''">
-                            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2" [class.opacity-50]="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial'">
-                                <i class="pi pi-whatsapp text-green-500"></i> WhatsApp Bot
-                                <span *ngIf="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial'" class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black uppercase">Pro</span>
+                        <div class="flex items-center justify-between mb-2" [pTooltip]="!authService.isProUser() ? 'Requiere Plan Pro' : (!authService.currentUser()?.isPhoneVerified && authService.currentUser()?.role !== 'ADMIN' ? 'Debes verificar tu teléfono primero' : '')">
+                            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2" [class.opacity-50]="!authService.isProUser() || (!authService.currentUser()?.isPhoneVerified && authService.currentUser()?.role !== 'ADMIN')">
+                                <i class="pi pi-whatsapp text-lg text-emerald-500"></i> Alertas por WhatsApp
+                                <span *ngIf="!authService.isProUser()" class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black uppercase">Pro</span>
                             </h3>
-                            <p-checkbox [(ngModel)]="configWhatsapp" [binary]="true" [disabled]="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial'" class="premium-locked"></p-checkbox>
+                            <p-checkbox [(ngModel)]="configWhatsapp" [binary]="true" [disabled]="!authService.isProUser() || (!authService.currentUser()?.isPhoneVerified && authService.currentUser()?.role !== 'ADMIN')" (onChange)="onWhatsappToggle()" class="premium-locked"></p-checkbox>
                         </div>
+                        <p *ngIf="!authService.currentUser()?.isPhoneVerified && authService.currentUser()?.role !== 'ADMIN'" class="text-[10px] text-red-500 dark:text-red-400 mt-1 mb-2 font-semibold">
+                            ⚠️ Debes verificar tu teléfono en "Información Personal" para habilitar las alertas.
+                        </p>
 
                         <div *ngIf="configWhatsappNumber">
                             <label class="text-xs text-slate-500 dark:text-slate-400">Número Vinculado</label>
@@ -165,78 +252,145 @@
                         <div class="flex gap-2 mt-2">
                             <button pButton label="Guardar" icon="pi pi-save"
                                 class="p-button-success p-button-sm flex-1" (click)="saveIntegrations()"></button>
-                            <button *ngIf="configWhatsappNumber" pButton icon="pi pi-send"
+                            <button *ngIf="configWhatsappNumber && whatsappBotReady()" pButton icon="pi pi-send"
                                 class="p-button-success p-button-sm" (click)="sendTestMessage()"
                                 pTooltip="Probar mensaje"></button>
                         </div>
 
-                        <!-- QR / Status Area -->
-                        <div *ngIf="configWhatsapp"
-                            class="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-lg text-center">
+                        <!-- QR / Status Area (ADMIN ONLY) -->
+                        <div *ngIf="configWhatsapp && authService.currentUser()?.role === 'ADMIN'"
+                            class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-lg text-center shadow-inner">
 
-                            <div *ngIf="qrCodeUrl; else statusInfo">
-                                <p class="text-xs text-green-800 dark:text-green-300 mb-2 font-medium">Escanea para
-                                    conectar:</p>
-                                <img [src]="qrCodeUrl"
-                                    class="mx-auto w-40 h-40 border-4 border-white dark:border-slate-700 rounded-lg shadow-sm">
+                            <!-- Connected State -->
+                            <div *ngIf="configWhatsappNumber && whatsappBotReady()" class="space-y-3 py-2">
+                                <div class="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full text-xs font-bold ring-1 ring-green-500/35">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
+                                    <span>Bot Conectado</span>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">
+                                    El bot está listo para enviar notificaciones automáticas y alertas.
+                                </p>
+                                <a [href]="'https://wa.me/' + configWhatsappNumber + '?text=hola'" 
+                                   target="_blank" 
+                                   class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm no-underline">
+                                    <i class="pi pi-whatsapp"></i>
+                                    Abrir Chat del Bot
+                                </a>
+                                <button pButton label="Desconectar Bot" icon="pi pi-power-off"
+                                    class="p-button-outlined p-button-danger p-button-sm w-full mt-2"
+                                    (click)="logoutWhatsapp()"></button>
                             </div>
 
-                            <ng-template #statusInfo>
-                                <div *ngIf="!qrCodeUrl && !configWhatsappNumber"
-                                    class="text-slate-600 dark:text-slate-400 text-sm py-4 flex flex-col items-center gap-3">
-
-                                    <p class="mb-1 text-center max-w-xs">
-                                        Para recibir notificaciones, debes vincular tu cuenta de WhatsApp.
+                            <!-- Not Connected State -->
+                            <div *ngIf="!configWhatsappNumber || !whatsappBotReady()" class="space-y-4">
+                                
+                                <!-- Connecting / Booting State -->
+                                <div *ngIf="whatsappConnecting() && !whatsappError() && !scannedAndProcessing() && !whatsappBotReady()" 
+                                     class="py-6 flex flex-col items-center justify-center gap-3 text-center animate-fade-in">
+                                    <i class="pi pi-spin pi-sync text-4xl text-emerald-600 dark:text-emerald-400"></i>
+                                    <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200">Bot Inicializando...</h4>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
+                                        El bot se está conectando en el servidor en segundo plano. Esto puede demorar unos minutos. Por favor espera...
                                     </p>
+                                </div>
 
-                                    <button pButton label="Generar Código QR" icon="pi pi-qrcode"
-                                        class="p-button-primary p-button-sm" (click)="restartWhatsapp()"
-                                        [loading]="loadingQr()">
-                                    </button>
-
-                                    <div class="flex items-center gap-2 my-2 w-full justify-center">
-                                        <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
-                                        <span class="text-xs text-slate-400">O usa código</span>
-                                        <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                                <!-- 1. Idle state (not started linking yet, and no active error, and not connecting) -->
+                                <div *ngIf="!whatsappConnecting() && !userStartedLinking() && !whatsappError() && !scannedAndProcessing()" 
+                                     class="py-6 flex flex-col items-center justify-center gap-3 text-center animate-fade-in">
+                                    <div class="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-3xl shadow-sm border border-emerald-100 dark:border-emerald-900/50">
+                                        <i class="pi pi-whatsapp"></i>
                                     </div>
+                                    <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200">Vinculación de WhatsApp</h4>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
+                                        Vinculá el bot de tu estudio central. Hacé clic en el botón de abajo para iniciar el proceso.
+                                    </p>
+                                    <button pButton label="Vincular WhatsApp" icon="pi pi-link"
+                                        class="p-button-success p-button-rounded p-button-sm px-6 mt-2 shadow-sm hover:scale-105 transition-transform duration-200"
+                                        (click)="startLinkingProcess()" [loading]="loadingQr()"></button>
+                                </div>
 
-                                    <button pButton label="Vincular con Código" icon="pi pi-mobile"
-                                        class="p-button-secondary p-button-outlined p-button-sm"
-                                        (click)="generatePairingCode()" [loading]="loadingPairingCode()">
-                                    </button>
+                                <!-- 2. Error State -->
+                                <div *ngIf="whatsappError()" class="py-6 flex flex-col items-center justify-center gap-3 text-center animate-fade-in">
+                                    <div class="w-16 h-16 rounded-full bg-red-50 dark:bg-red-950/30 flex items-center justify-center text-red-600 dark:text-red-400 text-3xl shadow-sm border border-red-100 dark:border-red-900/50">
+                                        <i class="pi pi-exclamation-circle"></i>
+                                    </div>
+                                    <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200">Error de Conexión</h4>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
+                                        No se pudo iniciar el bot de WhatsApp.
+                                    </p>
+                                    <div class="bg-red-50/50 dark:bg-red-950/10 p-3 rounded-lg border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 text-[11px] font-mono max-w-xs mx-auto break-words select-all">
+                                        {{ whatsappError() }}
+                                    </div>
+                                    <button pButton label="Reintentar Vinculación" icon="pi pi-refresh"
+                                        class="p-button-danger p-button-rounded p-button-sm px-6 mt-2 shadow-sm"
+                                        (click)="restartWhatsapp()" [loading]="loadingQr()"></button>
+                                </div>
 
-                                    <!-- Pairing Code Config -->
-                                    <div *ngIf="pairingCode"
-                                        class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700 mt-2 text-center animate-fade-in">
-                                        <p class="text-xs text-yellow-800 dark:text-yellow-200 mb-1">Ingresa este código
-                                            en tu WhatsApp:</p>
-                                        <p class="text-xs text-slate-500 mb-2">(Dispositivos vinculados > Vincular >
-                                            Vincular con número)</p>
-                                        <div
-                                            class="text-3xl font-mono font-bold tracking-widest text-slate-800 dark:text-white select-all">
-                                            {{ pairingCode }}
+                                <!-- 3. Active linking state -->
+                                <div *ngIf="userStartedLinking() && !whatsappError() && !whatsappBotReady()">
+                                    
+                                    <!-- Scanned & Processing / Wait State -->
+                                    <div class="py-6 flex flex-col items-center justify-center gap-3 animate-fade-in text-center">
+                                        <i class="pi pi-spin pi-sync text-4xl text-emerald-600 dark:text-emerald-400"></i>
+                                        <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300 animate-pulse">Bot Iniciando...</p>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
+                                            Si estás corriendo en local, se abrirá una ventana de Chrome en tu computadora. Escaneá el código QR directamente dentro de esa ventana para conectar el bot.
+                                        </p>
+                                        
+                                        <!-- Progress bar showing actual synchronization state -->
+                                        <div *ngIf="whatsappLoadingStatus()" class="w-full max-w-xs mt-2 px-4 space-y-1">
+                                            <div class="flex justify-between text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+                                                <span>{{ whatsappLoadingStatus()?.message || 'Sincronizando' }}</span>
+                                                <span>{{ whatsappLoadingStatus()?.percent }}%</span>
+                                            </div>
+                                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden font-mono">
+                                                <div class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
+                                                    [style.width.%]="whatsappLoadingStatus()?.percent || 0"></div>
+                                            </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <!-- Error Display -->
-                                    <div *ngIf="whatsappError"
-                                        class="mt-2 bg-red-50 dark:bg-red-900/20 p-2 rounded text-red-600 dark:text-red-400 text-xs text-center max-w-xs break-words">
-                                        <i class="pi pi-exclamation-circle mr-1"></i> {{ whatsappError }}
-                                    </div>
+                            </div>
+                        </div>
+                        <!-- Status Area (LAWYERS / NON-ADMIN) -->
+                        <div *ngIf="configWhatsapp && authService.currentUser()?.role !== 'ADMIN'"
+                            class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-lg text-center shadow-inner">
+                            
+                            <!-- Connected State for Lawyers -->
+                            <div *ngIf="whatsappBotReady()" class="space-y-3 py-2">
+                                <div class="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full text-xs font-bold ring-1 ring-green-500/35">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
+                                    <span>Servicio Activo</span>
                                 </div>
-                                <div *ngIf="configWhatsappNumber" class="space-y-2">
-                                    <span class="text-green-700 dark:text-green-400 font-bold text-sm block">Bot
-                                        Conectado</span>
-                                    <button pButton label="Desconectar" icon="pi pi-power-off"
-                                        class="p-button-outlined p-button-danger p-button-sm w-full"
-                                        (click)="logoutWhatsapp()"></button>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">
+                                    El bot de la plataforma está listo para enviar notificaciones automáticas a tus clientes.
+                                </p>
+                                <a *ngIf="configWhatsappNumber"
+                                   [href]="'https://wa.me/' + configWhatsappNumber + '?text=hola'" 
+                                   target="_blank" 
+                                   class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm no-underline font-sans">
+                                    <i class="pi pi-whatsapp"></i>
+                                    Abrir Chat del Bot
+                                </a>
+                            </div>
+
+                            <!-- Disconnected State for Lawyers -->
+                            <div *ngIf="!whatsappBotReady()" class="space-y-3 py-2">
+                                <div class="inline-flex items-center gap-2 px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-xs font-bold ring-1 ring-yellow-500/35">
+                                    <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                                    <span>Servicio en Mantenimiento</span>
                                 </div>
-                            </ng-template>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">
+                                    El canal de envío de WhatsApp se encuentra inactivo. Por favor, comunícate con el administrador para que lo reactive.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
+<<<<<<< HEAD
             <!-- FOR EVERYONE: AFIP / ARCA Integration -->
             <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm relative overflow-hidden"
                  [pTooltip]="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial' && authService.currentUser()?.role !== 'ADMIN' ? 'Requiere Plan Pro' : ''">
@@ -276,6 +430,14 @@
                             <span class="block text-slate-500 dark:text-slate-400 text-xs mb-1 uppercase tracking-wide">Pto. Venta</span>
                             <strong class="text-slate-800 dark:text-slate-200 text-lg">{{ afipForm.get('puntoVenta')?.value }}</strong>
                         </div>
+                    </div>
+                    <div class="mb-4">
+                        <span class="block text-slate-500 dark:text-slate-400 text-xs mb-1 uppercase tracking-wide">Entorno de Facturación</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold" 
+                              [ngClass]="afipForm.get('afipProduction')?.value ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50'">
+                            <i class="pi" [ngClass]="afipForm.get('afipProduction')?.value ? 'pi-bolt' : 'pi-cog'"></i>
+                            {{ afipForm.get('afipProduction')?.value ? 'Producción (Facturación Real)' : 'Homologación (Entorno de Prueba)' }}
+                        </span>
                     </div>
                     <div class="flex gap-2">
                         <button pButton label="Configuración" icon="pi pi-cog" class="p-button-outlined p-button-secondary p-button-sm flex-1" (click)="editAfipMode.set(true)"></button>
@@ -369,6 +531,34 @@
 
             <button pButton label="Cambiar Contraseña" icon="pi pi-check" class="p-button-success w-full"
                 (click)="changePassword()" [disabled]="securityForm.invalid"></button>
+        </div>
+    </div>
+</p-dialog>
+
+<!-- Phone Verification Modal -->
+<p-dialog header="Verificar Teléfono de WhatsApp" [(visible)]="showPhoneVerificationDialog" [modal]="true" [style]="{width: '400px'}" styleClass="p-fluid">
+    <div class="space-y-4">
+        <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg flex items-start gap-3 border border-blue-100 dark:border-blue-800">
+            <i class="pi pi-info-circle text-blue-500 mt-1"></i>
+            <p class="text-xs text-blue-800 dark:text-blue-300">
+                Enviaremos un código de verificación por WhatsApp para confirmar que este número te pertenece.
+            </p>
+        </div>
+
+        <div *ngIf="!phoneOtpSent()">
+            <button pButton label="Enviar Código a mi WhatsApp" icon="pi pi-whatsapp" class="p-button-success w-full"
+                (click)="sendPhoneVerificationOtp()" [loading]="sendingPhoneOtp()"></button>
+        </div>
+
+        <div *ngIf="phoneOtpSent()" class="space-y-3 animate-fade-in">
+            <div>
+                <label class="block text-sm font-medium mb-1 dark:text-white">Código de Verificación</label>
+                <input pInputText [(ngModel)]="phoneVerificationOtp" placeholder="123456"
+                    class="text-center text-lg tracking-widest dark:bg-slate-700 dark:border-slate-600 dark:text-white font-mono" />
+            </div>
+
+            <button pButton label="Confirmar y Verificar" icon="pi pi-check" class="p-button-success w-full"
+                (click)="verifyPhoneVerificationOtp()" [loading]="verifyingPhone()"></button>
         </div>
     </div>
 </p-dialog>

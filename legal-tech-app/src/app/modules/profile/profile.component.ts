@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, signal, OnDestroy, NgZone, effect } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ButtonModule } from 'primeng/button';
@@ -10,6 +10,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { RouterModule } from '@angular/router';
 import Swal from 'sweetalert2';
 import { AuthService } from '../../core/services/auth.service';
+import { SubscriptionService } from '../../core/services/subscription.service';
 import { NotificationService } from '../../core/services/notification.service';
 
 import { environment } from '../../../environments/environment';
@@ -17,16 +18,16 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, ButtonModule, InputTextModule, DialogModule, CheckboxModule, TooltipModule, RouterModule],
+  imports: [CommonModule, DatePipe, ReactiveFormsModule, FormsModule, ButtonModule, InputTextModule, DialogModule, CheckboxModule, TooltipModule, RouterModule],
   templateUrl: './profile.component.html'
 })
 export class ProfileComponent implements OnInit, OnDestroy {
   fb = inject(FormBuilder);
   http = inject(HttpClient);
   authService = inject(AuthService);
+  subscriptionService = inject(SubscriptionService);
   notificationService = inject(NotificationService);
-  cdr = inject(ChangeDetectorRef);
-
+  private ngZone = inject(NgZone);
 
   profileForm: FormGroup;
   afipForm: FormGroup;
@@ -34,32 +35,48 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   saving = signal<boolean>(false);
   savingAfip = signal<boolean>(false);
-  
+  cancellingSubscription = signal<boolean>(false);
+  reactivating = signal<boolean>(false);
+  subscriptionData = signal<{ status: string; expiresAt: string | null; mpSubscriptionId: string | null } | null>(null);
+  paymentHistory = signal<any[]>([]);
+
   // Integrations State
   isAfipLinked = signal<boolean>(false);
   editAfipMode = signal<boolean>(false);
-  qrCodeUrl: string | null = null;
+  qrCodeUrl = signal<string | null>(null);
   private qrPollInterval: any;
   
   configDays: number = 3;
   configHours: number = 24;
   configWhatsapp: boolean = false;
   configWhatsappNumber: string = '';
+  configDesktop: boolean = true;
 
   // Security Modal
   showSecurityModal = false;
   otpSent = false;
   
-  whatsappError: string | null = null;
+  whatsappError = signal<string | null>(null);
+  whatsappBotReady = signal<boolean>(false);
+  whatsappConnecting = signal<boolean>(false);
+  userStartedLinking = signal<boolean>(false);
 
   private apiUrl = `${environment.apiUrl}/users/profile`;
 
   constructor() {
     this.profileForm = this.fb.group({
       fullName: ['', Validators.required],
-      email: [{ value: '', disabled: true }],
+      email: [{ value: '', disabled: true }, [Validators.required, Validators.email]],
       phoneNumber: [''],
-      address: ['', Validators.required]
+      cuit: [''],
+      address: [''],
+      role: [{ value: '', disabled: true }],
+      
+      // AFIP Fields
+      iibb: [''],
+      initActivityUser: [''],
+      puntoVenta: [null],
+      condicionIva: ['Resp. Monotributo']
     });
 
     this.afipForm = this.fb.group({
@@ -67,7 +84,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
       iibb: [''],
       initActivityUser: [''],
       puntoVenta: [null, Validators.required],
-      condicionIva: ['Resp. Monotributo']
+      condicionIva: ['Resp. Monotributo'],
+      afipCert: [''],
+      afipKey: [''],
+      afipProduction: [false]
     });
 
     this.securityForm = this.fb.group({
@@ -75,17 +95,113 @@ export class ProfileComponent implements OnInit, OnDestroy {
         newPassword: ['', [Validators.required, Validators.minLength(8), Validators.pattern(/^(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z]).{8,}$/)]],
         confirmPassword: ['', Validators.required]
     });
+
+    // Reactively update local form fields when notification settings change in the service
+    effect(() => {
+      const days = this.notificationService.daysBeforeAlert();
+      const hours = this.notificationService.checkFrequencyHours();
+      const enabled = this.notificationService.enableWhatsapp();
+      const whatsappNumber = this.notificationService.whatsappNumber();
+      const desktop = this.notificationService.enableDesktop();
+
+      // Defer assignments to prevent ExpressionChangedAfterItHasBeenCheckedError
+      setTimeout(() => {
+        this.configDays = days;
+        this.configHours = hours;
+        this.configWhatsapp = enabled;
+        this.configWhatsappNumber = whatsappNumber;
+        this.configDesktop = desktop;
+      });
+
+      // Start/stop polling based on settings state
+      if (enabled) {
+        this.ngZone.run(() => {
+          if (!this.qrPollInterval) {
+            this.startQrPolling();
+          }
+        });
+      } else {
+        this.ngZone.run(() => {
+          this.stopQrPolling();
+        });
+      }
+    });
   }
 
   ngOnInit() {
     this.loadProfile();
-    this.notificationService.loadSettings(); // Load fresh settings
-    
-    // Load Integration Settings
-    this.configDays = this.notificationService.daysBeforeAlert();
-    this.configHours = this.notificationService.checkFrequencyHours();
-    this.configWhatsapp = this.notificationService.enableWhatsapp();
-    this.configWhatsappNumber = this.notificationService.whatsappNumber();
+    this.loadSubscription();
+    this.notificationService.loadSettings();
+  }
+
+  loadSubscription() {
+    this.http.get<any>(`${environment.apiUrl}/mercadopago/subscription`).subscribe({
+      next: (data) => {
+        this.subscriptionData.set(data);
+        if (data.status === 'active' || data.status === 'paused') {
+          this.loadPaymentHistory();
+        }
+      },
+      error: (err) => console.error('Error loading subscription', err)
+    });
+  }
+
+  loadPaymentHistory() {
+    this.http.get<{ payments: any[] }>(`${environment.apiUrl}/mercadopago/payment-history`).subscribe({
+      next: (res) => this.paymentHistory.set(res.payments),
+      error: (err) => console.error('Error loading payment history', err)
+    });
+  }
+
+  reactivateSubscription() {
+    this.reactivating.set(true);
+    this.http.post<{ success: boolean }>(`${environment.apiUrl}/mercadopago/reactivate-subscription`, {}).subscribe({
+      next: () => {
+        this.reactivating.set(false);
+        const user = this.authService.currentUser();
+        this.authService.currentUser.set({ ...user, subscriptionStatus: 'active' });
+        this.subscriptionData.set({ ...this.subscriptionData()!, status: 'active' });
+        Swal.fire({ icon: 'success', title: '¡Reactivada!', text: 'Tu suscripción está activa nuevamente.', timer: 2000, showConfirmButton: false });
+      },
+      error: (err) => {
+        this.reactivating.set(false);
+        Swal.fire('Error', err.error?.message || 'No se pudo reactivar la suscripción.', 'error');
+      }
+    });
+  }
+
+  cancelSubscription() {
+    Swal.fire({
+      title: 'Cancelar Suscripción',
+      text: '¿Estás seguro? Perderás acceso a las funciones Pro al finalizar el período actual.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cancelar',
+      cancelButtonText: 'Volver',
+      confirmButtonColor: '#dc2626',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+      this.cancellingSubscription.set(true);
+      this.http.post(`${environment.apiUrl}/mercadopago/cancel-subscription`, {}).subscribe({
+        next: () => {
+          this.cancellingSubscription.set(false);
+          const currentUser = this.authService.currentUser();
+          this.authService.currentUser.set({ ...currentUser, subscriptionStatus: 'cancelled' });
+          this.subscriptionData.set({ ...this.subscriptionData()!, status: 'cancelled' });
+          Swal.fire({
+            icon: 'success',
+            title: 'Suscripción Cancelada',
+            text: 'Tu suscripción ha sido cancelada correctamente.',
+            timer: 2500,
+            showConfirmButton: false,
+          });
+        },
+        error: () => {
+          this.cancellingSubscription.set(false);
+          Swal.fire('Error', 'No se pudo cancelar la suscripción.', 'error');
+        }
+      });
+    });
   }
 
   loadProfile() {
@@ -101,7 +217,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     fullName: user.fullName,
                     email: user.email,
                     phoneNumber: user.phoneNumber,
-                    address: user.address
+                    address: user.address,
+                    cuit: user.cuit,
+                    role: user.role
                 });
 
                 this.afipForm.patchValue({
@@ -109,7 +227,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     iibb: user.iibb,
                     initActivityUser: dateStr,
                     puntoVenta: user.puntoVenta,
-                    condicionIva: user.condicionIva || 'Resp. Monotributo'
+                    condicionIva: user.condicionIva || 'Resp. Monotributo',
+                    afipCert: user.afipCert,
+                    afipKey: user.afipKey,
+                    afipProduction: user.afipProduction || false
                 });
 
                 if (user.cuit && user.puntoVenta) {
@@ -149,7 +270,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 showConfirmButton: false
             });
             const currentUser = this.authService.currentUser();
-            this.authService.currentUser.set({ ...currentUser, ...payload });
+            const numberChanged = currentUser?.phoneNumber !== payload.phoneNumber;
+            this.authService.currentUser.set({ 
+                ...currentUser, 
+                ...payload,
+                isPhoneVerified: numberChanged ? false : currentUser?.isPhoneVerified
+            });
         },
         error: (err: any) => {
             this.saving.set(false);
@@ -172,7 +298,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
           iibb: data.iibb,
           initActivityUser: data.initActivityUser,
           puntoVenta: data.puntoVenta,
-          condicionIva: data.condicionIva
+          condicionIva: data.condicionIva,
+          afipCert: data.afipCert,
+          afipKey: data.afipKey,
+          afipProduction: data.afipProduction
       };
 
       this.http.patch(this.apiUrl, payload).subscribe({
@@ -212,7 +341,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   iibb: null,
                   initActivityUser: null,
                   puntoVenta: null,
-                  condicionIva: null
+                  condicionIva: null,
+                  afipCert: null,
+                  afipKey: null,
+                  afipProduction: false
               };
               
               this.http.patch(this.apiUrl, payload).subscribe({
@@ -230,10 +362,55 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
   }
 
+  onCertFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.afipForm.patchValue({ afipCert: e.target.result });
+    };
+    reader.readAsText(file);
+  }
+
+  onKeyFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.afipForm.patchValue({ afipKey: e.target.result });
+    };
+    reader.readAsText(file);
+  }
+
   // --- INTEGRATIONS ---
 
+  async onDesktopToggle(event: any) {
+      if (this.configDesktop) {
+          const granted = await this.notificationService.requestNativePermission();
+          if (!granted) {
+              this.configDesktop = false;
+              Swal.fire({
+                  icon: 'warning',
+                  title: 'Permiso Denegado',
+                  text: 'Para activar las notificaciones pop-up, debes habilitar los permisos de notificación en tu navegador.',
+                  confirmButtonText: 'Entendido'
+              });
+          } else {
+              this.notificationService.subscribeToNotifications();
+          }
+      } else {
+          this.notificationService.unsubscribeFromNotifications();
+      }
+  }
+
   saveIntegrations() {
-      this.notificationService.updateAlertSettings(this.configDays, this.configHours, this.configWhatsapp, this.configWhatsappNumber);
+      this.notificationService.updateAlertSettings(
+          this.configDays,
+          this.configHours,
+          this.configWhatsapp,
+          this.configWhatsappNumber,
+          this.configDesktop
+      );
       Swal.fire({
           icon: 'success',
           title: 'Configuración Guardada',
@@ -241,8 +418,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
           showConfirmButton: false
       });
 
-      if (this.configWhatsapp && !this.qrCodeUrl && !this.qrPollInterval) {
+      if (this.configWhatsapp && !this.qrCodeUrl() && !this.qrPollInterval) {
           this.startQrPolling();
+      } else if (!this.configWhatsapp) {
+          this.stopQrPolling();
       }
   }
 
@@ -268,14 +447,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
           confirmButtonText: 'Sí, desconectar'
       }).then((result) => {
           if (result.isConfirmed) {
-              this.notificationService.logoutWhatsapp().subscribe({
+               this.notificationService.logoutWhatsapp().subscribe({
                   next: () => {
                       Swal.fire('Desconectado', 'Sesión cerrada.', 'success');
-                      this.qrCodeUrl = null;
+                      this.qrCodeUrl.set(null);
                       this.configWhatsappNumber = '';
-                      // Update settings to clear the number
-                      this.notificationService.updateAlertSettings(this.configDays, this.configHours, this.configWhatsapp, '');
-                      
+                      this.whatsappBotReady.set(false);
+                      this.whatsappLoadingStatus.set(null);
+                      this.notificationService.updateAlertSettings(this.configDays, this.configHours, this.configWhatsapp, '', this.configDesktop);
                       if (this.configWhatsapp) this.startQrPolling();
                   },
                   error: () => Swal.fire('Error', 'No se pudo cerrar la sesión.', 'error')
@@ -284,27 +463,48 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
   }
 
+  onWhatsappToggle() {
+      if (this.configWhatsapp) {
+          this.startQrPolling();
+      } else {
+          this.stopQrPolling();
+          this.qrCodeUrl.set(null);
+          this.pairingCode.set(null);
+          this.whatsappError.set(null);
+          this.whatsappBotReady.set(false);
+          this.whatsappLoadingStatus.set(null);
+      }
+  }
+
   loadingQr = signal<boolean>(false);
-  pairingCode: string | null = null;
+  scannedAndProcessing = signal<boolean>(false);
+  pairingCode = signal<string | null>(null);
   loadingPairingCode = signal<boolean>(false);
+  whatsappLoadingStatus = signal<{ percent: number; message: string } | null>(null);
+
+  startLinkingProcess() {
+      this.userStartedLinking.set(true);
+      this.restartWhatsapp();
+  }
 
   restartWhatsapp() {
       this.loadingQr.set(true);
+      this.scannedAndProcessing.set(false);
+      this.whatsappLoadingStatus.set(null);
       this.notificationService.restartWhatsapp().subscribe({
           next: () => {
-              this.qrCodeUrl = null;
-              this.pairingCode = null;
-              this.whatsappError = null;
+              this.qrCodeUrl.set(null);
+              this.pairingCode.set(null);
+              this.whatsappError.set(null);
               this.startQrPolling();
-              setTimeout(() => this.loadingQr.set(false), 3000); 
           },
           error: () => {
               this.loadingQr.set(false);
-              Swal.fire('Error', 'No se pudo generar el QR.', 'error');
+              Swal.fire('Error', 'No se pudo reiniciar el bot.', 'error');
           }
       });
   }
-
+ 
   generatePairingCode() {
       const phone = this.profileForm.get('phoneNumber')?.value;
       if (!phone) {
@@ -313,84 +513,168 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
       
       this.loadingPairingCode.set(true);
+      this.scannedAndProcessing.set(false);
+      this.whatsappLoadingStatus.set(null);
       this.notificationService.requestPairingCode(phone).subscribe({
           next: (res) => {
               this.loadingPairingCode.set(false);
               if (res.success && res.code) {
-                  this.pairingCode = res.code;
-                  this.qrCodeUrl = null; // Hide QR if showing code
-                  this.stopQrPolling(); // Stop polling while showing code? Or keep polling to detect connection? 
-                  // Better keep polling but maybe slower
+                  this.pairingCode.set(res.code);
+                  this.qrCodeUrl.set(null);
                   this.startQrPolling(5000);
               }
           },
           error: (err) => {
               this.loadingPairingCode.set(false);
               console.error(err);
-              Swal.fire('Error', 'No se pudo generar el código. Asegúrate que el bot se haya reiniciado primero (usa el botón Generar QR primero para iniciar el proceso).', 'error');
+              Swal.fire('Error', 'No se pudo generar el código. Por favor, asegúrate de que el número de teléfono sea válido e inténtalo de nuevo.', 'error');
           }
       });
   }
 
   startQrPolling(intervalMs = 3000) {
       this.stopQrPolling();
-      let errorCount = 0;
       
-      this.qrPollInterval = setInterval(() => {
+      // If we don't have a connected number and we aren't pairing with a code or already scanned,
+      // let's show the loading/generating QR state from the start, but only if the user has actively started the linking process!
+      if (this.userStartedLinking() && (!this.configWhatsappNumber || !this.whatsappBotReady()) && !this.pairingCode() && !this.scannedAndProcessing()) {
+          this.loadingQr.set(true);
+      }
+
+      let consecutiveErrors = 0;
+      const maxPolls = Math.ceil(120_000 / intervalMs);
+      let pollCount = 0;
+
+      const performPoll = () => {
           this.notificationService.getWhatsappStatus().subscribe({
             next: (status: any) => {
-              errorCount = 0; // Reset error count on success
-              
-              if (status.qr) {
-                  this.qrCodeUrl = status.qr;
-                  this.pairingCode = null;
-                  this.whatsappError = null;
-                  this.cdr.detectChanges(); 
-              } else if (status.ready) {
-                  this.qrCodeUrl = null;
-                  this.pairingCode = null;
-                  this.whatsappError = null;
-                  this.stopQrPolling();
+              this.ngZone.run(() => {
+                consecutiveErrors = 0;
+                this.whatsappConnecting.set(!!status.connecting);
+                if (intervalMs === 10_000) {
+                  this.startQrPolling(3000);
+                }
+
+                if (status.ready && status.number) {
+                  this.whatsappBotReady.set(true);
+                  this.whatsappConnecting.set(false);
+                  const wasLinking = this.loadingQr() || this.scannedAndProcessing() || this.loadingPairingCode() || this.pairingCode();
                   
-                  if (status.number && !this.configWhatsappNumber) {
-                      this.configWhatsappNumber = status.number;
+                  this.qrCodeUrl.set(null);
+                  this.pairingCode.set(null);
+                  this.whatsappError.set(null);
+                  this.loadingQr.set(false);
+                  this.scannedAndProcessing.set(false);
+                  this.whatsappLoadingStatus.set(null);
+                  this.stopQrPolling();
+
+                  if (this.configWhatsappNumber !== status.number) {
+                    this.configWhatsappNumber = status.number;
+                    this.notificationService.updateAlertSettings(
+                      this.configDays,
+                      this.configHours,
+                      this.configWhatsapp,
+                      status.number,
+                      this.configDesktop
+                    );
                   }
 
-                  Swal.fire({
-                    title: '¡Conectado!',
-                    text: status.number ? `Vinculado con ${status.number}` : 'El bot de WhatsApp está listo.',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                  });
-              } else {
-                  if (status.pairingCode) {
-                      this.pairingCode = status.pairingCode;
-                      this.qrCodeUrl = null;
+                  if (wasLinking) {
+                    Swal.fire({
+                      title: '¡Conectado!',
+                      text: `Vinculado con ${status.number}`,
+                      icon: 'success',
+                      timer: 3000,
+                      showConfirmButton: false
+                    });
                   }
-                  if (status.error) {
-                      this.whatsappError = status.error;
+                } else {
+                  this.whatsappBotReady.set(false);
+                  
+                  if (status.qr || status.loading || status.error || this.pairingCode()) {
+                    this.userStartedLinking.set(true);
+                  }
+
+                  if (status.loading) {
+                    this.whatsappLoadingStatus.set(status.loading);
+                    this.scannedAndProcessing.set(true);
+                    this.loadingQr.set(false);
+                    this.qrCodeUrl.set(null);
+                    this.pairingCode.set(null);
                   } else {
-                      this.whatsappError = null;
+                    this.whatsappLoadingStatus.set(null);
                   }
-                  this.cdr.detectChanges();
-              }
+
+                  if (status.qr) {
+                    this.qrCodeUrl.set(status.qr);
+                    this.pairingCode.set(null);
+                    this.loadingQr.set(false);
+                    this.scannedAndProcessing.set(false);
+                  } else if (status.pairingCode) {
+                    this.pairingCode.set(status.pairingCode);
+                    this.qrCodeUrl.set(null);
+                    this.loadingQr.set(false);
+                    this.scannedAndProcessing.set(false);
+                  } else if (status.error) {
+                    this.whatsappError.set(status.error);
+                    this.loadingQr.set(false);
+                    this.scannedAndProcessing.set(false);
+                    this.stopQrPolling();
+                  } else {
+                    if (this.qrCodeUrl()) {
+                      this.qrCodeUrl.set(null);
+                      this.scannedAndProcessing.set(true);
+                      this.loadingQr.set(false);
+                    }
+                  }
+                }
+              });
             },
 
             error: (err: any) => {
-                console.warn('Polling error:', err);
-                errorCount++;
-                if (err.status === 504 || err.status === 500) {
-                    // Server overloaded or down. Back off.
-                    if (errorCount > 2) {
-                        console.warn('High error rate, slowing down polling...');
-                        this.stopQrPolling();
-                        this.startQrPolling(10000); // Slow down to 10s
-                    }
+              this.ngZone.run(() => {
+                if (err.status === 401) {
+                  this.stopQrPolling();
+                  this.loadingQr.set(false);
+                  this.scannedAndProcessing.set(false);
+                  this.whatsappError.set('Sesión expirada. Volvé a iniciar sesión.');
+                  return;
                 }
+
+                consecutiveErrors++;
+                console.warn(`Polling error (${consecutiveErrors}):`, err);
+
+                // Increase limit to 20 errors to survive CPU-intensive zipping on low-resource environments
+                if (consecutiveErrors >= 20) {
+                  this.stopQrPolling();
+                  this.loadingQr.set(false);
+                  this.scannedAndProcessing.set(false);
+                  this.whatsappError.set('No se pudo conectar con el servidor. Intentá de nuevo.');
+                } else if (consecutiveErrors >= 3 && intervalMs < 10_000) {
+                  this.startQrPolling(10_000);
+                }
+              });
             }
           });
-      }, intervalMs);
+      };
+
+      // Perform first poll immediately
+      performPoll();
+
+      this.ngZone.runOutsideAngular(() => {
+        this.qrPollInterval = setInterval(() => {
+          if (++pollCount > maxPolls) {
+            this.ngZone.run(() => {
+              this.stopQrPolling();
+              this.loadingQr.set(false);
+              this.scannedAndProcessing.set(false);
+              this.whatsappError.set('Tiempo de espera agotado. Intentá de nuevo.');
+            });
+            return;
+          }
+          performPoll();
+        }, intervalMs);
+      });
   }
 
   sendTestMessage() {
@@ -445,6 +729,76 @@ export class ProfileComponent implements OnInit, OnDestroy {
               Swal.fire('Contraseña Actualizada', 'Tu contraseña se ha cambiado correctamente.', 'success');
           },
           error: (err) => Swal.fire('Error', 'No se pudo cambiar la contraseña. ' + (err.error?.message || ''), 'error')
+      });
+  }
+
+  // Phone Verification Methods
+  showPhoneVerificationDialog = signal<boolean>(false);
+  phoneVerificationOtp = signal<string>('');
+  sendingPhoneOtp = signal<boolean>(false);
+  verifyingPhone = signal<boolean>(false);
+  phoneOtpSent = signal<boolean>(false);
+
+  openPhoneVerification() {
+      const phone = this.profileForm.get('phoneNumber')?.value;
+      if (!phone) {
+          Swal.fire('Atención', 'Debes ingresar tu número de teléfono primero.', 'warning');
+          return;
+      }
+      this.phoneVerificationOtp.set('');
+      this.phoneOtpSent.set(false);
+      this.showPhoneVerificationDialog.set(true);
+  }
+
+  sendPhoneVerificationOtp() {
+      const phone = this.profileForm.get('phoneNumber')?.value;
+      if (!phone) {
+          Swal.fire('Atención', 'Debes ingresar tu número de teléfono primero.', 'warning');
+          return;
+      }
+      this.sendingPhoneOtp.set(true);
+      this.http.post(`${environment.apiUrl}/auth/request-phone-verification-otp`, { phoneNumber: phone }).subscribe({
+          next: () => {
+              this.sendingPhoneOtp.set(false);
+              this.phoneOtpSent.set(true);
+              Swal.fire('Código Enviado', 'Revisa tu WhatsApp para ver el código de verificación.', 'success');
+          },
+          error: (err: any) => {
+              this.sendingPhoneOtp.set(false);
+              Swal.fire('Error', err.error?.message || 'No se pudo enviar el código. Asegúrate de que el bot de la plataforma esté activo.', 'error');
+          }
+      });
+  }
+
+  verifyPhoneVerificationOtp() {
+      const phone = this.profileForm.get('phoneNumber')?.value;
+      const otp = this.phoneVerificationOtp();
+      if (!otp) {
+          Swal.fire('Atención', 'Debes ingresar el código OTP.', 'warning');
+          return;
+      }
+      this.verifyingPhone.set(true);
+      this.http.post(`${environment.apiUrl}/auth/verify-phone-otp`, { phoneNumber: phone, otp }).subscribe({
+          next: () => {
+              this.verifyingPhone.set(false);
+              this.showPhoneVerificationDialog.set(false);
+              this.phoneOtpSent.set(false);
+              this.phoneVerificationOtp.set('');
+              
+              // Update state
+              const currentUser = this.authService.currentUser();
+              this.authService.currentUser.set({
+                  ...currentUser,
+                  phoneNumber: phone,
+                  isPhoneVerified: true
+              });
+              
+              Swal.fire('¡Verificado!', 'Tu número de WhatsApp ha sido verificado correctamente.', 'success');
+          },
+          error: (err: any) => {
+              this.verifyingPhone.set(false);
+              Swal.fire('Error', err.error?.message || 'Código incorrecto.', 'error');
+          }
       });
   }
 }

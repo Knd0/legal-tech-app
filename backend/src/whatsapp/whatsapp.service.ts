@@ -29,6 +29,8 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
   private initializingPromise: Promise<void> | null = null;
   private restartingPromise: Promise<any> | null = null;
   private queueInterval: any;
+  private syncInterval: any = null;
+  private fileCache = new Map<string, { mtime: number; size: number }>();
 
   private getSessionPath(): string {
     const isWindows = process.platform === 'win32';
@@ -114,6 +116,9 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
         
         // 2. Load auth state from local folder
         const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
+        
+        // Start periodic sync of auth state to database
+        this.startPeriodicSync();
         
         // 3. Make socket
         const sock = makeWASocket({
@@ -327,6 +332,8 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
 
   async logout() {
       this.logger.log('Logging out WhatsApp client...');
+      this.stopPeriodicSync();
+      this.fileCache.clear();
       
       this.initializationError = null;
       this.qrCodeImage = null;
@@ -422,6 +429,23 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
       return { success: true, message: 'Restart triggered in background' };
   }
 
+  private startPeriodicSync() {
+    if (this.syncInterval) return;
+    this.logger.log('Starting periodic WhatsApp session sync to database (every 10s)...');
+    this.syncInterval = setInterval(async () => {
+      const sessionDir = this.getSessionPath();
+      await this.syncLocalFolderToDb(sessionDir);
+    }, 10000);
+  }
+
+  private stopPeriodicSync() {
+    if (this.syncInterval) {
+      clearInterval(this.syncInterval);
+      this.syncInterval = null;
+      this.logger.log('Stopped periodic WhatsApp session sync.');
+    }
+  }
+
   private async syncDbToLocalFolder(folder: string) {
     try {
       const fs = require('fs');
@@ -444,9 +468,13 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
           const filePath = path.join(folder, dbSession.id);
           fs.writeFileSync(filePath, dbSession.sessionData);
           restoredCount++;
+          
+          // Populate the cache to match restored files
+          const stat = fs.statSync(filePath);
+          this.fileCache.set(dbSession.id, { mtime: stat.mtimeMs, size: stat.size });
         }
       }
-      this.logger.log(`Restored ${restoredCount} session files from database to local folder.`);
+      this.logger.log(`Restored ${restoredCount} session files from database to local folder and initialized fileCache.`);
     } catch (err: any) {
       this.logger.error('Failed to sync WhatsApp files from database to local folder', err);
     }
@@ -457,27 +485,50 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
       const fs = require('fs');
       if (!fs.existsSync(folder)) return;
       const files = fs.readdirSync(folder);
-      
       const jsonFiles = files.filter(f => f.endsWith('.json'));
       
+      let changed = false;
+
       for (const file of jsonFiles) {
         const filePath = path.join(folder, file);
+        const stat = fs.statSync(filePath);
+        const cached = this.fileCache.get(file);
+
+        if (cached && cached.mtime === stat.mtimeMs && cached.size === stat.size) {
+          // File hasn't changed, skip
+          continue;
+        }
+
+        // File changed or is new
         const data = fs.readFileSync(filePath);
-        
         let session = await this.sessionRepository.findOne({ where: { id: file } });
         if (!session) {
           session = this.sessionRepository.create({ id: file });
         }
-        session.sessionData = data;
-        session.updatedAt = new Date();
-        await this.sessionRepository.save(session);
+        
+        // Only update if database data is actually different (avoid redundant writes)
+        if (!session.sessionData || !session.sessionData.equals(data)) {
+          session.sessionData = data;
+          session.updatedAt = new Date();
+          await this.sessionRepository.save(session);
+          changed = true;
+        }
+
+        this.fileCache.set(file, { mtime: stat.mtimeMs, size: stat.size });
       }
 
-      const dbSessions = await this.sessionRepository.find();
-      for (const dbSession of dbSessions) {
-        if (dbSession.id.endsWith('.json') && !jsonFiles.includes(dbSession.id)) {
-          await this.sessionRepository.delete({ id: dbSession.id });
+      // Check for deleted files
+      const cachedFiles = Array.from(this.fileCache.keys());
+      for (const cachedFile of cachedFiles) {
+        if (!jsonFiles.includes(cachedFile)) {
+          await this.sessionRepository.delete({ id: cachedFile });
+          this.fileCache.delete(cachedFile);
+          changed = true;
         }
+      }
+
+      if (changed) {
+        this.logger.debug('WhatsApp session files successfully synchronized to DB.');
       }
     } catch (err: any) {
       this.logger.error('Failed to sync WhatsApp files from local folder to database', err);

@@ -551,7 +551,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
               this.ngZone.run(() => {
                 consecutiveErrors = 0;
                 this.whatsappConnecting.set(!!status.connecting);
-                // Reset to faster polling if the server is responsive and we are currently polling slowly
                 if (intervalMs === 10_000) {
                   this.startQrPolling(3000);
                 }
@@ -608,6 +607,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
                   if (status.qr) {
                     this.qrCodeUrl.set(status.qr);
+                    this.pairingCode.set(null);
+                    this.loadingQr.set(false);
+                    this.scannedAndProcessing.set(false);
+                  } else if (status.pairingCode) {
+                    this.pairingCode.set(status.pairingCode);
+                    this.qrCodeUrl.set(null);
                     this.loadingQr.set(false);
                     this.scannedAndProcessing.set(false);
                   } else if (status.error) {
@@ -616,8 +621,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     this.scannedAndProcessing.set(false);
                     this.stopQrPolling();
                   } else {
-                    // status.qr is null AND status.ready is false AND status.error is null (or status.ready is true but status.number is null)
-                    // If we had a QR code showing, it means it was scanned!
                     if (this.qrCodeUrl()) {
                       this.qrCodeUrl.set(null);
                       this.scannedAndProcessing.set(true);
@@ -627,6 +630,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 }
               });
             },
+
             error: (err: any) => {
               this.ngZone.run(() => {
                 if (err.status === 401) {

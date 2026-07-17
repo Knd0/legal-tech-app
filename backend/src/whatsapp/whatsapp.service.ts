@@ -23,6 +23,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
   private readonly logger = new Logger(WhatsappService.name);
   private isReady = false;
   private qrCodeImage: string | null = null;
+  private pairingCode: string | null = null;
   private initializationError: string | null = null;
   private loadingScreen: { percent: number; message: string } | null = null;
   private initializingPromise: Promise<void> | null = null;
@@ -31,8 +32,6 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
 
   private getSessionPath(): string {
     const isWindows = process.platform === 'win32';
-    // On Windows, resolve a folder in the user's home directory to bypass Chrome sandbox blocks inside hidden .gemini folders.
-    // On production (Linux), resolve a standard './whatsapp-auth' absolute path.
     const resolvedPath = isWindows
       ? path.join(os.homedir(), 'themis-whatsapp-auth')
       : path.resolve(process.cwd(), 'whatsapp-auth');
@@ -70,7 +69,6 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
       
       if (!isProduction || credsExist) {
         this.logger.log(`Automatically initializing WhatsApp client (credsExist=${credsExist})...`);
-        // Run in background without awaiting to prevent blocking the NestJS bootstrap process
         this.ensureInitialized().catch((err) => {
           this.logger.error('Failed to initialize WhatsApp client in background', err);
         });
@@ -129,6 +127,24 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
         
         this.socket = sock;
 
+        // Auto-request pairing code on boot if bot number env variable is defined and not registered
+        const isRegistered = state.creds && state.creds.me;
+        if (!isRegistered && process.env.WHATSAPP_BOT_NUMBER) {
+          const cleanNumber = process.env.WHATSAPP_BOT_NUMBER.replace(/\D/g, '');
+          this.logger.log(`Automatically requesting pairing code on boot for WHATSAPP_BOT_NUMBER: ${cleanNumber}`);
+          setTimeout(async () => {
+            try {
+              if (sock && !this.isReady) {
+                const code = await sock.requestPairingCode(cleanNumber);
+                this.pairingCode = code;
+                this.logger.log(`Auto-generated pairing code: ${code}`);
+              }
+            } catch (err: any) {
+              this.logger.error('Failed to auto-request pairing code on boot', err);
+            }
+          }, 5000);
+        }
+
         // 4. Handle credential updates
         sock.ev.on('creds.update', async () => {
           await saveCreds();
@@ -141,6 +157,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
 
           if (qr) {
             this.logger.log('New WhatsApp QR code generated.');
+            this.pairingCode = null;
             try {
               this.qrCodeImage = await QRCode.toDataURL(qr);
             } catch (err) {
@@ -155,6 +172,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
             
             this.isReady = false;
             this.qrCodeImage = null;
+            this.pairingCode = null;
             this.socket = null;
 
             if (shouldReconnect) {
@@ -171,6 +189,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
           } else if (connection === 'open') {
             this.isReady = true;
             this.qrCodeImage = null;
+            this.pairingCode = null;
             this.initializationError = null;
             this.logger.log('WhatsApp Client (Baileys) is ready!');
             
@@ -178,22 +197,6 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
             this.startQueueProcessor();
           }
         });
-
-        // 6. Handle incoming messages (chat bidireccional interactivo inhabilitado temporalmente)
-        /*
-        sock.ev.on('messages.upsert', async (chatUpdate) => {
-          try {
-            const { messages, type } = chatUpdate;
-            if (type === 'notify') {
-              for (const msg of messages) {
-                await this.handleIncomingMessage(msg);
-              }
-            }
-          } catch (err) {
-            this.logger.error('Error handling incoming Baileys messages', err);
-          }
-        });
-        */
 
       } catch (err: any) {
         this.logger.error('Failed to initialize Baileys client', err);
@@ -298,6 +301,8 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
            
            const cleanCode = phoneNumber.replace(/\D/g, '');
            const code = await this.socket.requestPairingCode(cleanCode);
+           this.pairingCode = code;
+           this.qrCodeImage = null;
            this.logger.log(`Pairing code generated: ${code}`);
            return code;
       } catch (error) {
@@ -310,6 +315,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
       return {
           ready: this.isReady,
           qr: this.qrCodeImage,
+          pairingCode: this.pairingCode,
           number: this.isReady ? (this.socket?.user?.id?.split('@')[0]?.split(':')[0]) : null,
           loading: this.loadingScreen,
           error: this.initializationError,
@@ -324,6 +330,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
       this.qrCodeImage = null;
       this.loadingScreen = null;
       this.isReady = false;
+      this.pairingCode = null;
 
       try {
           if (this.initializingPromise) {
@@ -380,6 +387,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
       this.qrCodeImage = null;
       this.loadingScreen = null;
       this.isReady = false;
+      this.pairingCode = null;
 
       this.restartingPromise = (async () => {
           try {

@@ -185,13 +185,12 @@
                     <p class="text-xs font-medium text-amber-600 dark:text-amber-400 mt-1 mb-4">Estás disfrutando de una prueba gratuita del sistema. Elegí un plan para continuar.</p>
                     <a routerLink="/subscription/pricing" class="inline-flex justify-center w-full text-center px-4 py-2 text-sm font-bold rounded-lg bg-amber-500 text-white hover:bg-amber-600 hover:-translate-y-0.5 transition-all shadow-md shadow-amber-500/30">Adquirir un Plan</a>
                 </div>
-            </div>
-
-            <div
+                       <!-- ONLY FOR ADMIN: Global Settings (Alerts & WhatsApp Bot) -->
+            <div *ngIf="authService.currentUser()?.role === 'ADMIN'"
                 class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
                 <h2
                     class="text-lg font-bold text-slate-700 dark:text-slate-200 mb-4 pb-2 border-b border-slate-50 dark:border-slate-700">
-                    Integraciones
+                    Configuración Global
                 </h2>
 
                 <div class="space-y-6">
@@ -388,138 +387,114 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <!-- AFIP / ARCA Integration -->
-                    <div class="border-t border-slate-100 dark:border-slate-700 pt-6 mt-6 relative" [pTooltip]="!authService.isProUser() ? 'Requiere Plan Pro' : ''">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2" [class.opacity-50]="!authService.isProUser()">
-                                <i class="pi pi-briefcase text-purple-600"></i> AFIP / ARCA
-                                <span *ngIf="!authService.isProUser()" class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black uppercase">Pro</span>
-                            </h3>
-                            <!-- Status Badge -->
-                            <span *ngIf="isAfipLinked()" class="text-xs font-bold px-2 py-1 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-1 ring-green-500/50">Vinculado</span>
-                            <span *ngIf="!isAfipLinked()" class="text-xs font-bold px-2 py-1 rounded bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400 ring-1 ring-slate-500/30">Sin Vincular</span>
+<<<<<<< HEAD
+            <!-- FOR EVERYONE: AFIP / ARCA Integration -->
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm relative overflow-hidden"
+                 [pTooltip]="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial' && authService.currentUser()?.role !== 'ADMIN' ? 'Requiere Plan Pro' : ''">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2"
+                        [class.opacity-50]="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial' && authService.currentUser()?.role !== 'ADMIN'">
+                        <i class="pi pi-briefcase text-purple-600"></i> AFIP / ARCA
+                        <span *ngIf="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial' && authService.currentUser()?.role !== 'ADMIN'" 
+                              class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black uppercase">Pro</span>
+                    </h3>
+                    <!-- Status Badge -->
+                    <span *ngIf="isAfipLinked()" class="text-xs font-bold px-2 py-1 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-1 ring-green-500/50">Vinculado</span>
+                    <span *ngIf="!isAfipLinked()" class="text-xs font-bold px-2 py-1 rounded bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400 ring-1 ring-slate-500/30">Sin Vincular</span>
+                </div>
+
+                <!-- Paywall Overlay if Basic -->
+                <div *ngIf="authService.currentUser()?.subscriptionStatus !== 'active' && authService.currentUser()?.subscriptionStatus !== 'trial' && authService.currentUser()?.role !== 'ADMIN'" 
+                     class="absolute inset-0 z-10 bg-white/60 dark:bg-slate-800/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-4 rounded-xl text-center">
+                     <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-3 shadow-sm border border-amber-200">
+                        <i class="pi pi-lock text-amber-600 dark:text-amber-400 text-xl"></i>
+                     </div>
+                     <p class="text-sm font-bold text-slate-800 dark:text-slate-200 leading-tight">Funcionalidad Exclusiva</p>
+                     <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 mb-3">La vinculación con AFIP requiere una<br>suscripción en el <span class="text-blue-600 font-bold">Plan Estudio Pro</span></p>
+                     <a routerLink="/subscription/pricing" class="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-900 dark:bg-blue-600 text-white text-[10px] font-bold rounded-full shadow-lg shadow-blue-500/30 hover:scale-105 transition-transform">
+                        <i class="pi pi-bolt"></i> Mejorar Ahora
+                     </a>
+                </div>
+
+                <!-- Active Linked State -->
+                <div *ngIf="isAfipLinked() && !editAfipMode()" class="mt-4 p-4 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 rounded-lg text-sm transition-all hover:shadow-md">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <span class="block text-slate-500 dark:text-slate-400 text-xs mb-1 uppercase tracking-wide">CUIT Vinculado</span>
+                            <strong class="text-slate-800 dark:text-slate-200 text-lg font-mono">{{ afipForm.get('cuit')?.value }}</strong>
                         </div>
-
-                        <!-- Paywall Overlay if Basic -->
-                        <div *ngIf="!authService.isProUser()" 
-                             class="absolute inset-x-0 bottom-0 top-[40px] z-10 bg-white/60 dark:bg-slate-800/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-4 rounded-xl text-center">
-                             <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-3 shadow-sm border border-amber-200">
-                                <i class="pi pi-lock text-amber-600 dark:text-amber-400 text-xl"></i>
-                             </div>
-                             <p class="text-sm font-bold text-slate-800 dark:text-slate-200 leading-tight">Funcionalidad Exclusiva</p>
-                             <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 mb-3">La vinculación con AFIP requiere una<br>suscripción en el <span class="text-blue-600 font-bold">Plan Estudio Pro</span></p>
-                             <a routerLink="/subscription/pricing" class="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-900 dark:bg-blue-600 text-white text-[10px] font-bold rounded-full shadow-lg shadow-blue-500/30 hover:scale-105 transition-transform">
-                                <i class="pi pi-bolt"></i> Mejorar Ahora
-                             </a>
-                        </div>
-
-                        <!-- Active Linked State -->
-                        <div *ngIf="isAfipLinked() && !editAfipMode()" class="mt-4 p-4 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 rounded-lg text-sm transition-all hover:shadow-md">
-                            <div class="flex justify-between items-center mb-4">
-                                <div>
-                                    <span class="block text-slate-500 dark:text-slate-400 text-xs mb-1 uppercase tracking-wide">CUIT Vinculado</span>
-                                    <strong class="text-slate-800 dark:text-slate-200 text-lg font-mono">{{ afipForm.get('cuit')?.value }}</strong>
-                                </div>
-                                <div class="text-right">
-                                    <span class="block text-slate-500 dark:text-slate-400 text-xs mb-1 uppercase tracking-wide">Pto. Venta</span>
-                                    <strong class="text-slate-800 dark:text-slate-200 text-lg">{{ afipForm.get('puntoVenta')?.value }}</strong>
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <span class="block text-slate-500 dark:text-slate-400 text-xs mb-1 uppercase tracking-wide">Entorno de Facturación</span>
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold" 
-                                      [ngClass]="afipForm.get('afipProduction')?.value ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50'">
-                                    <i class="pi" [ngClass]="afipForm.get('afipProduction')?.value ? 'pi-bolt' : 'pi-cog'"></i>
-                                    {{ afipForm.get('afipProduction')?.value ? 'Producción (Facturación Real)' : 'Homologación (Entorno de Prueba)' }}
-                                </span>
-                            </div>
-                            <div class="flex gap-2">
-                                <button pButton label="Configuración" icon="pi pi-cog" class="p-button-outlined p-button-secondary p-button-sm flex-1" (click)="editAfipMode.set(true)"></button>
-                                <button pButton icon="pi pi-trash" class="p-button-outlined p-button-danger p-button-sm" (click)="unlinkAfip()" pTooltip="Eliminar"></button>
-                            </div>
-                        </div>
-
-                        <!-- Edit/Setup Form Mode -->
-                        <div *ngIf="editAfipMode()" class="mt-4 p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl animate-fade-in-up shadow-inner">
-                            <form [formGroup]="afipForm" (ngSubmit)="saveAfip()" class="space-y-4">
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">CUIT *</label>
-                                    <input pInputText formControlName="cuit" class="w-full text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" placeholder="20123456789" />
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Condición IVA</label>
-                                    <select formControlName="condicionIva" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-white focus:ring-purple-500 max-w-full">
-                                        <option value="Resp. Monotributo">Responsable Monotributo</option>
-                                        <option value="Resp. Inscripto">Responsable Inscripto</option>
-                                        <option value="Exento">Exento</option>
-                                        <option value="Consumidor Final">Consumidor Final</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Punto de Venta Web Service *</label>
-                                    <input type="number" pInputText formControlName="puntoVenta" class="w-full text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" placeholder="1" />
-                                </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">IIBB</label>
-                                        <input pInputText formControlName="iibb" class="w-full text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" />
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Inicio de Act.</label>
-                                        <input type="date" pInputText formControlName="initActivityUser" class="w-full text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" />
-                                    </div>
-                                </div>
-
-                                <!-- Entorno Selección -->
-                                <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Entorno de Producción</label>
-                                        <p class="text-[10px] text-slate-400">Activalo solo si tenés certificados de producción reales.</p>
-                                    </div>
-                                    <p-checkbox formControlName="afipProduction" [binary]="true"></p-checkbox>
-                                </div>
-
-                                <!-- Certificado Upload -->
-                                <div class="space-y-1">
-                                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">Certificado AFIP (.crt) *</label>
-                                    <div class="flex gap-2">
-                                        <input type="file" (change)="onCertFileSelected($event)" accept=".crt,.txt" #certFileInput class="hidden" />
-                                        <button type="button" pButton label="Subir Archivo .crt" icon="pi pi-upload" class="p-button-outlined p-button-sm p-button-secondary w-full" (click)="certFileInput.click()"></button>
-                                    </div>
-                                    <textarea pInputTextarea formControlName="afipCert" rows="4" class="w-full text-xs font-mono dark:bg-slate-800 dark:border-slate-600 dark:text-white" placeholder="-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"></textarea>
-                                </div>
-
-                                <!-- Key Upload -->
-                                <div class="space-y-1">
-                                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">Clave Privada AFIP (.key) *</label>
-                                    <div class="flex gap-2">
-                                        <input type="file" (change)="onKeyFileSelected($event)" accept=".key,.txt" #keyFileInput class="hidden" />
-                                        <button type="button" pButton label="Subir Archivo .key" icon="pi pi-upload" class="p-button-outlined p-button-sm p-button-secondary w-full" (click)="keyFileInput.click()"></button>
-                                    </div>
-                                    <textarea pInputTextarea formControlName="afipKey" rows="4" class="w-full text-xs font-mono dark:bg-slate-800 dark:border-slate-600 dark:text-white" placeholder="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"></textarea>
-                                </div>
-
-                                <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg flex items-start gap-3 border border-blue-100 dark:border-blue-800/50 mt-2">
-                                    <i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
-                                    <p class="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
-                                        Para que el sistema emita facturas en tu nombre, recordá ingresar a la web de AFIP y buscar la opción <strong>"Delegar" el servicio de facturación WebService</strong> al CUIT administrador de la plataforma.
-                                    </p>
-                                </div>
-
-                                <div class="flex gap-2 justify-end pt-3 border-t border-slate-200 dark:border-slate-700 mt-4">
-                                    <button *ngIf="isAfipLinked()" type="button" pButton label="Cancelar" class="p-button-text p-button-sm flex-1" (click)="editAfipMode.set(false)"></button>
-                                    <button type="submit" pButton [label]="isAfipLinked() ? 'Actualizar AFIP' : 'Vincular AFIP'" icon="pi pi-check" class="p-button-primary p-button-sm flex-1 font-bold" [loading]="savingAfip()"></button>
-                                </div>
-                            </form>
+                        <div class="text-right">
+                            <span class="block text-slate-500 dark:text-slate-400 text-xs mb-1 uppercase tracking-wide">Pto. Venta</span>
+                            <strong class="text-slate-800 dark:text-slate-200 text-lg">{{ afipForm.get('puntoVenta')?.value }}</strong>
                         </div>
                     </div>
+                    <div class="mb-4">
+                        <span class="block text-slate-500 dark:text-slate-400 text-xs mb-1 uppercase tracking-wide">Entorno de Facturación</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold" 
+                              [ngClass]="afipForm.get('afipProduction')?.value ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50'">
+                            <i class="pi" [ngClass]="afipForm.get('afipProduction')?.value ? 'pi-bolt' : 'pi-cog'"></i>
+                            {{ afipForm.get('afipProduction')?.value ? 'Producción (Facturación Real)' : 'Homologación (Entorno de Prueba)' }}
+                        </span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button pButton label="Configuración" icon="pi pi-cog" class="p-button-outlined p-button-secondary p-button-sm flex-1" (click)="editAfipMode.set(true)"></button>
+                        <button pButton icon="pi pi-trash" class="p-button-outlined p-button-danger p-button-sm" (click)="unlinkAfip()" pTooltip="Eliminar"></button>
+                    </div>
+                </div>
 
+                <!-- Edit/Setup Form Mode -->
+                <div *ngIf="editAfipMode() && (authService.currentUser()?.subscriptionStatus === 'active' || authService.currentUser()?.subscriptionStatus === 'trial' || authService.currentUser()?.role === 'ADMIN')" 
+                     class="mt-4 p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl shadow-inner">
+                    <form [formGroup]="afipForm" (ngSubmit)="saveAfip()" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">CUIT *</label>
+                            <input pInputText formControlName="cuit" class="w-full text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" placeholder="20123456789" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Condición IVA</label>
+                            <select formControlName="condicionIva" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-white focus:ring-purple-500 max-w-full">
+                                <option value="Resp. Monotributo">Responsable Monotributo</option>
+                                <option value="Resp. Inscripto">Responsable Inscripto</option>
+                                <option value="Exento">Exento</option>
+                                <option value="Consumidor Final">Consumidor Final</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Punto de Venta Web Service *</label>
+                            <input type="number" pInputText formControlName="puntoVenta" class="w-full text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" placeholder="1" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">IIBB</label>
+                                <input pInputText formControlName="iibb" class="w-full text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Inicio de Act.</label>
+                                <input type="date" pInputText formControlName="initActivityUser" class="w-full text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white" />
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg flex items-start gap-3 border border-blue-100 dark:border-blue-800/50 mt-2">
+                            <i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
+                            <p class="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
+                                Para que el sistema emita facturas en tu nombre, recordá ingresar a la web de AFIP y buscar la opción <strong>"Delegar" el servicio de facturación WebService</strong> al CUIT administrador de la plataforma.
+                            </p>
+                        </div>
+
+                        <div class="flex gap-2 justify-end pt-3 border-t border-slate-200 dark:border-slate-700 mt-4">
+                            <button *ngIf="isAfipLinked()" type="button" pButton label="Cancelar" class="p-button-text p-button-sm flex-1" (click)="editAfipMode.set(false)"></button>
+                            <button type="submit" pButton [label]="isAfipLinked() ? 'Actualizar AFIP' : 'Vincular AFIP'" icon="pi pi-check" class="p-button-primary p-button-sm flex-1 font-bold" [loading]="savingAfip()"></button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- Security Modal -->
 <p-dialog header="Seguridad" [(visible)]="showSecurityModal" [modal]="true" [style]="{width: '400px'}"

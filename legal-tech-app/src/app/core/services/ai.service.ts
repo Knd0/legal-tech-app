@@ -14,8 +14,8 @@ export class AiService {
     return this.http.post<{ analysis: string }>(`${this.apiUrl}/analyze`, { text, context });
   }
 
-  generateDraft(expedienteId: string, tipoEscrito: string, extraInstructions?: string): Observable<{ draft: string }> {
-    return this.http.post<{ draft: string }>(`${this.apiUrl}/draft`, { expedienteId, tipoEscrito, extraInstructions });
+  generateDraft(expedienteId: string, tipoEscrito: string, extraInstructions?: string, modelId?: string): Observable<{ draft: string }> {
+    return this.http.post<{ draft: string }>(`${this.apiUrl}/draft`, { expedienteId, tipoEscrito, extraInstructions, modelId });
   }
 
   summarizeExpediente(expedienteId: string): Observable<{ summary: string }> {
@@ -38,5 +38,13 @@ export class AiService {
     valorUma: number;
   }): Observable<{ analysis: string }> {
     return this.http.post<{ analysis: string }>(`${this.apiUrl}/analyze-costs`, data);
+  }
+
+  analyzePdf(documentId: string, question: string): Observable<{ analysis: string }> {
+    return this.http.post<{ analysis: string }>(`${this.apiUrl}/analyze-pdf`, { documentId, question });
+  }
+
+  extractDeadlines(documentId: string): Observable<any[]> {
+    return this.http.post<any[]>(`${this.apiUrl}/extract-deadlines`, { documentId });
   }
 }

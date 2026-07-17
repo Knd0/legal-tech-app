@@ -92,10 +92,113 @@
             </div>
         </p-card>
 
+        <!-- Timeline of Actuaciones / Judicial History -->
+        <p-card styleClass="h-full shadow-sm md:col-span-2 bg-white dark:bg-slate-800 dark:text-white">
+            <ng-template pTemplate="header">
+                <div class="px-6 pt-5 flex justify-between items-center w-full">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-white" style="font-family: 'Fraunces', serif !important;">Historial de Actuaciones</h3>
+                        <p class="text-xs text-slate-400 mt-0.5" style="font-family: 'Epilogue', sans-serif !important;">Cronología de movimientos judiciales registrados.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button *ngIf="e.portalJudicial && e.portalJudicial !== 'NINGUNO'" 
+                                pButton 
+                                [label]="syncing() ? 'Sincronizando...' : 'Sincronizar Portal'" 
+                                [icon]="syncing() ? 'pi pi-spin pi-spinner' : 'pi pi-sync'" 
+                                class="p-button-rounded p-button-sm p-button-outlined border-[var(--accent-moss)] text-[var(--accent-moss)] hover:bg-[var(--accent-moss)]/10"
+                                [disabled]="syncing()"
+                                (click)="triggerSync()"></button>
+                        <button pButton 
+                                label="Agregar Actuación" 
+                                icon="pi pi-plus" 
+                                class="p-button-rounded p-button-sm bg-[var(--accent-terracotta)] border-[var(--accent-terracotta)] text-white hover:opacity-90"
+                                (click)="showAddActuacionDialog.set(true)"></button>
+                    </div>
+                </div>
+            </ng-template>
+
+            <!-- Linea de tiempo -->
+            <div class="p-2">
+                <div *ngIf="actuaciones().length > 0; else noActuaciones" class="mt-4">
+                    <p-timeline [value]="actuaciones()" align="alternate" styleClass="w-full">
+                        <ng-template pTemplate="content" let-act>
+                            <div class="p-4 bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 rounded-2xl relative group shadow-sm text-left">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-terracotta)] bg-[var(--accent-terracotta)]/10 px-2 py-0.5 rounded">{{ act.origen }}</span>
+                                        <h4 class="text-sm font-bold text-slate-800 dark:text-white mt-1.5">{{ act.titulo }}</h4>
+                                    </div>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-200 text-slate-600 dark:bg-slate-600 dark:text-slate-200" *ngIf="act.foja">Foja: {{ act.foja }}</span>
+                                        <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity" (click)="deleteActuacion(act.id)"></button>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">{{ act.descripcion }}</p>
+                            </div>
+                        </ng-template>
+                        <ng-template pTemplate="opposite" let-act>
+                            <span class="text-xs font-bold text-slate-500">{{ act.fecha | date:'dd/MM/yyyy' }}</span>
+                        </ng-template>
+                    </p-timeline>
+                </div>
+
+                <ng-template #noActuaciones>
+                    <div class="text-center py-10">
+                        <i class="pi pi-sync text-4xl text-slate-300 mb-3 animate-spin" *ngIf="syncing()"></i>
+                        <i class="pi pi-history text-4xl text-slate-300 mb-3" *ngIf="!syncing()"></i>
+                        <h4 class="text-sm font-bold text-slate-600 dark:text-slate-300">Sin historial procesal registrado</h4>
+                        <p class="text-xs text-slate-400 max-w-sm mx-auto mt-1" *ngIf="e.portalJudicial && e.portalJudicial !== 'NINGUNO'">
+                            Haga clic en "Sincronizar Portal" para consultar el expediente en el portal de {{ e.portalJudicial }}.
+                        </p>
+                        <p class="text-xs text-slate-400 max-w-sm mx-auto mt-1" *ngIf="!e.portalJudicial || e.portalJudicial === 'NINGUNO'">
+                            Sincronice el caso con un portal judicial o agregue actuaciones manualmente.
+                        </p>
+                    </div>
+                </ng-template>
+            </div>
+        </p-card>
+
         <!-- Document Management Section -->
         <div class="col-span-1 md:col-span-2">
             <app-documents-list [expedienteId]="e.id"></app-documents-list>
         </div>
     </div>
+
+    <!-- Diálogo para nueva actuación manual -->
+    <p-dialog [(visible)]="showAddActuacionDialog" 
+              header="Registrar Actuación Manual" 
+              [modal]="true" 
+              [style]="{width: '500px'}" 
+              styleClass="p-dialog-rounded"
+              appendTo="body">
+        <div class="flex flex-col gap-4 mt-2">
+            <div class="flex flex-col gap-1.5">
+                <label for="actFecha" class="text-xs font-semibold text-slate-600 dark:text-slate-300">Fecha del Movimiento</label>
+                <p-datepicker id="actFecha" [(ngModel)]="newActuacion.fecha" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" appendTo="body"></p-datepicker>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label for="actTitulo" class="text-xs font-semibold text-slate-600 dark:text-slate-300">Título / Tipo de Trámite</label>
+                <input pInputText id="actTitulo" [(ngModel)]="newActuacion.titulo" placeholder="Ej: PROVEIDO DE TRASLADO" class="w-full" />
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label for="actFoja" class="text-xs font-semibold text-slate-600 dark:text-slate-300">Foja (Opcional)</label>
+                <input pInputText id="actFoja" [(ngModel)]="newActuacion.foja" placeholder="Ej: 45 o Digital" class="w-full" />
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label for="actDesc" class="text-xs font-semibold text-slate-600 dark:text-slate-300">Detalle / Proveído de la resolución</label>
+                <textarea pInputTextarea id="actDesc" [(ngModel)]="newActuacion.descripcion" rows="5" placeholder="Ingrese el texto del movimiento..." class="w-full p-2 border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-white focus:outline-none"></textarea>
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+                <button pButton label="Cancelar" class="p-button-text p-button-sm text-slate-500 hover:bg-slate-100" (click)="showAddActuacionDialog.set(false)"></button>
+                <button pButton label="Guardar" icon="pi pi-check" class="p-button-rounded p-button-sm bg-[var(--accent-terracotta)] border-[var(--accent-terracotta)] text-white hover:opacity-90 animate-fade-in" (click)="addManualActuacion()"></button>
+            </div>
+        </ng-template>
+    </p-dialog>
 
 </div>

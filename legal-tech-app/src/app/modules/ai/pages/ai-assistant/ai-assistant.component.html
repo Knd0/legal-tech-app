@@ -30,9 +30,9 @@
   </div>
 
   <!-- Navigation Tabs -->
-  <div class="flex border-b border-slate-200 dark:border-slate-700">
+  <div class="flex border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
     <button
-      class="px-5 py-3 border-b-2 font-medium text-sm transition-all flex items-center gap-2"
+      class="px-5 py-3 border-b-2 font-medium text-sm transition-all flex items-center gap-2 whitespace-nowrap"
       [class.border-indigo-600]="selectedTab() === 'assistant'"
       [class.text-indigo-600]="selectedTab() === 'assistant'"
       [class.dark:text-indigo-400]="selectedTab() === 'assistant'"
@@ -44,7 +44,31 @@
       <i class="pi pi-sparkles"></i> Asistente Legal
     </button>
     <button
-      class="px-5 py-3 border-b-2 font-medium text-sm transition-all flex items-center gap-2"
+      class="px-5 py-3 border-b-2 font-medium text-sm transition-all flex items-center gap-2 whitespace-nowrap"
+      [class.border-indigo-600]="selectedTab() === 'pdf_analysis'"
+      [class.text-indigo-600]="selectedTab() === 'pdf_analysis'"
+      [class.dark:text-indigo-400]="selectedTab() === 'pdf_analysis'"
+      [class.dark:border-indigo-400]="selectedTab() === 'pdf_analysis'"
+      [class.border-transparent]="selectedTab() !== 'pdf_analysis'"
+      [class.text-slate-500]="selectedTab() !== 'pdf_analysis'"
+      [class.dark:text-slate-400]="selectedTab() !== 'pdf_analysis'"
+      (click)="selectedTab.set('pdf_analysis')">
+      <i class="pi pi-file-pdf"></i> Analizar PDF
+    </button>
+    <button
+      class="px-5 py-3 border-b-2 font-medium text-sm transition-all flex items-center gap-2 whitespace-nowrap"
+      [class.border-indigo-600]="selectedTab() === 'liquidation'"
+      [class.text-indigo-600]="selectedTab() === 'liquidation'"
+      [class.dark:text-indigo-400]="selectedTab() === 'liquidation'"
+      [class.dark:border-indigo-400]="selectedTab() === 'liquidation'"
+      [class.border-transparent]="selectedTab() !== 'liquidation'"
+      [class.text-slate-500]="selectedTab() !== 'liquidation'"
+      [class.dark:text-slate-400]="selectedTab() !== 'liquidation'"
+      (click)="selectedTab.set('liquidation')">
+      <i class="pi pi-percentage"></i> Liquidación de Intereses
+    </button>
+    <button
+      class="px-5 py-3 border-b-2 font-medium text-sm transition-all flex items-center gap-2 whitespace-nowrap"
       [class.border-indigo-600]="selectedTab() === 'costs'"
       [class.text-indigo-600]="selectedTab() === 'costs'"
       [class.dark:text-indigo-400]="selectedTab() === 'costs'"
@@ -119,7 +143,24 @@
           </div>
 
           <!-- Mode: Redacción Escrito Specific Inputs -->
-          <div *ngIf="selectedContext() === 'REDACCION_ESCRITO'" class="flex flex-col gap-4">
+          <div *ngIf="selectedContext() === 'REDACCION_ESCRITO'" class="flex flex-col gap-4 animate-fade-in">
+            <!-- Plantilla de Modelo Exitoso -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Usar Plantilla / Modelo Exitoso <span class="font-normal text-slate-400">(opcional)</span>
+              </label>
+              <p-select
+                [options]="modelos()"
+                [ngModel]="selectedModelId()"
+                (ngModelChange)="selectedModelId.set($event)"
+                placeholder="Ninguno (Redacción estándar de la IA)"
+                [showClear]="true"
+                styleClass="w-full text-sm"
+                appendTo="body">
+              </p-select>
+              <span class="text-[10px] text-slate-450 -mt-1">Si selecciona un modelo, el Copilot lo usará como base de estructura y estilo.</span>
+            </div>
+
             <!-- Tipo de Escrito -->
             <div class="flex flex-col gap-2">
               <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -273,6 +314,254 @@
           {{ aiResponse() }}
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Grid: Analizar PDF (RAG) -->
+  <div *ngIf="selectedTab() === 'pdf_analysis'" class="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in relative">
+    <!-- Loader overlay for PDF analysis -->
+    <div *ngIf="pdfLoading() || extractingDeadlines()"
+      class="absolute inset-0 z-50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm flex items-center justify-center rounded-xl animate-fade-in">
+      <div class="flex flex-col items-center gap-3">
+        <i class="pi pi-spin pi-sparkles text-4xl text-indigo-600 dark:text-indigo-400"></i>
+        <span class="text-sm font-bold text-slate-600 dark:text-slate-300 animate-pulse">
+          {{ pdfLoading() ? 'Copilot analizando documento PDF...' : 'Copilot extrayendo plazos procesales...' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Left Column: Input Selection -->
+    <div class="lg:col-span-5 flex flex-col gap-4">
+      <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-sm rounded-2xl p-5 md:p-6 flex flex-col gap-4">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-700 pb-2 mb-1 flex items-center gap-2">
+          <i class="pi pi-file-pdf text-indigo-500"></i> Selección de Documento
+        </h3>
+
+        <!-- Case Selector -->
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            Expediente / Caso
+          </label>
+          <p-select
+            [options]="expedienteOptions()"
+            [ngModel]="selectedExpedienteId()"
+            (ngModelChange)="selectedExpedienteId.set($event)"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione un expediente..."
+            [showClear]="true"
+            styleClass="w-full text-sm"
+            appendTo="body">
+          </p-select>
+        </div>
+
+        <!-- Document Selector -->
+        <div class="flex flex-col gap-2" *ngIf="selectedExpedienteId()">
+          <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            Documento PDF del Caso
+          </label>
+          <p-select
+            [options]="documentsList()"
+            [(ngModel)]="selectedDocumentId"
+            placeholder="Seleccione un archivo PDF..."
+            [showClear]="true"
+            styleClass="w-full text-sm"
+            appendTo="body">
+          </p-select>
+        </div>
+
+        <div *ngIf="selectedDocumentId()" class="flex flex-col gap-4 mt-2">
+          <!-- Question input -->
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              ¿Qué querés consultar sobre este documento?
+            </label>
+            <textarea pInputTextarea
+              [ngModel]="pdfQuestion()"
+              (ngModelChange)="pdfQuestion.set($event)"
+              rows="4"
+              placeholder="Ej: '¿Cuáles son los fundamentos del juez?', '¿Qué plazo otorgó para contestar?', 'Hacé un resumen de los hechos...' "
+              class="w-full p-3 border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-white text-sm focus:outline-none focus:border-[var(--accent-terracotta)]">
+            </textarea>
+          </div>
+
+          <div class="flex gap-2">
+            <button pButton label="Consultar" icon="pi pi-send" class="p-button-rounded bg-[var(--accent-terracotta)] border-[var(--accent-terracotta)] text-white p-button-sm flex-grow" (click)="analyzePdf()"></button>
+            <button pButton label="Extraer Plazos" icon="pi pi-calendar-plus" class="p-button-rounded p-button-outlined border-[var(--accent-moss)] text-[var(--accent-moss)] p-button-sm flex-grow hover:bg-[var(--accent-moss)]/10" (click)="extractDeadlinesFromPdf()"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Results -->
+    <div class="lg:col-span-7 flex flex-col gap-4">
+      <!-- Chat/Analysis response -->
+      <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-sm rounded-2xl p-5 md:p-6 flex flex-col gap-4 min-h-[350px]" *ngIf="pdfResponse() || extractedDeadlines().length > 0">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-700 pb-2 flex items-center gap-2">
+          <i class="pi pi-sparkles text-indigo-500"></i> Respuesta de Copilot
+        </h3>
+
+        <!-- Text Answer -->
+        <div class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800" *ngIf="pdfResponse()">
+          {{ pdfResponse() }}
+        </div>
+
+        <!-- Extracted deadlines -->
+        <div class="flex flex-col gap-3" *ngIf="extractedDeadlines().length > 0">
+          <span class="text-xs font-semibold text-slate-500">SE DETECTARON {{ extractedDeadlines().length }} PLAZOS EN EL DOCUMENTO:</span>
+          
+          <div *ngFor="let dl of extractedDeadlines()" class="p-4 bg-slate-50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-700 rounded-xl flex justify-between items-start gap-4 shadow-sm animate-fade-in">
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold uppercase bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded">{{ dl.tipo }}</span>
+                <span class="text-xs font-bold text-slate-500">{{ dl.fechaVencimiento | date:'dd/MM/yyyy' }} <span *ngIf="dl.horaVencimiento">({{ dl.horaVencimiento }})</span></span>
+              </div>
+              <h4 class="text-sm font-bold text-slate-800 dark:text-white mt-1">{{ dl.titulo }}</h4>
+              <p class="text-xs text-slate-500 leading-relaxed mt-0.5">{{ dl.descripcion }}</p>
+            </div>
+            <button pButton label="Agendar" icon="pi pi-calendar-plus" class="p-button-rounded p-button-sm p-button-outlined border-[var(--accent-terracotta)] text-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta)]/10 font-semibold" (click)="addDeadlineFromExtraction(dl)"></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty response state -->
+      <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-sm rounded-2xl p-5 md:p-6 flex flex-col items-center justify-center min-h-[350px] text-center" *ngIf="!pdfResponse() && extractedDeadlines().length === 0">
+        <i class="pi pi-file-pdf text-5xl text-slate-300 mb-3 animate-pulse"></i>
+        <h4 class="text-sm font-bold text-slate-600 dark:text-slate-300">Asistente Documental Listo</h4>
+        <p class="text-xs text-slate-400 max-w-sm mx-auto mt-1">Seleccione una causa y un PDF del expediente para consultarlo de manera inteligente.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Grid: Liquidación de Intereses -->
+  <div *ngIf="selectedTab() === 'liquidation'" class="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in relative">
+    <!-- Loader overlay for liquidation -->
+    <div *ngIf="liqLoading()"
+      class="absolute inset-0 z-50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
+      <div class="flex flex-col items-center gap-3">
+        <i class="pi pi-spin pi-sparkles text-4xl text-indigo-600 dark:text-indigo-400"></i>
+        <span class="text-sm font-bold text-slate-600 dark:text-slate-300 animate-pulse">Generando escrito de liquidación...</span>
+      </div>
+    </div>
+
+    <!-- Left Column: Inputs -->
+    <div class="lg:col-span-5 flex flex-col gap-4">
+      <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-sm rounded-2xl p-5 md:p-6 flex flex-col gap-4">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-700 pb-2 mb-1 flex items-center gap-2">
+          <i class="pi pi-sliders-h text-indigo-500"></i> Parámetros de Cálculo
+        </h3>
+
+        <div class="flex flex-col gap-4">
+          <!-- Capital -->
+          <div class="flex flex-col gap-1.5">
+            <label for="capital" class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Capital Histórico ($)</label>
+            <input type="number" 
+              [ngModel]="montoCapital()" 
+              (ngModelChange)="montoCapital.set($event)"
+              id="capital" 
+              placeholder="Ej: 150000" 
+              class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm" />
+          </div>
+
+          <!-- Fechas -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Fecha Desde</label>
+              <p-datepicker 
+                [ngModel]="fechaDesde()"
+                (ngModelChange)="fechaDesde.set($event)"
+                dateFormat="dd/mm/yy" 
+                [showIcon]="true" 
+                styleClass="w-full p-inputtext-sm" 
+                appendTo="body">
+              </p-datepicker>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Fecha Hasta</label>
+              <p-datepicker 
+                [ngModel]="fechaHasta()"
+                (ngModelChange)="fechaHasta.set($event)"
+                dateFormat="dd/mm/yy" 
+                [showIcon]="true" 
+                styleClass="w-full p-inputtext-sm" 
+                appendTo="body">
+              </p-datepicker>
+            </div>
+          </div>
+
+          <!-- Tipo de Tasa -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Tipo de Tasa Aplicable</label>
+            <p-select
+              [options]="[
+                { label: 'Tasa Activa Cartera General (BNA - Nación)', value: 'activa_bna' },
+                { label: 'Tasa Pasiva Digital (BAPRO - PBA)', value: 'pasiva_pba' },
+                { label: 'Tasa Fija Anual (%)', value: 'custom_anual' },
+                { label: 'Tasa Fija Mensual (%)', value: 'custom_mensual' }
+              ]"
+              [ngModel]="tipoTasaLiquidation()"
+              (ngModelChange)="tipoTasaLiquidation.set($event)"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full text-sm"
+              appendTo="body">
+            </p-select>
+          </div>
+
+          <!-- Custom Rate Percent -->
+          <div class="flex flex-col gap-1.5" *ngIf="tipoTasaLiquidation() === 'custom_anual' || tipoTasaLiquidation() === 'custom_mensual'">
+            <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Porcentaje de Tasa (%)</label>
+            <input type="number" 
+              [ngModel]="customPercentLiquidation()" 
+              (ngModelChange)="customPercentLiquidation.set($event)"
+              placeholder="Ej: 36" 
+              class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm" />
+          </div>
+
+          <button pButton label="Calcular Liquidación" icon="pi pi-calculator" class="p-button-rounded bg-[var(--accent-terracotta)] border-[var(--accent-terracotta)] text-white p-button-sm w-full mt-2" (click)="calculateLiquidation()"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Results -->
+    <div class="lg:col-span-7 flex flex-col gap-4">
+      <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-sm rounded-2xl p-5 md:p-6 flex flex-col gap-4 min-h-[350px]" *ngIf="liqTotal() > 0">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-700 pb-2 flex items-center gap-2">
+          <i class="pi pi-file-text text-indigo-500"></i> Planilla de Resultados
+        </h3>
+
+        <!-- Accrued stats boxes -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-700 p-4 rounded-xl text-center shadow-sm">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Días</span>
+            <div class="text-lg font-bold text-slate-800 dark:text-white mt-1">{{ liqDays() }}</div>
+          </div>
+          <div class="bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-700 p-4 rounded-xl text-center shadow-sm">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Intereses</span>
+            <div class="text-lg font-bold text-[var(--accent-terracotta)] mt-1">${{ liqAccruedInterest().toLocaleString('es-AR', { minimumFractionDigits: 2 }) }}</div>
+          </div>
+          <div class="bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-700 p-4 rounded-xl text-center shadow-sm">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Monto Total</span>
+            <div class="text-lg font-bold text-[var(--accent-moss)] mt-1">${{ liqTotal().toLocaleString('es-AR', { minimumFractionDigits: 2 }) }}</div>
+          </div>
+        </div>
+
+        <!-- Markdown result text -->
+        <div class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-850">
+          {{ liqResultText() }}
+        </div>
+
+        <div class="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-700 pt-4">
+          <button pButton label="Generar Escrito Judicial" icon="pi pi-sparkles" class="p-button-rounded p-button-sm bg-[var(--accent-terracotta)] border-[var(--accent-terracotta)] text-white hover:opacity-90 font-semibold" (click)="generateLiquidationDraft()"></button>
+        </div>
+      </div>
+
+      <!-- Empty Result State -->
+      <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-sm rounded-2xl p-5 md:p-6 flex flex-col items-center justify-center min-h-[350px] text-center" *ngIf="liqTotal() === 0">
+        <i class="pi pi-calculator text-5xl text-slate-300 mb-3"></i>
+        <h4 class="text-sm font-bold text-slate-600 dark:text-slate-300">Calculadora de Liquidación Lista</h4>
+        <p class="text-xs text-slate-400 max-w-sm mx-auto mt-1">Defina el capital histórico, el rango de fechas y la tasa procesal requerida para obtener la planilla liquidada de intereses devengados.</p>
       </div>
     </div>
   </div>

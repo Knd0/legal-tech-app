@@ -1,12 +1,17 @@
 import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Request, Query } from '@nestjs/common';
 import { ExpedientesService } from './expedientes.service';
 import { Expediente } from './expediente.entity';
+import { Actuacion } from './actuacion.entity';
+import { JudicialSyncService } from './judicial-sync.service';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('expedientes')
 @UseGuards(AuthGuard('jwt'))
 export class ExpedientesController {
-  constructor(private readonly expedientesService: ExpedientesService) {}
+  constructor(
+    private readonly expedientesService: ExpedientesService,
+    private readonly judicialSyncService: JudicialSyncService,
+  ) {}
 
   @Get()
   findAll(
@@ -39,5 +44,25 @@ export class ExpedientesController {
   @Delete(':id')
   remove(@Param('id') id: string, @Request() req) {
     return this.expedientesService.remove(id, req.user.userId);
+  }
+
+  @Post(':id/sync')
+  sync(@Param('id') id: string) {
+    return this.judicialSyncService.syncExpediente(id);
+  }
+
+  @Get(':id/actuaciones')
+  getActuaciones(@Param('id') id: string, @Request() req) {
+    return this.judicialSyncService.getActuaciones(id, req.user.userId);
+  }
+
+  @Post(':id/actuaciones')
+  createActuacion(@Param('id') id: string, @Body() data: Partial<Actuacion>, @Request() req) {
+    return this.judicialSyncService.createManualActuacion(id, data, req.user.userId);
+  }
+
+  @Delete(':id/actuaciones/:actuacionId')
+  removeActuacion(@Param('id') id: string, @Param('actuacionId') actuacionId: string, @Request() req) {
+    return this.judicialSyncService.removeActuacion(actuacionId, id, req.user.userId);
   }
 }

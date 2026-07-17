@@ -7,6 +7,8 @@ import { ButtonModule } from 'primeng/button';
 import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
 import { TooltipModule } from 'primeng/tooltip';
+import { DatePickerModule } from 'primeng/datepicker';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 
 @NgModule({
   declarations: [
@@ -20,7 +22,9 @@ import { TooltipModule } from 'primeng/tooltip';
     ButtonModule,
     TextareaModule,
     SelectModule,
-    TooltipModule
+    TooltipModule,
+    DatePickerModule,
+    ToggleSwitchModule
   ]
 })
 export class AiModule { }

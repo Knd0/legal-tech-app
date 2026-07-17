@@ -21,6 +21,7 @@ const routes: Routes = [
   { path: 'ayuda', loadChildren: () => import('./modules/help/help-module').then(m => m.HelpModule), canActivate: [authGuard] },
   { path: 'admin/users', loadComponent: () => import('./modules/admin/users/admin-users/admin-users').then(m => m.AdminUsers), canActivate: [authGuard, AdminGuard] },
   { path: 'ai', loadChildren: () => import('./modules/ai/ai.module').then(m => m.AiModule), canActivate: [authGuard, subscriptionGuard] },
+  { path: 'modelos', loadChildren: () => import('./modules/modelos/modelos.module').then(m => m.ModelosModule), canActivate: [authGuard, subscriptionGuard] },
   { path: '**', redirectTo: '' }
 ];
 

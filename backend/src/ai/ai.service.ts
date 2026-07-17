@@ -2,6 +2,8 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { ExpedientesService } from '../expedientes/expedientes.service';
+import { LegalModelsService } from '../legal-models/legal-models.service';
+import { DocumentsService } from '../documents/documents.service';
 
 @Injectable()
 export class AiService {
@@ -9,7 +11,9 @@ export class AiService {
 
   constructor(
     private configService: ConfigService,
-    private expedientesService: ExpedientesService
+    private expedientesService: ExpedientesService,
+    private legalModelsService: LegalModelsService,
+    private documentsService: DocumentsService,
   ) {
     const apiKey = this.configService.get<string>('OPENAI_API_KEY');
     if (apiKey) {
@@ -86,10 +90,22 @@ export class AiService {
     return { analysis };
   }
 
-  async generateDraft(expedienteId: string, tipoEscrito: string, extraInstructions?: string, userId?: string): Promise<{ draft: string }> {
+  async generateDraft(expedienteId: string, tipoEscrito: string, extraInstructions?: string, userId?: string, modelId?: string): Promise<{ draft: string }> {
     const exp = await this.expedientesService.findOne(expedienteId, userId);
     if (!exp) {
       throw new Error('Expediente no encontrado.');
+    }
+
+    let modelTemplatePrompt = '';
+    if (modelId && userId) {
+      try {
+        const model = await this.legalModelsService.findOne(modelId, userId);
+        if (model) {
+          modelTemplatePrompt = `\n\nDEBES BASAR LA ESTRUCTURA, EL ESTILO Y EL TONO DE REDACCIÓN EN EL SIGUIENTE MODELO EXITOSO PREVIO (Few-Shot template):\n"""\n${model.contenido}\n"""\nAdapta el contenido de la plantilla anterior con los datos específicos de este nuevo expediente.`;
+        }
+      } catch (err) {
+        console.warn('Could not load legal model for few-shot drafting', err);
+      }
     }
 
     const prompt = `Eres un abogado procesal de Argentina experto en redacción de escritos judiciales.
@@ -106,7 +122,7 @@ export class AiService {
     - Utiliza la estructura forense estándar argentina: OBJETO, HECHOS, PRUEBA (si corresponde), DERECHO, PETITORIO.
     - Usa fórmulas de cortesía procesales formales ("S. S.", "Proveer de conformidad", "Será Justicia").
     - Completa los datos con la información provista, e indica entre corchetes (ej: [COMPLETAR DNI]) donde falten datos para rellenar después.
-    ${extraInstructions ? `- Instrucciones adicionales del usuario: ${extraInstructions}` : ''}
+    ${extraInstructions ? `- Instrucciones adicionales del usuario: ${extraInstructions}` : ''}${modelTemplatePrompt}
 
     Devuelve ÚNICAMENTE el escrito redactado formateado con Markdown limpio.`;
 
@@ -216,5 +232,100 @@ export class AiService {
 
     const analysis = await this.generateAIResponse(prompt);
     return { analysis };
+  }
+
+  async generateGeminiMultimodalResponse(prompt: string, base64Data: string, mimeType: string): Promise<string> {
+    const geminiKey = this.configService.get<string>('GEMINI_API_KEY');
+    if (!geminiKey) {
+      throw new InternalServerErrorException('El módulo de análisis de archivos requiere GEMINI_API_KEY en producción.');
+    }
+
+    const payload = {
+      contents: [
+        {
+          parts: [
+            {
+              inlineData: {
+                mimeType,
+                data: base64Data
+              }
+            },
+            { text: prompt }
+          ]
+        }
+      ]
+    };
+
+    const geminiModel = this.configService.get<string>('GEMINI_MODEL') || 'gemini-2.5-flash';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Gemini API Error: ${errText}`);
+    }
+
+    const result = await response.json();
+    return result.candidates?.[0]?.content?.parts?.[0]?.text || 'No se recibió respuesta de Gemini para el archivo.';
+  }
+
+  async analyzePdf(documentId: string, question: string, userId: string): Promise<{ analysis: string }> {
+    const doc = await this.documentsService.findOne(documentId, userId);
+    if (!doc.path) {
+      throw new Error('El documento no tiene una ruta válida de almacenamiento.');
+    }
+
+    const response = await fetch(doc.path);
+    if (!response.ok) {
+      throw new Error('Fallo al descargar el archivo de almacenamiento.');
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    const base64Data = Buffer.from(arrayBuffer).toString('base64');
+
+    const prompt = `Eres un asistente legal experto de Argentina. Analiza el siguiente documento PDF provisto en el contexto y responde a la siguiente consulta del abogado:\n\nPregunta: ${question}\n\nDevuelve una respuesta clara, profesional y estructurada con Markdown.`;
+    
+    const analysis = await this.generateGeminiMultimodalResponse(prompt, base64Data, doc.mimeType);
+    return { analysis };
+  }
+
+  async extractDeadlinesFromPdf(documentId: string, userId: string): Promise<any[]> {
+    const doc = await this.documentsService.findOne(documentId, userId);
+    if (!doc.path) {
+      throw new Error('El documento no tiene una ruta válida de almacenamiento.');
+    }
+
+    const response = await fetch(doc.path);
+    if (!response.ok) {
+      throw new Error('Fallo al descargar el archivo de almacenamiento.');
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    const base64Data = Buffer.from(arrayBuffer).toString('base64');
+
+    const prompt = `Eres un asistente legal experto de Argentina. Analiza el siguiente documento PDF e identifica todas las fechas límite, vencimientos de plazos judiciales o audiencias programadas que requieran acción del abogado.
+    Devuelve ÚNICAMENTE un arreglo JSON válido con el siguiente esquema exacto (no agregues formato Markdown como triples acentos graves ni texto adicional, responde únicamente el JSON puro):
+    [
+      {
+        "titulo": "Título de la audiencia o del vencimiento",
+        "fechaVencimiento": "YYYY-MM-DD",
+        "horaVencimiento": "HH:MM o null",
+        "descripcion": "Explicación del vencimiento ordenado por el juez y qué escrito debe presentarse",
+        "tipo": "AUDIENCIA" o "PRESENTACION_ESCRITO" o "VENCIMIENTO_PLAZO"
+      }
+    ]
+    Si no hay vencimientos o fechas procesales, devuelve un arreglo vacío: []`;
+
+    const responseText = await this.generateGeminiMultimodalResponse(prompt, base64Data, doc.mimeType);
+    try {
+      const cleaned = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(cleaned);
+    } catch (e) {
+      console.error('Failed to parse deadlines JSON from Gemini response, raw:', responseText, e);
+      return [];
+    }
   }
 }

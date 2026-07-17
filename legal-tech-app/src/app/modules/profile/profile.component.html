@@ -87,24 +87,28 @@
                                 <div class="bg-[var(--bg-surface)] dark:bg-slate-900/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800/80 space-y-4 shadow-sm">
                                     <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Canales Activos</h4>
                                     
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex flex-col pr-4">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div class="flex flex-col">
                                             <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
                                                 <i class="pi pi-whatsapp text-green-500"></i> Alertas por WhatsApp
                                             </span>
                                             <span class="text-xs text-slate-400 dark:text-slate-500">Recibí mensajes directos del bot a tu número verificado.</span>
                                         </div>
-                                        <p-toggleSwitch formControlName="alertWhatsapp"></p-toggleSwitch>
+                                        <div class="flex justify-end sm:justify-start">
+                                            <p-toggleSwitch formControlName="alertWhatsapp"></p-toggleSwitch>
+                                        </div>
                                     </div>
 
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex flex-col pr-4">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div class="flex flex-col">
                                             <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
                                                 <i class="pi pi-desktop text-blue-500"></i> Notificaciones Push
                                             </span>
                                             <span class="text-xs text-slate-400 dark:text-slate-500">Alertas emergentes directas en tu PC/Navegador web.</span>
                                         </div>
-                                        <p-toggleSwitch formControlName="alertPush"></p-toggleSwitch>
+                                        <div class="flex justify-end sm:justify-start">
+                                            <p-toggleSwitch formControlName="alertPush"></p-toggleSwitch>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -112,15 +116,17 @@
                                 <div class="bg-[var(--bg-surface)] dark:bg-slate-900/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800/80 space-y-4 shadow-sm">
                                     <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Momentos del Recordatorio</h4>
 
-                                    <div class="flex items-center justify-between pb-2 border-b border-slate-100/50 dark:border-slate-800/50">
-                                        <div class="flex flex-col pr-4">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100/50 dark:border-slate-800/50">
+                                        <div class="flex flex-col">
                                             <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Alerta el Mismo Día</span>
                                             <span class="text-xs text-slate-400 dark:text-slate-500">Avisar a las 9:00 AM del día del vencimiento.</span>
                                         </div>
-                                        <p-toggleSwitch formControlName="alertOnDueDate"></p-toggleSwitch>
+                                        <div class="flex justify-end sm:justify-start">
+                                            <p-toggleSwitch formControlName="alertOnDueDate"></p-toggleSwitch>
+                                        </div>
                                     </div>
 
-                                    <div class="grid grid-cols-2 gap-3 pt-1">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                                         <div>
                                             <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Recordatorio Principal</label>
                                             <div class="p-inputgroup flex">

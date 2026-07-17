@@ -54,6 +54,9 @@
       <a routerLink="/calendario"
         routerLinkActive="text-[var(--accent-terracotta)] font-semibold border-b-2 border-[var(--accent-terracotta)]"
         class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[var(--accent-moss)] dark:hover:text-[var(--accent-sage)] h-16 flex items-center transition-colors">Calendario</a>
+      <a routerLink="/modelos"
+        routerLinkActive="text-[var(--accent-terracotta)] font-semibold border-b-2 border-[var(--accent-terracotta)]"
+        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[var(--accent-moss)] dark:hover:text-[var(--accent-sage)] h-16 flex items-center transition-colors">Modelos</a>
       <a routerLink="/ai"
         routerLinkActive="text-[var(--accent-terracotta)] font-semibold border-b-2 border-[var(--accent-terracotta)]"
         class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[var(--accent-moss)] dark:hover:text-[var(--accent-sage)] h-16 flex items-center transition-colors">Copilot</a>
@@ -176,6 +179,11 @@
         routerLinkActive="bg-[var(--accent-terracotta)]/10 text-[var(--accent-terracotta)] font-semibold"
         class="flex items-center gap-3 p-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         <i class="pi pi-calendar"></i> Calendario
+      </a>
+      <a routerLink="/modelos" (click)="closeMobileMenu()"
+        routerLinkActive="bg-[var(--accent-terracotta)]/10 text-[var(--accent-terracotta)] font-semibold"
+        class="flex items-center gap-3 p-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+        <i class="pi pi-file"></i> Modelos
       </a>
       <a routerLink="/ai" (click)="closeMobileMenu()"
         routerLinkActive="bg-[var(--accent-terracotta)]/10 text-[var(--accent-terracotta)] font-semibold"

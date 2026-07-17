@@ -1,0 +1,92 @@
+<div class="p-6 max-w-7xl mx-auto fade-in-up">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800 dark:text-white animate-fade-in" style="font-family: 'Fraunces', serif !important;">Repositorio de Modelos</h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-1" style="font-family: 'Epilogue', sans-serif !important;">Subí y buscá tus modelos de demandas exitosos para automatizar tus escritos judiciales con IA.</p>
+        </div>
+        <div>
+            <button pButton label="Nuevo Modelo" icon="pi pi-plus" class="p-button-rounded p-button-primary p-button-sm font-semibold bg-[var(--accent-terracotta)] border-[var(--accent-terracotta)] text-white hover:opacity-90" [routerLink]="['/modelos', 'nuevo']"></button>
+        </div>
+    </div>
+
+    <!-- Filtros de Búsqueda -->
+    <div class="bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-color)] p-6 mb-8 shadow-sm">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div class="flex flex-col gap-1.5 col-span-1 md:col-span-2">
+                <label for="search" class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Buscar por palabra clave</label>
+                <div class="p-input-icon-left w-full">
+                    <i class="pi pi-search"></i>
+                    <input pInputText id="search" [(ngModel)]="searchQuery" (input)="onSearch()" placeholder="Ej: Amparo de salud, OSDE, despido..." class="w-full p-inputtext-sm" />
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label for="fuero" class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Fuero</label>
+                <p-select [options]="fueros" [(ngModel)]="selectedFuero" (onChange)="onSearch()" placeholder="Seleccionar Fuero" styleClass="w-full p-inputtext-sm" [showClear]="true" appendTo="body"></p-select>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label for="tipo" class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Tipo de Escrito</label>
+                <p-select [options]="tiposEscritos" [(ngModel)]="selectedTipo" (onChange)="onSearch()" placeholder="Seleccionar Tipo" styleClass="w-full p-inputtext-sm" [showClear]="true" appendTo="body"></p-select>
+            </div>
+        </div>
+        
+        <div class="flex justify-end gap-2 mt-4" *ngIf="searchQuery || selectedFuero || selectedTipo">
+            <button pButton label="Limpiar Filtros" icon="pi pi-filter-slash" class="p-button-text p-button-sm text-slate-500 hover:bg-slate-100" (click)="onClearFilters()"></button>
+        </div>
+    </div>
+
+    <!-- Lista de Tarjetas de Modelos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in" *ngIf="modelos().length > 0; else noTemplates">
+        <div *ngFor="let m of modelos()" class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-2xl p-6 hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div>
+                <!-- Badge/Tipo y Fuero -->
+                <div class="flex justify-between items-start mb-3">
+                    <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-[var(--accent-moss)]/10 text-[var(--accent-moss)]">{{ m.tipoEscrito }}</span>
+                    <span class="text-xs text-slate-400 font-medium">{{ m.fuero }}</span>
+                </div>
+
+                <!-- Título -->
+                <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2" style="font-family: 'Fraunces', serif !important;">{{ m.titulo }}</h3>
+                
+                <!-- Extracto / Preview -->
+                <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 mb-4 leading-relaxed whitespace-pre-line" style="font-family: 'Epilogue', sans-serif !important;">
+                    {{ m.contenido }}
+                </p>
+
+                <!-- Tags / Etiquetas -->
+                <div class="flex flex-wrap gap-1.5 mb-6">
+                    <span *ngFor="let t of splitTags(m.tags)" class="px-2 py-0.5 text-xs rounded-md bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold">#{{ t }}</span>
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="border-t border-slate-100 dark:border-slate-700 pt-4 flex justify-between items-center">
+                <div class="flex gap-1">
+                    <button pButton icon="pi pi-copy" class="p-button-rounded p-button-text p-button-sm text-slate-500 hover:bg-slate-100" pTooltip="Copiar Escrito" (click)="copyToClipboard(m.contenido)"></button>
+                    <button pButton icon="pi pi-sparkles" class="p-button-rounded p-button-text p-button-sm text-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta)]/10" pTooltip="Redactar con Copilot" (click)="draftWithCopilot(m.id!)"></button>
+                </div>
+                <div class="flex gap-1">
+                    <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-blue-500 hover:bg-blue-50" [routerLink]="['/modelos', m.id, 'editar']"></button>
+                    <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-red-500 hover:bg-red-50" (click)="deleteModel(m.id!)"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginación -->
+    <div class="mt-8 flex justify-center" *ngIf="total() > limit">
+        <p-paginator [rows]="limit" [totalRecords]="total()" (onPageChange)="onPageChange($event)"></p-paginator>
+    </div>
+
+    <!-- Empty State -->
+    <ng-template #noTemplates>
+        <div class="text-center py-16 bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-color)] shadow-sm">
+            <i class="pi pi-folder-open text-5xl text-slate-300 mb-4"></i>
+            <h3 class="text-xl font-bold text-slate-700 dark:text-white mb-1" style="font-family: 'Fraunces', serif !important;">No se encontraron modelos</h3>
+            <p class="text-slate-400 max-w-md mx-auto mb-6" style="font-family: 'Epilogue', sans-serif !important;">¿Por qué no creás tu primer modelo de escrito judicial para tenerlo a mano?</p>
+            <button pButton label="Crear primer modelo" icon="pi pi-plus" class="p-button-rounded p-button-primary bg-[var(--accent-terracotta)] border-[var(--accent-terracotta)] text-white p-button-sm hover:opacity-90" [routerLink]="['/modelos', 'nuevo']"></button>
+        </div>
+    </ng-template>
+</div>

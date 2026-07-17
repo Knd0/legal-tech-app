@@ -20,4 +20,7 @@ export interface Expediente {
     abogadoContraparte?: string; // Datos del abogado contrario
     
     descripcion?: string;
+    portalJudicial?: string;
+    portalId?: string;
+    autoSync?: boolean;
 }

@@ -1,0 +1,64 @@
+<div class="max-w-4xl mx-auto pb-10 fade-in-up">
+    <!-- Header -->
+    <div class="mb-6 flex justify-between items-center animate-fade-in">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white" style="font-family: 'Fraunces', serif !important;">
+                {{ isEditMode() ? 'Editar Modelo' : 'Nuevo Modelo' }}
+            </h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm" style="font-family: 'Epilogue', sans-serif !important;">
+                Registre las plantillas exitosas de su estudio para usarlas de base al redactar escritos con IA.
+            </p>
+        </div>
+        <button pButton label="Volver" icon="pi pi-arrow-left" class="p-button-rounded p-button-text p-button-sm text-slate-500 hover:bg-slate-100" (click)="goBack()"></button>
+    </div>
+
+    <!-- Form Body -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-color)] shadow-sm p-6 md:p-8 space-y-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+                <!-- Título -->
+                <div class="md:col-span-12 flex flex-col gap-1.5">
+                    <label for="titulo" class="text-sm font-semibold text-slate-700 dark:text-slate-300">Título del Modelo</label>
+                    <input pInputText id="titulo" formControlName="titulo" placeholder="Ej: Demanda de Alimentos Contra Progenitor Incumplidor" class="w-full p-inputtext-sm" />
+                    <small class="text-red-500 animate-shake" *ngIf="form.get('titulo')?.invalid && form.get('titulo')?.touched">El título es requerido.</small>
+                </div>
+
+                <!-- Fuero -->
+                <div class="md:col-span-6 flex flex-col gap-1.5">
+                    <label for="fuero" class="text-sm font-semibold text-slate-700 dark:text-slate-300">Fuero</label>
+                    <p-select [options]="fueros" formControlName="fuero" placeholder="Seleccione el Fuero..." styleClass="w-full p-inputtext-sm" appendTo="body"></p-select>
+                    <small class="text-red-500 animate-shake" *ngIf="form.get('fuero')?.invalid && form.get('fuero')?.touched">El fuero es requerido.</small>
+                </div>
+
+                <!-- Tipo de Escrito -->
+                <div class="md:col-span-6 flex flex-col gap-1.5">
+                    <label for="tipoEscrito" class="text-sm font-semibold text-slate-700 dark:text-slate-300">Tipo de Escrito</label>
+                    <p-select [options]="tiposEscritos" formControlName="tipoEscrito" placeholder="Seleccione el Tipo..." styleClass="w-full p-inputtext-sm" appendTo="body"></p-select>
+                    <small class="text-red-500 animate-shake" *ngIf="form.get('tipoEscrito')?.invalid && form.get('tipoEscrito')?.touched">El tipo es requerido.</small>
+                </div>
+
+                <!-- Tags -->
+                <div class="md:col-span-12 flex flex-col gap-1.5">
+                    <label for="tags" class="text-sm font-semibold text-slate-700 dark:text-slate-300">Etiquetas / Palabras Clave</label>
+                    <input pInputText id="tags" formControlName="tags" placeholder="Ej: alimentos, menor, familia, ejecucion" class="w-full p-inputtext-sm" />
+                    <span class="text-xs text-slate-400">Separe las etiquetas por comas (,). Esto facilitará encontrarlas en el buscador.</span>
+                </div>
+
+                <!-- Contenido -->
+                <div class="md:col-span-12 flex flex-col gap-1.5">
+                    <label for="contenido" class="text-sm font-semibold text-slate-700 dark:text-slate-300">Contenido del Escrito</label>
+                    <textarea id="contenido" formControlName="contenido" rows="18" placeholder="Escriba o pegue el escrito modelo aquí..." class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[var(--accent-terracotta)] text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white" style="font-family: monospace !important;"></textarea>
+                    <small class="text-red-500 animate-shake" *ngIf="form.get('contenido')?.invalid && form.get('contenido')?.touched">El contenido es requerido.</small>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+                <button type="button" pButton label="Cancelar" class="p-button-rounded p-button-text p-button-sm text-slate-500 hover:bg-slate-100" (click)="goBack()"></button>
+                <button type="submit" pButton [label]="isEditMode() ? 'Guardar Cambios' : 'Crear Modelo'" class="p-button-rounded p-button-primary p-button-sm font-semibold bg-[var(--accent-terracotta)] border-[var(--accent-terracotta)] text-white hover:opacity-90"></button>
+            </div>
+
+        </div>
+    </form>
+</div>

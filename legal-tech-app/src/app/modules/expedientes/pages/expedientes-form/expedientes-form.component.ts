@@ -26,6 +26,12 @@ export class ExpedientesFormComponent implements OnInit {
     { label: 'Archivado', value: 'ARCHIVADO' }
   ];
 
+  portales = [
+    { label: 'No Sincronizar', value: 'NINGUNO' },
+    { label: 'PJN (Lex100 - Nación)', value: 'PJN' },
+    { label: 'MEV PBA (Bs. As.)', value: 'MEV_PBA' }
+  ];
+
   fueros: string[] = [
     'Civil y Comercial',
     'Laboral',
@@ -60,7 +66,10 @@ export class ExpedientesFormComponent implements OnInit {
       clienteId: ['', Validators.required],
       contraparte: [''],
       abogadoContraparte: [''],
-      descripcion: ['']
+      descripcion: [''],
+      portalJudicial: ['NINGUNO'],
+      portalId: [''],
+      autoSync: [true]
     });
   }
 

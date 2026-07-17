@@ -21,6 +21,7 @@ import { FacturasModule } from './facturas/facturas.module';
 import { SeedService } from './seed.service';
 import { MercadopagoModule } from './mercadopago/mercadopago.module';
 import { AiModule } from './ai/ai.module';
+import { LegalModelsModule } from './legal-models/legal-models.module';
 
 
 @Module({
@@ -83,6 +84,7 @@ import { AiModule } from './ai/ai.module';
     FacturasModule,
     MercadopagoModule,
     AiModule,
+    LegalModelsModule,
   ],
   controllers: [AppController],
   providers: [AppService, SeedService],

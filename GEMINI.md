@@ -32,14 +32,15 @@ Actualmente la aplicación se encuentra en un estado muy avanzado (~99% global):
 |---|---|---|
 | **Auth (BE+FE)** | **100%** | JWT (60m) + local strategy. Recuperación por OTP vía WhatsApp (y fallback a Email vía Resend) **persistido en base de datos (`Otp` entity)** para resistir reinicios en Railway. |
 | **Clientes** | **100%** | Gestión completa. Tabla con **paginación server-side, debouncer de búsqueda (300ms) y carga lazy**. Incluye redirección directa al chat personal de WhatsApp del cliente. |
-| **Expedientes** | **99%** | Seguimiento de causas. Tabla con **paginación server-side, filtro de estado, debouncer y borrado con SweetAlert2**. Kanban interactivo funcional. |
+| **Expedientes** | **100%** | Seguimiento de causas. Tabla con **paginación server-side, filtro de estado, debouncer y borrado con SweetAlert2**. Kanban interactivo funcional. Cronología de actuaciones con sincronización manual y automática (PJN/MEV). |
 | **Calendario** | **99%** | Vista interactiva en frontend (mensual/semanal/diario). Módulo backend (Calendar BE) implementado con eventos en base de datos. Integrado sistema de alertas pop-up nativas (PC/Celular) y en la misma app (SweetAlert2) para eventos y vencimientos de hoy/próximos. |
 | **Profile** | **100%** | Edición de perfil, configuración de alertas, vinculación de WhatsApp (QR/Código) y AFIP. **Persistencia de sesión de WhatsApp en PostgreSQL (`whatsapp_sessions`) usando sincronización de archivos JSON con Baileys (sin Puppeteer).** |
 | **Subscription UI**| **100%** | Verificación real del pago en success page: llama a `GET /mercadopago/subscription`, actualiza el signal de auth, muestra estados success/pending/failure con botón de reintento. **Agregada simulación completa de pago en local/desarrollo** con bypass de MercadoPago en controller/service y widget disparador en grilla. |
 | **Dashboard** | **99%** | Estadísticas y métricas financieras usando PrimeNG Charts y Chart.js (`chart.js ^4.5.1`). |
 | **Admin/Users** | **100%** | Panel Super Admin y formularios rediseñados bajo estética Organic. Corregido bug de actualización de datos (PATCH 500) y aplanamiento de campos de suscripción. |
 | **Documents UI** | **99%** | Carga de archivos integrada con **persistencia real en la nube usando Cloudinary**. Streaming seguro (view/download) y preview interactivo de imágenes y PDFs. |
-| **Copilot** | **100%** | Módulo de IA premium: análisis de textos, redactor de escritos judiciales, resúmenes procesales, análisis de riesgo/probabilidad de éxito, y calculadora interactiva de costos y análisis predictivo de viabilidad con reportes en PDF/Word. Gemini 2.5 Flash por defecto, fallback a OpenAI. |
+| **Copilot** | **100%** | Módulo de IA premium: análisis de textos, redactor con plantillas (Few-shot), resúmenes procesales, análisis de riesgo y costos. RAG multimodal en PDFs, extractor de plazos y calculadora interactiva de liquidaciones judiciales. |
+| **Modelos de Escritos**| **100%** | Repositorio de plantillas exitosas con buscador robusto, filtros por fuero/tipo y tags, integrado con el Copiloto de redacción. |
 | **Facturas y Auditorías**| **100%** | Paginación server-side en facturas y audit logs. **Implementado soporte dinámico para múltiples Puntos de Venta en AFIP** (configurados en el perfil de cada usuario, por defecto 1). |
 | **Landing Page** | **100%** | Rediseño bajo el ancla estética **Organic** (diseño cálido y natural, Oat/Sand surfaces, Terracotta/Moss accents, tipografías Fraunces/Epilogue, y canvas animado de partículas interactivo de alta visibilidad). |
 

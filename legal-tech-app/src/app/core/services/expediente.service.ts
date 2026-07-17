@@ -89,4 +89,20 @@ export class ExpedienteService {
       })
     );
   }
+
+  sync(expedienteId: string): Observable<{ added: number }> {
+    return this.http.post<{ added: number }>(`${this.API_URL}/${expedienteId}/sync`, {});
+  }
+
+  getActuaciones(expedienteId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URL}/${expedienteId}/actuaciones`);
+  }
+
+  createActuacion(expedienteId: string, data: any): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/${expedienteId}/actuaciones`, data);
+  }
+
+  deleteActuacion(expedienteId: string, actuacionId: string): Observable<any> {
+    return this.http.delete<any>(`${this.API_URL}/${expedienteId}/actuaciones/${actuacionId}`);
+  }
 }

@@ -1,7 +1,11 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnInit } from '@angular/core';
 import { AiService } from '../../../../core/services/ai.service';
 import { ExpedienteService } from '../../../../core/services/expediente.service';
 import { ConfiguracionService } from '../../../../core/services/configuracion.service';
+import { DocumentsService } from '../../../../core/services/documents.service';
+import { LegalModelService } from '../../../../core/services/legal-model.service';
+import { DeadlineService } from '../../../../core/services/deadline.service';
+import { ActivatedRoute } from '@angular/router';
 import Swal from 'sweetalert2';
 import { jsPDF } from 'jspdf';
 
@@ -11,13 +15,17 @@ import { jsPDF } from 'jspdf';
   templateUrl: './ai-assistant.component.html',
   styleUrl: './ai-assistant.component.scss'
 })
-export class AiAssistantComponent {
+export class AiAssistantComponent implements OnInit {
   private aiService = inject(AiService);
   private expedienteService = inject(ExpedienteService);
   public configService = inject(ConfiguracionService);
+  private documentsService = inject(DocumentsService);
+  private legalModelService = inject(LegalModelService);
+  private deadlineService = inject(DeadlineService);
+  private route = inject(ActivatedRoute);
 
   // Tab control
-  selectedTab = signal<'assistant' | 'costs'>('assistant');
+  selectedTab = signal<'assistant' | 'pdf_analysis' | 'liquidation' | 'costs'>('assistant');
 
   // General query text mode
   queryText = signal<string>('');
@@ -27,10 +35,79 @@ export class AiAssistantComponent {
   selectedExpedienteId = signal<string>('');
   tipoEscrito = signal<string>('CONTESTACION_DEMANDA');
   extraInstructions = signal<string>('');
+  selectedModelId = signal<string>('');
 
   // Response signals
   aiResponse = signal<string>('');
   loading = signal<boolean>(false);
+
+  // Templates list
+  modelos = signal<any[]>([]);
+
+  // Case documents list
+  documentsList = signal<any[]>([]);
+  selectedDocumentId = signal<string>('');
+  pdfQuestion = signal<string>('');
+  pdfResponse = signal<string>('');
+  pdfLoading = signal<boolean>(false);
+  extractedDeadlines = signal<any[]>([]);
+  extractingDeadlines = signal<boolean>(false);
+
+  // Interest calculator signals
+  montoCapital = signal<number>(100000);
+  fechaDesde = signal<Date>(new Date(new Date().setFullYear(new Date().getFullYear() - 1)));
+  fechaHasta = signal<Date>(new Date());
+  tipoTasaLiquidation = signal<string>('activa_bna');
+  customPercentLiquidation = signal<number>(36);
+  liqAccruedInterest = signal<number>(0);
+  liqTotal = signal<number>(0);
+  liqDays = signal<number>(0);
+  liqResultText = signal<string>('');
+  liqLoading = signal<boolean>(false);
+
+  constructor() {
+    effect(() => {
+      const expId = this.selectedExpedienteId();
+      if (expId) {
+        this.loadDocuments(expId);
+      } else {
+        this.documentsList.set([]);
+        this.selectedDocumentId.set('');
+      }
+    });
+  }
+
+  ngOnInit() {
+    this.loadModels();
+
+    // Check if query params have modelId
+    this.route.queryParams.subscribe(params => {
+      if (params['modelId']) {
+        this.selectedModelId.set(params['modelId']);
+        this.selectedContext.set('REDACCION_ESCRITO');
+        this.selectedTab.set('assistant');
+      }
+    });
+  }
+
+  loadModels() {
+    this.legalModelService.findAll('', '', '', 1, 100).subscribe({
+      next: (res) => {
+        this.modelos.set(res.data.map(m => ({ label: m.titulo, value: m.id })));
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  loadDocuments(expId: string) {
+    this.documentsService.findAll(undefined, expId).subscribe({
+      next: (docs) => {
+        const pdfs = docs.filter(d => d.mimeType === 'application/pdf');
+        this.documentsList.set(pdfs.map(d => ({ label: d.originalName, value: d.id })));
+      },
+      error: (err) => console.error(err)
+    });
+  }
 
   // Risk analysis specific metrics
   successProbability = signal<number | null>(null);
@@ -351,7 +428,7 @@ export class AiAssistantComponent {
       this.weakPoints.set([]);
 
       if (context === 'REDACCION_ESCRITO') {
-        this.aiService.generateDraft(expId, this.tipoEscrito(), this.extraInstructions()).subscribe({
+        this.aiService.generateDraft(expId, this.tipoEscrito(), this.extraInstructions(), this.selectedModelId()).subscribe({
           next: (res) => {
             this.aiResponse.set(res.draft);
             this.loading.set(false);
@@ -803,6 +880,178 @@ export class AiAssistantComponent {
       position: 'top-end',
       showConfirmButton: false,
       timer: 1500
+    });
+  }
+
+  analyzePdf() {
+    const docId = this.selectedDocumentId();
+    const q = this.pdfQuestion();
+    if (!docId) {
+      Swal.fire('Error', 'Por favor, seleccione un documento PDF.', 'error');
+      return;
+    }
+    if (!q || q.trim() === '') {
+      Swal.fire('Error', 'Por favor, escriba una pregunta sobre el documento.', 'error');
+      return;
+    }
+
+    this.pdfLoading.set(true);
+    this.pdfResponse.set('');
+    
+    this.aiService.analyzePdf(docId, q).subscribe({
+      next: (res) => {
+        this.pdfResponse.set(res.analysis);
+        this.pdfLoading.set(false);
+      },
+      error: (err) => {
+        console.error(err);
+        this.pdfLoading.set(false);
+        Swal.fire('Error', 'No se pudo realizar el análisis del archivo.', 'error');
+      }
+    });
+  }
+
+  extractDeadlinesFromPdf() {
+    const docId = this.selectedDocumentId();
+    if (!docId) {
+      Swal.fire('Error', 'Por favor, seleccione un documento PDF.', 'error');
+      return;
+    }
+
+    this.extractingDeadlines.set(true);
+    this.extractedDeadlines.set([]);
+
+    this.aiService.extractDeadlines(docId).subscribe({
+      next: (res) => {
+        this.extractedDeadlines.set(res);
+        this.extractingDeadlines.set(false);
+        if (res.length === 0) {
+          Swal.fire('Sincronización', 'No se detectaron plazos ni audiencias en este documento.', 'info');
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.extractingDeadlines.set(false);
+        Swal.fire('Error', 'No se pudieron extraer los plazos del documento.', 'error');
+      }
+    });
+  }
+
+  addDeadlineFromExtraction(dl: any) {
+    const expId = this.selectedExpedienteId();
+    if (!expId) return;
+
+    const data = {
+      expedienteId: expId,
+      fechaVencimiento: new Date(dl.fechaVencimiento),
+      horaVencimiento: dl.horaVencimiento || undefined,
+      titulo: dl.titulo,
+      descripcion: dl.descripcion || '',
+      tipo: dl.tipo || 'VENCIMIENTO_PLAZO',
+      esPerentorio: true,
+      estado: 'PENDIENTE' as any
+    };
+
+    this.deadlineService.addDeadline(data);
+    Swal.fire({
+      icon: 'success',
+      title: 'Agendado',
+      text: `El plazo "${dl.titulo}" ha sido guardado en tu calendario con éxito.`,
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000
+    });
+  }
+
+  calculateLiquidation() {
+    const cap = this.montoCapital() || 0;
+    const desde = this.fechaDesde();
+    const hasta = this.fechaHasta();
+    const tipo = this.tipoTasaLiquidation();
+
+    if (!desde || !hasta) {
+      Swal.fire('Error', 'Por favor seleccione ambas fechas.', 'error');
+      return;
+    }
+
+    const diffTime = Math.abs(hasta.getTime() - desde.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    this.liqDays.set(diffDays);
+
+    let annualRate = 0;
+    if (tipo === 'activa_bna') {
+      annualRate = 54;
+    } else if (tipo === 'pasiva_pba') {
+      annualRate = 42;
+    } else if (tipo === 'custom_anual') {
+      annualRate = this.customPercentLiquidation() || 0;
+    } else if (tipo === 'custom_mensual') {
+      annualRate = (this.customPercentLiquidation() || 0) * 12;
+    }
+
+    const dailyRate = annualRate / 100 / 365;
+    const interest = cap * dailyRate * diffDays;
+    const total = cap + interest;
+
+    this.liqAccruedInterest.set(interest);
+    this.liqTotal.set(total);
+
+    const tasaStr = tipo === 'custom_mensual' 
+      ? `${this.customPercentLiquidation()}% mensual (${annualRate}% anual)`
+      : `${annualRate}% anual`;
+
+    this.liqResultText.set(
+      `### Planilla de Liquidación Judicial\n\n` +
+      `* **Capital de Origen:** $${cap.toLocaleString('es-AR', { minimumFractionDigits: 2 })}\n` +
+      `* **Fecha de Inicio:** ${desde.toLocaleDateString('es-AR')}\n` +
+      `* **Fecha de Cierre:** ${hasta.toLocaleDateString('es-AR')}\n` +
+      `* **Días de Interés:** ${diffDays} días\n` +
+      `* **Tasa Aplicada:** ${tasaStr} (${(dailyRate * 100).toFixed(4)}% diaria)\n\n` +
+      `| Concepto | Monto |\n` +
+      `| :--- | :--- |\n` +
+      `| Capital Histórico | $${cap.toLocaleString('es-AR', { minimumFractionDigits: 2 })} |\n` +
+      `| Intereses Devengados | $${interest.toLocaleString('es-AR', { minimumFractionDigits: 2 })} |\n` +
+      `| **MONTO TOTAL LIQUIDADO** | **$${total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}** |\n\n` +
+      `*Nota: Esta liquidación ha sido calculada de forma interactiva bajo el sistema de capitalización simple.*`
+    );
+  }
+
+  generateLiquidationDraft() {
+    const text = this.liqResultText();
+    if (!text) return;
+
+    const expId = this.selectedExpedienteId();
+    if (!expId) {
+      Swal.fire('Seleccionar caso', 'Por favor, seleccione un expediente en el selector lateral.', 'warning');
+      return;
+    }
+
+    this.liqLoading.set(true);
+
+    const prompt = `Eres un abogado procesal de Argentina. Redacta un escrito judicial formal titulado "PRESENTA PLANILLA DE LIQUIDACION" para presentar ante el juzgado, basándote en los datos de esta planilla de cálculo:\n\n${text}\n\nEstructura el escrito con la cabecera correspondiente, el objeto, el desglose de la liquidación en forma de tabla limpia, la solicitud de traslado a la contraria y el petitorio final. Devuelve únicamente el escrito en Markdown limpio.`;
+    
+    this.aiService.analyze(prompt, 'REDACCION_ESCRITO').subscribe({
+      next: (res) => {
+        this.selectedTab.set('assistant');
+        this.selectedContext.set('REDACCION_ESCRITO');
+        this.aiResponse.set(res.analysis);
+        this.liqLoading.set(false);
+        Swal.fire({
+          icon: 'success',
+          title: 'Escrito Generado',
+          text: 'Se ha cargado la planilla en la pestaña del Asistente.',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000
+        });
+      },
+      error: (err) => {
+        console.error(err);
+        this.liqLoading.set(false);
+        Swal.fire('Error', 'No se pudo generar el escrito judicial de liquidación.', 'error');
+      }
     });
   }
 }

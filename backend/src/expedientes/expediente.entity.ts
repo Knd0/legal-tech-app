@@ -43,6 +43,15 @@ export class Expediente {
   @Column({ type: 'text', nullable: true })
   descripcion: string;
 
+  @Column({ nullable: true, default: 'NINGUNO' })
+  portalJudicial: string; // 'NINGUNO' | 'PJN' | 'MEV_PBA'
+
+  @Column({ nullable: true })
+  portalId: string; // ID de causa en el portal
+
+  @Column({ default: true })
+  autoSync: boolean;
+
   @ManyToOne(() => User, (user) => user.expedientes, { onDelete: 'CASCADE' })
   user: User;
 

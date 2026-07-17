@@ -16,11 +16,11 @@ export class AiController {
   }
 
   @Post('draft')
-  async draft(@Body() body: { expedienteId: string; tipoEscrito: string; extraInstructions?: string }, @Request() req) {
+  async draft(@Body() body: { expedienteId: string; tipoEscrito: string; extraInstructions?: string; modelId?: string }, @Request() req) {
     if (!body.expedienteId || !body.tipoEscrito) {
       throw new BadRequestException('expedienteId y tipoEscrito son requeridos.');
     }
-    return this.aiService.generateDraft(body.expedienteId, body.tipoEscrito, body.extraInstructions, req.user.userId);
+    return this.aiService.generateDraft(body.expedienteId, body.tipoEscrito, body.extraInstructions, req.user.userId, body.modelId);
   }
 
   @Post('summarize-expediente')
@@ -55,5 +55,21 @@ export class AiController {
       throw new BadRequestException('montoReclamo, jurisdiccion y tipoProceso son requeridos.');
     }
     return this.aiService.analyzeCosts(body);
+  }
+
+  @Post('analyze-pdf')
+  async analyzePdf(@Body() body: { documentId: string; question: string }, @Request() req) {
+    if (!body.documentId || !body.question) {
+      throw new BadRequestException('documentId y question son requeridos.');
+    }
+    return this.aiService.analyzePdf(body.documentId, body.question, req.user.userId);
+  }
+
+  @Post('extract-deadlines')
+  async extractDeadlines(@Body() body: { documentId: string }, @Request() req) {
+    if (!body.documentId) {
+      throw new BadRequestException('documentId es requerido.');
+    }
+    return this.aiService.extractDeadlinesFromPdf(body.documentId, req.user.userId);
   }
 }

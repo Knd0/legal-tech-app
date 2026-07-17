@@ -86,6 +86,18 @@ export class User {
   @Column({ default: true })
   alertTypeEscritos: boolean;
 
+  @Column({ nullable: true })
+  pjnUser: string;
+
+  @Column({ nullable: true })
+  pjnPassword: string;
+
+  @Column({ nullable: true })
+  mevUser: string;
+
+  @Column({ nullable: true })
+  mevPassword: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

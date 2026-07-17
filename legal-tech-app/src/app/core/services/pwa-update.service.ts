@@ -20,7 +20,7 @@ export class PwaUpdateService {
   }
 
   /**
-   * Subscribes to version updates and prompts the user
+   * Subscribes to version updates and automatically reloads the page
    */
   private checkForUpdates() {
     this.updates.versionUpdates
@@ -28,7 +28,8 @@ export class PwaUpdateService {
         filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY')
       )
       .subscribe(() => {
-        this.promptUserToUpdate();
+        console.log('New PWA version ready. Reloading page automatically...');
+        document.location.reload();
       });
   }
 
@@ -44,23 +45,5 @@ export class PwaUpdateService {
       concatMap(() => everySixHours$),
       tap(() => console.log('Checking for PWA updates...'))
     ).subscribe(() => this.updates.checkForUpdate());
-  }
-
-  private promptUserToUpdate() {
-    Swal.fire({
-      title: 'Nueva versión disponible',
-      text: 'Se ha instalado una nueva versión de la aplicación. Actualiza para ver los cambios.',
-      icon: 'info',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Actualizar ahora',
-      cancelButtonText: 'Más tarde'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Reload the page to activate the new version
-        document.location.reload();
-      }
-    });
   }
 }

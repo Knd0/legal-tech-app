@@ -65,6 +65,27 @@ export class User {
   @Column({ default: 1 })
   daysBeforeAlert: number;
 
+  @Column({ default: 3 })
+  daysBeforeAlertSecondary: number;
+
+  @Column({ default: true })
+  alertWhatsapp: boolean;
+
+  @Column({ default: true })
+  alertPush: boolean;
+
+  @Column({ default: true })
+  alertOnDueDate: boolean;
+
+  @Column({ default: true })
+  alertTypeAudiencias: boolean;
+
+  @Column({ default: true })
+  alertTypeVencimientos: boolean;
+
+  @Column({ default: true })
+  alertTypeEscritos: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -74,11 +74,99 @@
                             <small class="text-slate-400 dark:text-slate-500 text-xs">Requerido en formato internacional (ej: 54911...) para alertas y recuperar contraseña.</small>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Anticipación de Alertas (Días)</label>
-                            <input type="number" pInputText formControlName="daysBeforeAlert" min="0"
-                                class="w-full text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
-                            <small class="text-slate-400 dark:text-slate-500 text-xs">Días antes de un vencimiento en los que recibirás alertas por WhatsApp y PC.</small>
+                        <!-- Separator line -->
+                        <div class="md:col-span-2 border-t border-slate-100 dark:border-slate-700 my-4 pt-4">
+                            <h3 class="text-base font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-1">
+                                <i class="pi pi-bell text-[var(--accent-terracotta)]"></i>
+                                Preferencias de Alertas & Notificaciones
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Personalizá cómo y cuándo querés recibir recordatorios de tus vencimientos.</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Canales de Notificación -->
+                                <div class="bg-[var(--bg-surface)] dark:bg-slate-900/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800/80 space-y-4 shadow-sm">
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Canales Activos</h4>
+                                    
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex flex-col pr-4">
+                                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                                <i class="pi pi-whatsapp text-green-500"></i> Alertas por WhatsApp
+                                            </span>
+                                            <span class="text-xs text-slate-400 dark:text-slate-500">Recibí mensajes directos del bot a tu número verificado.</span>
+                                        </div>
+                                        <p-toggleSwitch formControlName="alertWhatsapp"></p-toggleSwitch>
+                                    </div>
+
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex flex-col pr-4">
+                                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                                <i class="pi pi-desktop text-blue-500"></i> Notificaciones Push
+                                            </span>
+                                            <span class="text-xs text-slate-400 dark:text-slate-500">Alertas emergentes directas en tu PC/Navegador web.</span>
+                                        </div>
+                                        <p-toggleSwitch formControlName="alertPush"></p-toggleSwitch>
+                                    </div>
+                                </div>
+
+                                <!-- Frecuencia y Tiempos de Alerta -->
+                                <div class="bg-[var(--bg-surface)] dark:bg-slate-900/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800/80 space-y-4 shadow-sm">
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Momentos del Recordatorio</h4>
+
+                                    <div class="flex items-center justify-between pb-2 border-b border-slate-100/50 dark:border-slate-800/50">
+                                        <div class="flex flex-col pr-4">
+                                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Alerta el Mismo Día</span>
+                                            <span class="text-xs text-slate-400 dark:text-slate-500">Avisar a las 9:00 AM del día del vencimiento.</span>
+                                        </div>
+                                        <p-toggleSwitch formControlName="alertOnDueDate"></p-toggleSwitch>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3 pt-1">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Recordatorio Principal</label>
+                                            <div class="p-inputgroup flex">
+                                                <input type="number" pInputText formControlName="daysBeforeAlert" min="1" max="30" class="w-full text-sm dark:bg-slate-850" style="padding: 0.25rem 0.5rem;" />
+                                                <span class="p-inputgroup-addon text-xs bg-slate-50 dark:bg-slate-800 dark:border-slate-700 text-slate-500 flex items-center px-2 border border-l-0">días</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Alerta Secundaria</label>
+                                            <div class="p-inputgroup flex">
+                                                <input type="number" pInputText formControlName="daysBeforeAlertSecondary" min="0" max="30" class="w-full text-sm dark:bg-slate-850" style="padding: 0.25rem 0.5rem;" />
+                                                <span class="p-inputgroup-addon text-xs bg-slate-50 dark:bg-slate-800 dark:border-slate-700 text-slate-500 flex items-center px-2 border border-l-0">días</span>
+                                            </div>
+                                            <small class="text-[10px] text-slate-400 dark:text-slate-500 block mt-0.5">Usa 0 para desactivar</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Filtro por Tipo de Vencimiento -->
+                                <div class="md:col-span-2 bg-[var(--bg-surface)] dark:bg-slate-900/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800/80 shadow-sm">
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3">Vencimientos a Incluir en las Alertas</h4>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="flex items-center justify-between p-2.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700/50 shadow-xs">
+                                            <span class="text-sm font-medium text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                                🏛️ Audiencias
+                                            </span>
+                                            <p-toggleSwitch formControlName="alertTypeAudiencias"></p-toggleSwitch>
+                                        </div>
+
+                                        <div class="flex items-center justify-between p-2.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700/50 shadow-xs">
+                                            <span class="text-sm font-medium text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                                📂 Plazos Procesales
+                                            </span>
+                                            <p-toggleSwitch formControlName="alertTypeVencimientos"></p-toggleSwitch>
+                                        </div>
+
+                                        <div class="flex items-center justify-between p-2.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700/50 shadow-xs">
+                                            <span class="text-sm font-medium text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                                📝 Escritos
+                                            </span>
+                                            <p-toggleSwitch formControlName="alertTypeEscritos"></p-toggleSwitch>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

@@ -149,13 +149,37 @@ export class NotificationsService {
           }
         }
 
-        const daysBeforeAlert = (lawyerUser && typeof lawyerUser.daysBeforeAlert === 'number') 
-          ? lawyerUser.daysBeforeAlert 
-          : settings.daysBeforeAlert;
+        // 1. Filter by deadline type
+        let typeEnabled = true;
+        if (lawyerUser) {
+          if (d.tipo === 'AUDIENCIA' && !lawyerUser.alertTypeAudiencias) typeEnabled = false;
+          if (d.tipo === 'VENCIMIENTO_PLAZO' && !lawyerUser.alertTypeVencimientos) typeEnabled = false;
+          if (d.tipo === 'PRESENTACION_ESCRITO' && !lawyerUser.alertTypeEscritos) typeEnabled = false;
+        }
+        if (!typeEnabled) continue;
 
-        if (diffDays <= daysBeforeAlert) {
-          // 1. WhatsApp to Lawyer (if enabled and lawyer phone is verified)
-          if (settings.enableWhatsapp && lawyerUser && lawyerUser.phoneNumber && lawyerUser.isPhoneVerified) {
+        // 2. Determine if we should notify
+        let shouldNotify = false;
+        if (lawyerUser) {
+          const isPrimary = diffDays === lawyerUser.daysBeforeAlert;
+          const isSecondary = diffDays === lawyerUser.daysBeforeAlertSecondary && lawyerUser.daysBeforeAlertSecondary > 0;
+          const isDueDate = diffDays === 0 && lawyerUser.alertOnDueDate;
+          if (isPrimary || isSecondary || isDueDate) {
+            shouldNotify = true;
+          }
+        } else {
+          if (diffDays === settings.daysBeforeAlert || diffDays === 0) {
+            shouldNotify = true;
+          }
+        }
+
+        if (shouldNotify) {
+          // 1. WhatsApp to Lawyer
+          const sendWhatsapp = lawyerUser 
+            ? (lawyerUser.alertWhatsapp && settings.enableWhatsapp) 
+            : settings.enableWhatsapp;
+
+          if (sendWhatsapp && lawyerUser && lawyerUser.phoneNumber && lawyerUser.isPhoneVerified) {
              const daysStr = diffDays === 0 ? 'HOY' : `${diffDays} días`;
              const message = `📅 *Recordatorio de Vencimiento (Themis)*\n\n` +
                              `🔔 Vencimiento: *${d.titulo}*\n` +
@@ -170,18 +194,19 @@ export class NotificationsService {
              } catch (e) {
                  this.logger.error(`Failed to send WhatsApp notification to lawyer for ${d.titulo}`, e);
              }
-           }
+          }
 
-           // 2. Web Push to Lawyer (User)
-           if (lawyerUserId) {
-             const pushTitle = diffDays === 0 ? `⚠️ Vencimiento HOY` : `🔔 Vencimiento Próximo`;
-             const pushBody = `El vencimiento "${d.titulo}" expira en ${diffDays} días (Expediente: ${d.expediente?.caratula || 'Sin carátula'}).`;
-             try {
-               await this.sendPushNotification(lawyerUserId, pushTitle, pushBody, { url: '/calendario' });
-             } catch (e) {
-               this.logger.error(`Failed to send Web Push to lawyer ${lawyerUserId} for deadline ${d.titulo}`, e);
-             }
-           }
+          // 2. Web Push to Lawyer (User)
+          const sendPush = lawyerUser ? lawyerUser.alertPush : true;
+          if (sendPush && lawyerUserId) {
+            const pushTitle = diffDays === 0 ? `⚠️ Vencimiento HOY` : `🔔 Vencimiento Próximo`;
+            const pushBody = `El vencimiento "${d.titulo}" expira en ${diffDays} días (Expediente: ${d.expediente?.caratula || 'Sin carátula'}).`;
+            try {
+              await this.sendPushNotification(lawyerUserId, pushTitle, pushBody, { url: '/calendario' });
+            } catch (e) {
+              this.logger.error(`Failed to send Web Push to lawyer ${lawyerUserId} for deadline ${d.titulo}`, e);
+            }
+          }
         }
       }
     }

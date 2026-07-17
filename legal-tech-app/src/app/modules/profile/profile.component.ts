@@ -70,6 +70,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       phoneNumber: [''],
       cuit: [''],
       address: [''],
+      daysBeforeAlert: [1, [Validators.required, Validators.min(0)]],
       role: [{ value: '', disabled: true }],
       
       // AFIP Fields
@@ -213,6 +214,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     phoneNumber: user.phoneNumber,
                     address: user.address,
                     cuit: user.cuit,
+                    daysBeforeAlert: user.daysBeforeAlert !== undefined ? user.daysBeforeAlert : 1,
                     role: user.role
                 });
 
@@ -250,7 +252,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const payload = {
         fullName: data.fullName,
         phoneNumber: data.phoneNumber,
-        address: data.address
+        address: data.address,
+        daysBeforeAlert: data.daysBeforeAlert
     };
 
     this.http.patch(this.apiUrl, payload).subscribe({

@@ -62,6 +62,9 @@ export class User {
   @Column({ default: false })
   afipProduction: boolean;
 
+  @Column({ default: 1 })
+  daysBeforeAlert: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

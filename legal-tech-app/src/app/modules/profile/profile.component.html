@@ -73,6 +73,13 @@
                             </div>
                             <small class="text-slate-400 dark:text-slate-500 text-xs">Requerido en formato internacional (ej: 54911...) para alertas y recuperar contraseña.</small>
                         </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Anticipación de Alertas (Días)</label>
+                            <input type="number" pInputText formControlName="daysBeforeAlert" min="0"
+                                class="w-full text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
+                            <small class="text-slate-400 dark:text-slate-500 text-xs">Días antes de un vencimiento en los que recibirás alertas por WhatsApp y PC.</small>
+                        </div>
                     </div>
 
                     <div class="pt-2">

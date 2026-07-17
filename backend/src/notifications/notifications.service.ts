@@ -137,21 +137,25 @@ export class NotificationsService {
       const diffTime = dueDate.getTime() - today.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
       
-      // Notify if within range (e.g. 3 days) OR if it is today (0)
-      if (diffDays <= settings.daysBeforeAlert && diffDays >= 0) {
-           const lawyerUserId = d.userId || d.expediente?.userId;
-           let lawyerUser = null;
-           
-           if (lawyerUserId) {
-             try {
-               lawyerUser = await this.usersService.findOneById(lawyerUserId);
-             } catch (e) {
-               this.logger.error(`Failed to find lawyer user ${lawyerUserId}`, e);
-             }
-           }
+      if (diffDays >= 0) {
+        const lawyerUserId = d.userId || d.expediente?.userId;
+        let lawyerUser = null;
+        
+        if (lawyerUserId) {
+          try {
+            lawyerUser = await this.usersService.findOneById(lawyerUserId);
+          } catch (e) {
+            this.logger.error(`Failed to find lawyer user ${lawyerUserId}`, e);
+          }
+        }
 
-           // 1. WhatsApp to Lawyer (if enabled and lawyer phone is verified)
-           if (settings.enableWhatsapp && lawyerUser && lawyerUser.phoneNumber && lawyerUser.isPhoneVerified) {
+        const daysBeforeAlert = (lawyerUser && typeof lawyerUser.daysBeforeAlert === 'number') 
+          ? lawyerUser.daysBeforeAlert 
+          : settings.daysBeforeAlert;
+
+        if (diffDays <= daysBeforeAlert) {
+          // 1. WhatsApp to Lawyer (if enabled and lawyer phone is verified)
+          if (settings.enableWhatsapp && lawyerUser && lawyerUser.phoneNumber && lawyerUser.isPhoneVerified) {
              const daysStr = diffDays === 0 ? 'HOY' : `${diffDays} días`;
              const message = `📅 *Recordatorio de Vencimiento (Themis)*\n\n` +
                              `🔔 Vencimiento: *${d.titulo}*\n` +
@@ -178,6 +182,7 @@ export class NotificationsService {
                this.logger.error(`Failed to send Web Push to lawyer ${lawyerUserId} for deadline ${d.titulo}`, e);
              }
            }
+        }
       }
     }
   }

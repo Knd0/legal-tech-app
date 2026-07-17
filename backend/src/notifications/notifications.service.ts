@@ -8,6 +8,7 @@ import { DeadlinesService } from '../deadlines/deadlines.service';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { SettingsService } from '../settings/settings.service';
 import { PushSubscription } from './entities/push-subscription.entity';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class NotificationsService {
@@ -20,6 +21,7 @@ export class NotificationsService {
     private readonly whatsappService: WhatsappService,
     private readonly settingsService: SettingsService,
     private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
     @InjectRepository(PushSubscription)
     private readonly pushSubscriptionRepository: Repository<PushSubscription>,
   ) {
@@ -137,19 +139,36 @@ export class NotificationsService {
       
       // Notify if within range (e.g. 3 days) OR if it is today (0)
       if (diffDays <= settings.daysBeforeAlert && diffDays >= 0) {
-           // 1. WhatsApp to Client (if enabled and client phone details exist)
-           if (settings.enableWhatsapp && d.expediente && d.expediente.cliente && d.expediente.cliente.telefono) {
-             const message = `📅 *Recordatorio Legal*\n🔔 Vencimiento: *${d.titulo}*\n⏳ Falta: *${diffDays} días*\n📂 Desc: ${d.descripcion || 'Sin descripción'}`;
+           const lawyerUserId = d.userId || d.expediente?.userId;
+           let lawyerUser = null;
+           
+           if (lawyerUserId) {
              try {
-                 await this.whatsappService.sendMessage(d.expediente.cliente.telefono, message);
-                 this.logger.log(`Notification sent to ${d.expediente.cliente.nombre} for deadline ${d.titulo}`);
+               lawyerUser = await this.usersService.findOneById(lawyerUserId);
              } catch (e) {
-                 this.logger.error(`Failed to send notification for ${d.titulo}`, e);
+               this.logger.error(`Failed to find lawyer user ${lawyerUserId}`, e);
+             }
+           }
+
+           // 1. WhatsApp to Lawyer (if enabled and lawyer phone is verified)
+           if (settings.enableWhatsapp && lawyerUser && lawyerUser.phoneNumber && lawyerUser.isPhoneVerified) {
+             const daysStr = diffDays === 0 ? 'HOY' : `${diffDays} días`;
+             const message = `📅 *Recordatorio de Vencimiento (Themis)*\n\n` +
+                             `🔔 Vencimiento: *${d.titulo}*\n` +
+                             `⏳ Plazo: *${daysStr}*\n` +
+                             `📂 Expediente: *${d.expediente?.caratula || 'Sin carátula'}*\n` +
+                             `🏛️ Juzgado: *${d.expediente?.juzgado || 'No especificado'}*\n` +
+                             `📝 Detalle: ${d.descripcion || 'Sin descripción'}\n\n` +
+                             `_Sistema Themis Legal Tech_`;
+             try {
+                 await this.whatsappService.sendMessage(lawyerUser.phoneNumber, message);
+                 this.logger.log(`WhatsApp Notification sent to lawyer ${lawyerUser.email} for deadline ${d.titulo}`);
+             } catch (e) {
+                 this.logger.error(`Failed to send WhatsApp notification to lawyer for ${d.titulo}`, e);
              }
            }
 
            // 2. Web Push to Lawyer (User)
-           const lawyerUserId = d.userId || d.expediente?.userId;
            if (lawyerUserId) {
              const pushTitle = diffDays === 0 ? `⚠️ Vencimiento HOY` : `🔔 Vencimiento Próximo`;
              const pushBody = `El vencimiento "${d.titulo}" expira en ${diffDays} días (Expediente: ${d.expediente?.caratula || 'Sin carátula'}).`;

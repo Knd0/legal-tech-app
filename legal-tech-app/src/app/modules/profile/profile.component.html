@@ -302,11 +302,16 @@
                                     </div>
                                     <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200">Vinculación de WhatsApp</h4>
                                     <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
-                                        Vinculá el bot de tu estudio central. Hacé clic en el botón de abajo para iniciar el proceso.
+                                        Vinculá el bot de tu estudio central. Elegí el método que prefieras para iniciar el proceso.
                                     </p>
-                                    <button pButton label="Vincular WhatsApp" icon="pi pi-link"
-                                        class="p-button-success p-button-rounded p-button-sm px-6 mt-2 shadow-sm hover:scale-105 transition-transform duration-200"
-                                        (click)="startLinkingProcess()" [loading]="loadingQr()"></button>
+                                    <div class="flex flex-col sm:flex-row gap-2 mt-2 justify-center w-full max-w-xs">
+                                        <button pButton label="Vincular con QR" icon="pi pi-qrcode"
+                                            class="p-button-success p-button-rounded p-button-sm px-4 shadow-sm"
+                                            (click)="startLinkingProcess()" [loading]="loadingQr()"></button>
+                                        <button pButton label="Vincular con Código" icon="pi pi-phone"
+                                            class="p-button-outlined p-button-success p-button-rounded p-button-sm px-4 shadow-sm"
+                                            (click)="generatePairingCode()" [loading]="loadingPairingCode()"></button>
+                                    </div>
                                 </div>
 
                                 <!-- 2. Error State -->
@@ -329,26 +334,56 @@
                                 <!-- 3. Active linking state -->
                                 <div *ngIf="userStartedLinking() && !whatsappError() && !whatsappBotReady()">
                                     
-                                    <!-- Scanned & Processing / Wait State -->
-                                    <div class="py-6 flex flex-col items-center justify-center gap-3 animate-fade-in text-center">
-                                        <i class="pi pi-spin pi-sync text-4xl text-emerald-600 dark:text-emerald-400"></i>
-                                        <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300 animate-pulse">Bot Iniciando...</p>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
-                                            Si estás corriendo en local, se abrirá una ventana de Chrome en tu computadora. Escaneá el código QR directamente dentro de esa ventana para conectar el bot.
-                                        </p>
-                                        
-                                        <!-- Progress bar showing actual synchronization state -->
-                                        <div *ngIf="whatsappLoadingStatus()" class="w-full max-w-xs mt-2 px-4 space-y-1">
-                                            <div class="flex justify-between text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
-                                                <span>{{ whatsappLoadingStatus()?.message || 'Sincronizando' }}</span>
-                                                <span>{{ whatsappLoadingStatus()?.percent }}%</span>
-                                            </div>
-                                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden font-mono">
-                                                <div class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
-                                                    [style.width.%]="whatsappLoadingStatus()?.percent || 0"></div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                     <!-- Loading QR / Code State -->
+                                     <div *ngIf="loadingQr() || loadingPairingCode()" class="flex flex-col items-center gap-2 py-4 text-center">
+                                         <i class="pi pi-spin pi-sync text-3xl text-emerald-600 dark:text-emerald-400"></i>
+                                         <p class="text-xs text-slate-500">Generando código de vinculación...</p>
+                                     </div>
+
+                                     <!-- QR Code Display -->
+                                     <div *ngIf="qrCodeUrl() && !loadingQr()" class="flex flex-col items-center gap-3 py-2 text-center animate-fade-in">
+                                         <p class="text-xs font-semibold text-slate-600 dark:text-slate-400">Escaneá este código QR desde WhatsApp:</p>
+                                         <img [src]="qrCodeUrl()" alt="Código QR de WhatsApp" class="w-48 h-48 border border-slate-200 rounded-lg p-2 bg-white shadow-sm" />
+                                         <p class="text-[10px] text-slate-400 max-w-xs leading-relaxed">
+                                             Abrí WhatsApp en tu celular > Dispositivos Vinculados > Vincular un dispositivo. Escaneá este código QR.
+                                         </p>
+                                     </div>
+
+                                     <!-- Pairing Code Display -->
+                                     <div *ngIf="pairingCode() && !loadingPairingCode()" class="flex flex-col items-center gap-3 w-full py-2 text-center animate-fade-in">
+                                         <p class="text-xs font-semibold text-slate-600 dark:text-slate-400">Código de vinculación para tu teléfono:</p>
+                                         <div class="px-6 py-3 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-2xl font-mono font-bold tracking-widest text-emerald-600 select-all">
+                                             {{ pairingCode() }}
+                                         </div>
+                                         <p class="text-[10px] text-slate-400 max-w-xs leading-relaxed">
+                                             En tu teléfono, abrí WhatsApp > Dispositivos Vinculados > Vincular con número de teléfono e ingresá este código de 8 caracteres.
+                                         </p>
+                                     </div>
+
+                                     <!-- Scanned & Syncing Progress bar -->
+                                     <div *ngIf="scannedAndProcessing() || whatsappLoadingStatus()" class="flex flex-col items-center gap-2 py-4 w-full text-center animate-fade-in">
+                                         <i class="pi pi-spin pi-sync text-4xl text-emerald-600 dark:text-emerald-400"></i>
+                                         <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300 animate-pulse">Sincronizando chats...</p>
+                                         <p class="text-xs text-slate-500 max-w-xs leading-relaxed">
+                                             ¡Código escaneado con éxito! Esperá unos momentos mientras se sincroniza el bot.
+                                         </p>
+                                         
+                                         <!-- Progress bar -->
+                                         <div *ngIf="whatsappLoadingStatus()" class="w-full max-w-xs mt-2 px-4 space-y-1">
+                                             <div class="flex justify-between text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+                                                 <span>{{ whatsappLoadingStatus()?.message || 'Sincronizando' }}</span>
+                                                 <span>{{ whatsappLoadingStatus()?.percent }}%</span>
+                                             </div>
+                                             <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                                                 <div class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
+                                                     [style.width.%]="whatsappLoadingStatus()?.percent || 0"></div>
+                                             </div>
+                                         </div>
+                                     </div>
+
+                                     <button pButton label="Cancelar" icon="pi pi-times"
+                                         class="p-button-outlined p-button-secondary p-button-xs mt-4"
+                                         (click)="stopQrPolling(); qrCodeUrl.set(null); pairingCode.set(null); userStartedLinking.set(false);"></button>
                                 </div>
 
                             </div>

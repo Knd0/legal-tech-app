@@ -24,7 +24,7 @@ export class MercadopagoService {
     if (!this.client) throw new Error("MercadoPago not configured");
 
     const preApproval = new PreApproval(this.client);
-    return preApproval.create({
+    const result = await preApproval.create({
       body: {
         reason: planName,
         external_reference: userId,
@@ -39,11 +39,57 @@ export class MercadopagoService {
         status: 'pending',
       }
     });
+
+    // Save pending subscription ID immediately so Success view has reference
+    const plan = planName.toLowerCase().includes('básico') || planName.toLowerCase().includes('basic') ? 'basic' : 'pro';
+    await this.usersService.updateSubscription(userId, {
+      mpSubscriptionId: result.id,
+      subscriptionStatus: 'pending',
+      subscriptionPlan: plan,
+    });
+
+    return result;
   }
 
   async getSubscriptionStatus(userId: string) {
     const user = await this.usersService.findOneById(userId);
     if (!user) throw new Error('User not found');
+
+    const mpSubId = user.subscription?.mpSubscriptionId;
+    if (mpSubId && this.client && !mpSubId.startsWith('mock_')) {
+      try {
+        const preApprovalAPI = new PreApproval(this.client);
+        const subscription = await preApprovalAPI.get({ id: mpSubId });
+
+        const status = subscription.status;
+        const reason = (subscription.reason || '').toLowerCase();
+        const plan = reason.includes('básico') || reason.includes('basic') ? 'basic' : 'pro';
+        const expiresAtStr = subscription.next_payment_date;
+        const expiresAt = expiresAtStr ? new Date(expiresAtStr) : null;
+
+        let mappedStatus = 'trial';
+        if (status === 'authorized') mappedStatus = 'active';
+        else if (status === 'paused') mappedStatus = 'paused';
+        else if (status === 'cancelled') mappedStatus = 'cancelled';
+
+        await this.usersService.updateSubscription(userId, {
+          mpSubscriptionId: mpSubId,
+          subscriptionStatus: mappedStatus,
+          subscriptionPlan: plan,
+          subscriptionExpiresAt: expiresAt,
+        });
+
+        return {
+          status: mappedStatus,
+          expiresAt: expiresAt,
+          mpSubscriptionId: mpSubId,
+          subscriptionPlan: plan,
+        };
+      } catch (error) {
+        this.logger.error(`Error syncing MP subscription status in real-time: ${error}`);
+      }
+    }
+
     return {
       status: user.subscription?.subscriptionStatus,
       expiresAt: user.subscription?.subscriptionExpiresAt,
@@ -56,7 +102,7 @@ export class MercadopagoService {
     const user = await this.usersService.findOneById(userId);
     if (!user) throw new Error('User not found');
 
-    if (user.subscription?.mpSubscriptionId && this.client) {
+    if (user.subscription?.mpSubscriptionId && this.client && !user.subscription.mpSubscriptionId.startsWith('mock_')) {
       try {
         const preApproval = new PreApproval(this.client);
         await preApproval.update({
@@ -100,8 +146,10 @@ export class MercadopagoService {
     if (!user) throw new Error('User not found');
     if (!user.subscription?.mpSubscriptionId || !this.client) throw new Error('No hay suscripción para reactivar');
 
-    const preApproval = new PreApproval(this.client);
-    await preApproval.update({ id: user.subscription.mpSubscriptionId, body: { status: 'authorized' } as any });
+    if (!user.subscription.mpSubscriptionId.startsWith('mock_')) {
+      const preApproval = new PreApproval(this.client);
+      await preApproval.update({ id: user.subscription.mpSubscriptionId, body: { status: 'authorized' } as any });
+    }
     await this.usersService.updateSubscription(userId, { subscriptionStatus: 'active' });
     return { success: true };
   }
@@ -127,18 +175,27 @@ export class MercadopagoService {
   async handleWebhook(data: any): Promise<void> {
     this.logger.log(`Received Webhook: ${JSON.stringify(data)}`);
 
-    if (data.type === 'subscription_preapproval') {
+    const isSubscriptionEvent = 
+      data.type === 'subscription_preapproval' || 
+      data.type === 'preapproval' ||
+      (data.action === 'created' && data.type === 'preapproval');
+
+    if (isSubscriptionEvent && data.data?.id) {
       const preapprovalId = data.data.id;
+      if (!this.client) return;
+
       const preApprovalAPI = new PreApproval(this.client);
 
       try {
         const subscription = await preApprovalAPI.get({ id: preapprovalId });
-        this.logger.log(`Subscription details: ${JSON.stringify(subscription)}`);
+        this.logger.log(`Subscription details from webhook: ${JSON.stringify(subscription)}`);
 
         const userId = subscription.external_reference;
         const status = subscription.status;
         const reason = (subscription.reason || '').toLowerCase();
         const plan = reason.includes('básico') || reason.includes('basic') ? 'basic' : 'pro';
+        const expiresAtStr = subscription.next_payment_date;
+        const expiresAt = expiresAtStr ? new Date(expiresAtStr) : null;
 
         if (userId) {
           let mappedStatus = 'trial';
@@ -150,8 +207,9 @@ export class MercadopagoService {
             mpSubscriptionId: preapprovalId,
             subscriptionStatus: mappedStatus,
             subscriptionPlan: plan,
+            subscriptionExpiresAt: expiresAt,
           });
-          this.logger.log(`Updated user ${userId} subscription status to ${mappedStatus} and plan to ${plan}`);
+          this.logger.log(`Webhook updated user ${userId} subscription status to ${mappedStatus}, plan to ${plan}, expiresAt to ${expiresAt}`);
         }
       } catch (error) {
         this.logger.error(`Error processing webhook: ${error}`);

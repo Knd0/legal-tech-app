@@ -1,9 +1,19 @@
+jest.mock('@whiskeysockets/baileys', () => ({
+  __esModule: true,
+  default: jest.fn(),
+  useMultiFileAuthState: jest.fn().mockResolvedValue({ state: {}, saveCreds: jest.fn() }),
+  makeCacheableSignalKeyStore: jest.fn(),
+  DisconnectReason: {},
+}));
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { FacturasService } from './facturas.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Factura } from './entities/factura.entity';
+import { Client } from '../clients/client.entity';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
+import { WhatsappService } from '../whatsapp/whatsapp.service';
 
 describe('FacturasService - Pagination', () => {
   let service: FacturasService;
@@ -22,6 +32,16 @@ describe('FacturasService - Pagination', () => {
         { id: '1', nroCbte: 123, impTotal: 5000, cae: 'CAE123', clientId: 'client-1' },
         { id: '2', nroCbte: 124, impTotal: 8000, cae: 'CAE124', clientId: 'client-1' }
       ]),
+      findOne: jest.fn().mockResolvedValue({
+        id: '1',
+        nroCbte: 123,
+        impTotal: 5000,
+        cae: 'CAE123',
+        clientId: 'client-1',
+        client: { id: 'client-1', nombre: 'Juan', email: 'juan@gmail.com', telefono: '5491122334455' },
+        user: { id: 'user-1', fullName: 'Abogado Perez' },
+        createdAt: new Date().toISOString()
+      }),
       create: jest.fn().mockImplementation((dto) => dto),
       save: jest.fn().mockImplementation((factura) => Promise.resolve({ id: 'new-id', ...factura })),
     };
@@ -32,6 +52,19 @@ describe('FacturasService - Pagination', () => {
         {
           provide: getRepositoryToken(Factura),
           useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(Client),
+          useValue: {
+            findOne: jest.fn().mockResolvedValue({
+              id: 'client-1',
+              nombre: 'Juan',
+              apellido: 'Perez',
+              dni: '12345678',
+              email: 'juan@gmail.com',
+              telefono: '5491122334455',
+            }),
+          },
         },
         {
           provide: ConfigService,
@@ -46,6 +79,12 @@ describe('FacturasService - Pagination', () => {
           provide: UsersService,
           useValue: {
             findOneById: jest.fn().mockResolvedValue({ id: 'user-1', puntoVenta: 1 }),
+          },
+        },
+        {
+          provide: WhatsappService,
+          useValue: {
+            sendDocument: jest.fn().mockResolvedValue({ success: true }),
           },
         },
       ],

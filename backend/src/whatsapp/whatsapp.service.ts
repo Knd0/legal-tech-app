@@ -582,6 +582,39 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
     }, 5000);
   }
 
+  async sendDocument(number: string, buffer: Buffer, fileName: string, caption?: string): Promise<any> {
+    if (!this.isReady) {
+      this.logger.warn(`WhatsApp client is not ready. Cannot send document to ${number}.`);
+      return { success: false, message: 'WhatsApp client is not connected' };
+    }
+
+    let cleanNumber = number.replace(/\D/g, '');
+    if (cleanNumber.startsWith('54') && !cleanNumber.startsWith('549')) {
+      if (cleanNumber.length === 12) {
+        cleanNumber = '549' + cleanNumber.substring(2);
+      }
+    }
+    const jid = `${cleanNumber}@s.whatsapp.net`;
+
+    try {
+        if (!this.socket) {
+          throw new Error('WhatsApp socket client not initialized');
+        }
+
+        const response = await this.socket.sendMessage(jid, { 
+          document: buffer, 
+          mimetype: 'application/pdf', 
+          fileName: fileName,
+          caption: caption
+        });
+        this.logger.log(`Document ${fileName} sent to ${jid}`);
+        return response;
+    } catch (error: any) {
+        this.logger.error(`Error sending document to ${cleanNumber}`, error);
+        throw error;
+    }
+  }
+
   async onModuleDestroy() {
     this.logger.log('Closing WhatsApp client due to module destroy...');
     if (this.queueInterval) {

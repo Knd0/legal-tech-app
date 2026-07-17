@@ -6,6 +6,7 @@ import { SettingsService } from '../settings/settings.service';
 import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PushSubscription } from './entities/push-subscription.entity';
+import { UsersService } from '../users/users.service';
 
 jest.mock('@whiskeysockets/baileys', () => ({
   __esModule: true,
@@ -63,6 +64,7 @@ describe('NotificationsService', () => {
         { provide: SettingsService, useValue: mockSettingsService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: getRepositoryToken(PushSubscription), useValue: mockPushSubscriptionRepository },
+        { provide: UsersService, useValue: { findOneById: jest.fn() } },
       ],
     }).compile();
 

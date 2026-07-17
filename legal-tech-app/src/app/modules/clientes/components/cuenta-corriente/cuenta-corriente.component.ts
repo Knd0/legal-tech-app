@@ -15,6 +15,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { ClientService } from '../../../../core/services/client.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { environment } from '../../../../../environments/environment';
 
 import { GavelLoaderComponent } from '../../../../shared/components/gavel-loader'; 
 
@@ -430,5 +431,34 @@ export class CuentaCorrienteComponent implements OnInit {
 
       // Save
       doc.save(`Factura_${factura.nroCbte}.pdf`);
+  }
+
+  downloadOfficialPdf(factura: any) {
+      const token = localStorage.getItem('auth_token');
+      const url = `${environment.apiUrl}/facturas/${factura.id}/pdf`;
+      
+      fetch(url, {
+          headers: {
+              'Authorization': `Bearer ${token}`
+          }
+      })
+      .then(res => {
+          if (!res.ok) throw new Error('Failed to download PDF');
+          return res.blob();
+      })
+      .then(blob => {
+          const blobUrl = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = `Factura_${factura.puntoVenta}_${factura.nroCbte}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(blobUrl);
+      })
+      .catch(err => {
+          console.error(err);
+          Swal.fire('Error', 'No se pudo descargar el PDF oficial de la factura.', 'error');
+      });
   }
 }

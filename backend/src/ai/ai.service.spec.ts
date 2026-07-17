@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AiService } from './ai.service';
 import { ConfigService } from '@nestjs/config';
 import { ExpedientesService } from '../expedientes/expedientes.service';
+import { LegalModelsService } from '../legal-models/legal-models.service';
+import { DocumentsService } from '../documents/documents.service';
 import { of } from 'rxjs';
 import OpenAI from 'openai';
 
@@ -53,6 +55,26 @@ describe('AiService', () => {
               cliente: { nombre: 'Juan Perez', cuitDni: '20-12345678-9' },
               contraparte: 'Maria Gomez',
               estado: 'INICIADO',
+            }),
+          },
+        },
+        {
+          provide: LegalModelsService,
+          useValue: {
+            findOne: jest.fn().mockResolvedValue({
+              id: 'model-1',
+              title: 'Modelo de Amparo',
+              content: 'Contenido del modelo...',
+            }),
+          },
+        },
+        {
+          provide: DocumentsService,
+          useValue: {
+            findOne: jest.fn().mockResolvedValue({
+              id: 'doc-1',
+              fileName: 'document.pdf',
+              url: 'http://cloudinary/document.pdf',
             }),
           },
         },

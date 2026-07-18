@@ -43,6 +43,10 @@ export class ExpedienteService {
     return this.expedientesSignal().find(e => e.id === id);
   }
 
+  getExpedienteByIdHttp(id: string): Observable<Expediente> {
+    return this.http.get<Expediente>(`${this.API_URL}/${id}`);
+  }
+
   getExpedientesByClientId(clientId: string): Expediente[] {
     return this.expedientesSignal().filter(e => e.cliente?.id === clientId || e.clienteId === clientId);
   }

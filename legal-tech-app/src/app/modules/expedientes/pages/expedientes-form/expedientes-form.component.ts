@@ -78,11 +78,22 @@ export class ExpedientesFormComponent implements OnInit {
       this.expedienteId = params.get('id');
       if (this.expedienteId) {
         this.isEditMode.set(true);
-        const expediente = this.expedienteService.getExpedienteById(this.expedienteId);
-        if (expediente) {
-          this.loadForm(expediente);
+        const cacheExpediente = this.expedienteService.getExpedienteById(this.expedienteId);
+        if (cacheExpediente) {
+          this.loadForm(cacheExpediente);
         } else {
-          this.router.navigate(['/expedientes']);
+          this.expedienteService.getExpedienteByIdHttp(this.expedienteId).subscribe({
+            next: (expediente) => {
+              if (expediente) {
+                this.loadForm(expediente);
+              } else {
+                this.router.navigate(['/expedientes']);
+              }
+            },
+            error: () => {
+              this.router.navigate(['/expedientes']);
+            }
+          });
         }
       }
     });

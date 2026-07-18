@@ -61,6 +61,10 @@ export class ClientService {
      return this.clientsSignal().find(c => c.id === id);
   }
 
+  getClientByIdHttp(id: string): Observable<Cliente> {
+    return this.http.get<Cliente>(`${this.API_URL}/${id}`);
+  }
+
   updateClient(id: string, updatedData: Partial<Cliente>): void {
     this.http.put<void>(`${this.API_URL}/${id}`, updatedData).subscribe({
       next: () => {

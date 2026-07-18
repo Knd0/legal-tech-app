@@ -47,12 +47,22 @@ export class ClientesFormComponent implements OnInit {
       this.clienteId = params.get('id');
       if (this.clienteId) {
         this.isEditMode.set(true);
-        const cliente = this.clientService.getClienteById(this.clienteId);
-        if (cliente) {
-          this.loadForm(cliente);
+        const cacheCliente = this.clientService.getClienteById(this.clienteId);
+        if (cacheCliente) {
+          this.loadForm(cacheCliente);
         } else {
-          // Handle mock not found, maybe redirect
-          this.router.navigate(['/clientes']);
+          this.clientService.getClientByIdHttp(this.clienteId).subscribe({
+            next: (cliente) => {
+              if (cliente) {
+                this.loadForm(cliente);
+              } else {
+                this.router.navigate(['/clientes']);
+              }
+            },
+            error: () => {
+              this.router.navigate(['/clientes']);
+            }
+          });
         }
       }
     });

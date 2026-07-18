@@ -68,17 +68,44 @@ export class ExpedienteDetailComponent implements OnInit {
       const found = this.expedienteService.getExpedienteById(id);
       if (found) {
         this.expediente.set(found);
-        if (found.clienteId) {
-            const client = this.clientService.getClientById(found.clienteId);
-            if (client) {
-                this.clientName.set(`${client.apellido}, ${client.nombre}`);
-                found.cliente = client;
-            }
-        }
+        this.setupClientName(found);
         this.loadActuaciones(id);
       } else {
-        this.router.navigate(['/expedientes']);
+        this.expedienteService.getExpedienteByIdHttp(id).subscribe({
+          next: (exp) => {
+            if (exp) {
+              this.expediente.set(exp);
+              this.setupClientName(exp);
+              this.loadActuaciones(id);
+            } else {
+              this.router.navigate(['/expedientes']);
+            }
+          },
+          error: () => {
+            this.router.navigate(['/expedientes']);
+          }
+        });
       }
+    }
+  }
+
+  setupClientName(found: Expediente) {
+    if (found.clienteId) {
+        const client = this.clientService.getClientById(found.clienteId);
+        if (client) {
+            this.clientName.set(`${client.apellido}, ${client.nombre}`);
+            found.cliente = client;
+        } else {
+            this.clientService.getClientByIdHttp(found.clienteId).subscribe({
+                next: (c) => {
+                    if (c) {
+                        this.clientName.set(`${c.apellido}, ${c.nombre}`);
+                        found.cliente = c;
+                        this.expediente.set({ ...found, cliente: c });
+                    }
+                }
+            });
+        }
     }
   }
 

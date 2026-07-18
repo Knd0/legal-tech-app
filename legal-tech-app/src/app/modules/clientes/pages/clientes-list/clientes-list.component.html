@@ -102,7 +102,8 @@
                             pTooltip="Enviar WhatsApp" tooltipPosition="top" (click)="sendWhatsapp(cliente)"></button>
                         <button pButton icon="pi pi-pencil"
                             class="p-button-rounded p-button-text p-button-sm text-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta)]/10 mr-1"
-                            [routerLink]="['edit', cliente.id]"></button>
+                            [routerLink]="['/clientes', cliente.id, 'edit']"
+                            pTooltip="Editar Cliente" tooltipPosition="top"></button>
                         <button pButton icon="pi pi-trash"
                             class="p-button-rounded p-button-text p-button-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                             (click)="deleteCliente(cliente)"></button>

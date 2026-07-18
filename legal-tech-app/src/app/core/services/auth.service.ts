@@ -133,7 +133,7 @@ export class AuthService {
                 subscriptionPlan: decoded.subscriptionPlan || 'pro',
                 subscriptionExpiresAt: decoded.subscriptionExpiresAt
             });
-            this.refreshProfile();
+            setTimeout(() => this.refreshProfile(), 0);
         } else {
             this.logout();
         }

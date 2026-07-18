@@ -78,7 +78,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
       iibb: [''],
       initActivityUser: [''],
       puntoVenta: [null],
-      condicionIva: ['Resp. Monotributo']
+      condicionIva: ['Resp. Monotributo'],
+
+      // Notification Preferences
+      alertWhatsapp: [true],
+      alertPush: [true],
+      alertOnDueDate: [true],
+      daysBeforeAlertSecondary: [3, [Validators.required, Validators.min(0)]],
+      alertTypeAudiencias: [true],
+      alertTypeVencimientos: [true],
+      alertTypeEscritos: [true]
     });
 
     this.afipForm = this.fb.group({
@@ -216,7 +225,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     address: user.address,
                     cuit: user.cuit,
                     daysBeforeAlert: user.daysBeforeAlert !== undefined ? user.daysBeforeAlert : 1,
-                    role: user.role
+                    role: user.role,
+                    alertWhatsapp: user.alertWhatsapp !== undefined ? user.alertWhatsapp : true,
+                    alertPush: user.alertPush !== undefined ? user.alertPush : true,
+                    alertOnDueDate: user.alertOnDueDate !== undefined ? user.alertOnDueDate : true,
+                    daysBeforeAlertSecondary: user.daysBeforeAlertSecondary !== undefined ? user.daysBeforeAlertSecondary : 3,
+                    alertTypeAudiencias: user.alertTypeAudiencias !== undefined ? user.alertTypeAudiencias : true,
+                    alertTypeVencimientos: user.alertTypeVencimientos !== undefined ? user.alertTypeVencimientos : true,
+                    alertTypeEscritos: user.alertTypeEscritos !== undefined ? user.alertTypeEscritos : true,
                 });
 
                 this.afipForm.patchValue({
@@ -254,7 +270,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
         fullName: data.fullName,
         phoneNumber: data.phoneNumber,
         address: data.address,
-        daysBeforeAlert: data.daysBeforeAlert
+        daysBeforeAlert: data.daysBeforeAlert,
+        daysBeforeAlertSecondary: data.daysBeforeAlertSecondary,
+        alertWhatsapp: data.alertWhatsapp,
+        alertPush: data.alertPush,
+        alertOnDueDate: data.alertOnDueDate,
+        alertTypeAudiencias: data.alertTypeAudiencias,
+        alertTypeVencimientos: data.alertTypeVencimientos,
+        alertTypeEscritos: data.alertTypeEscritos
     };
 
     this.http.patch(this.apiUrl, payload).subscribe({

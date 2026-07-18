@@ -59,24 +59,26 @@ export class FacturasService {
             certPath = tmpCertPath;
             keyPath = tmpKeyPath;
             console.log('Global AFIP Certs loaded from ENV and written to temp:', certPath);
+
+            const isProduction = this.configService.get('AFIP_PRODUCTION') === 'true';
+
+            this.afip = new Afip({
+                CUIT: this.configService.get('AFIP_CUIT'),
+                cert: certPath,
+                key: keyPath,
+                production: isProduction,
+                res_folder: path.dirname(certPath) // Force using the same dir as certs
+            });
+            
+            console.log('Global AFIP Service Initialized with res_folder:', path.dirname(certPath));
         } else {
-             console.log('Global AFIP Certs using local files (Dev mode):', certPath);
+             console.log('Global AFIP Certs not provided. Global AFIP client disabled (will use user certs or simulation mode).');
+             this.afip = null;
         }
-
-        const isProduction = this.configService.get('AFIP_PRODUCTION') === 'true';
-
-        this.afip = new Afip({
-            CUIT: this.configService.get('AFIP_CUIT'),
-            cert: certPath,
-            key: keyPath,
-            production: isProduction,
-            res_folder: path.dirname(certPath) // Force using the same dir as certs
-        });
-        
-        console.log('Global AFIP Service Initialized with res_folder:', path.dirname(certPath));
 
     } catch (e: any) {
         console.warn('Global AFIP SDK not initialized (Missing certs or dependency):', e.message);
+        this.afip = null;
     }
   }
 

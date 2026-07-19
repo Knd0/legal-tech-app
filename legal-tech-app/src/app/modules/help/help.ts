@@ -145,8 +145,8 @@ export class Help implements AfterViewInit, OnDestroy {
 
   private setupObserver() {
     const options = {
-      root: this.el.nativeElement.querySelector('main'),
-      rootMargin: '-50% 0px -50% 0px',
+      root: null, // Track intersections relative to the window viewport
+      rootMargin: '-25% 0px -55% 0px', // Fire when section is in the middle of the screen
       threshold: 0
     };
 

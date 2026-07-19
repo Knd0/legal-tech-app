@@ -2,10 +2,10 @@
 
     <!-- Sidebar Navigation -->
     <aside
-        class="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 hidden lg:flex flex-col h-full sticky top-0 overflow-y-auto">
+        class="w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hidden lg:flex flex-col sticky top-28 h-[calc(100vh-10rem)] overflow-y-auto rounded-2xl shadow-sm transition-all duration-300">
         <div class="p-6 border-b border-slate-100 dark:border-slate-700">
             <h2 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                <i class="pi pi-question-circle text-blue-600 dark:text-blue-400"></i>
+                <i class="pi pi-question-circle text-[var(--accent-terracotta)]"></i>
                 Centro de Ayuda
             </h2>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Guía de usuario y soporte</p>
@@ -16,10 +16,10 @@
                 Secciones Disponibles
             </div>
             <button *ngFor="let section of getFilteredSections()" (click)="scrollTo(section.id)"
-                class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all duration-200 group"
-                [ngClass]="activeSection === section.id ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold shadow-sm ring-1 ring-blue-100 dark:ring-blue-800' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white'">
-                <i [class]="section.icon" class="text-slate-400 dark:text-slate-500 group-hover:text-blue-500 transition-colors" [ngClass]="{'text-blue-600 dark:text-blue-400 font-bold': activeSection === section.id}"></i>
-                <span class="text-sm">{{ section.label }}</span>
+                class="w-full text-left px-4 py-2.5 rounded-xl flex items-center gap-3 transition-all duration-300 group border-l-2"
+                [ngClass]="activeSection === section.id ? 'bg-[var(--accent-terracotta)]/10 text-[var(--accent-terracotta)] font-bold shadow-sm border-[var(--accent-terracotta)]' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white border-transparent'">
+                <i [class]="section.icon" class="text-slate-400 dark:text-slate-500 group-hover:text-[var(--accent-terracotta)] transition-all duration-300" [ngClass]="{'text-[var(--accent-terracotta)] font-bold scale-110': activeSection === section.id}"></i>
+                <span class="text-sm font-sans">{{ section.label }}</span>
             </button>
         </nav>
 

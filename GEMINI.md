@@ -258,6 +258,7 @@ ALTER TABLE "user" DROP COLUMN IF EXISTS "mpSubscriptionId";
 - **Facturación AFIP**:
   - Corregido error de importes negativos: Se aplica el valor absoluto (`Math.abs`) del monto al facturar honorarios/gastos debitados en la cuenta corriente, evitando rechazos de validación de AFIP.
   - Corregido formato de fechas en base de datos: Las respuestas de AFIP envían fechas en formato `YYYYMMDD` que la base de datos PostgreSQL rechaza en columnas de tipo `date` (espera `YYYY-MM-DD`). Ahora se formatean con guiones intermedios antes de insertarse en la DB, solucionando el error 500 al guardar facturas.
+  - Corregido desbordamiento del número de documento (docNro): Cambiado el tipo de columna a `bigint` para soportar CUITs de 11 dígitos, evitando el error de desbordamiento en PostgreSQL (out of range for type integer).
 - **Evitar bucle de error 403**:
   - Restringido el llamado a `/settings` (Notification settings y startQrPolling) únicamente a usuarios con el rol `ADMIN`. Los usuarios de rol `USER` ya no provocan llamadas no autorizadas al cargar la página de Perfil, erradicando los errores 403 Forbidden.
 

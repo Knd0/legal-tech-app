@@ -20,8 +20,8 @@
             <input type="file" id="importInputExp" (change)="onFileChange($event)" accept=".xlsx, .xls" class="hidden">
 
             <button pButton label="Nuevo Expediente" icon="pi pi-plus" [routerLink]="['new']"
-                [disabled]="subscriptionService.isCreationBlocked() || (authService.currentUser()?.subscriptionPlan === 'basic' && totalRecords() >= 50)"
-                [pTooltip]="subscriptionService.isCreationBlocked() ? 'Suscripción vencida. Actualice su plan.' : (authService.currentUser()?.subscriptionPlan === 'basic' && totalRecords() >= 50 ? 'Límite de 50 expedientes (Plan Básico) alcanzado.' : '')"
+                [disabled]="subscriptionService.isCreationBlocked() || (authService.currentUser()?.subscriptionPlan === 'basic' && expedienteService.expedientes().length >= 15)"
+                [pTooltip]="subscriptionService.isCreationBlocked() ? 'Suscripción vencida. Actualice su plan.' : (authService.currentUser()?.subscriptionPlan === 'basic' && expedienteService.expedientes().length >= 15 ? 'Límite de 15 expedientes (Plan Básico) alcanzado. Actualice a Plan Profesional.' : '')"
                 class="premium-locked shadow-sm w-full sm:w-auto"></button>
         </div>
     </div>

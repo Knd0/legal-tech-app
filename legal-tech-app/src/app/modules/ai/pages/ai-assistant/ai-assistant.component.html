@@ -1,4 +1,22 @@
 <div class="fade-in-up flex flex-col gap-6 pb-10 relative">
+  <!-- Paywall Overlay if Basic Plan -->
+  <div *ngIf="authService.currentUser()?.subscriptionPlan === 'basic' && authService.currentUser()?.role !== 'ADMIN'" 
+       class="absolute inset-0 z-[100] bg-white/70 dark:bg-slate-900/70 backdrop-blur-md flex flex-col items-center justify-center p-8 rounded-2xl text-center min-h-[500px]">
+       <div class="max-w-md bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700 hover:scale-[1.01] transition-transform duration-300">
+           <div class="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-4 mx-auto border border-amber-200">
+               <i class="pi pi-lock text-amber-600 dark:text-amber-400 text-3xl"></i>
+           </div>
+           <h2 class="text-2xl font-extrabold text-slate-850 dark:text-white leading-tight mb-2">Copilot IA es Exclusivo</h2>
+           <p class="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+               El asistente premium de Inteligencia Artificial (redacción de demandas, resúmenes procesales y calculadora judicial avanzada) requiere una suscripción en el <span class="text-[var(--accent-terracotta)] font-bold">Plan Estudio Pro</span>.
+           </p>
+           <a routerLink="/subscription/pricing" 
+              class="inline-flex items-center gap-2 px-6 py-3 bg-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta)]/90 text-white text-sm font-bold rounded-full shadow-lg shadow-amber-500/20 hover:scale-105 transition-all duration-300">
+               <i class="pi pi-bolt"></i> Mejorar a Estudio Pro
+           </a>
+       </div>
+  </div>
+
   <!-- Loader overlay for Assistant -->
   <div *ngIf="selectedTab() === 'assistant' && loading()"
     class="absolute inset-0 z-50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm flex items-center justify-center rounded-xl">

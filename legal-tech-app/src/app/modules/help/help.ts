@@ -54,68 +54,68 @@ export class Help implements AfterViewInit, OnDestroy {
   searchableTopics: SearchTopic[] = [
     {
       title: '¿Cómo vincular el bot de WhatsApp?',
-      description: 'Guía paso a paso para escanear el QR o usar el código de teléfono para automatizar recordatorios. Solo para administradores.',
-      keywords: 'whatsapp qr codigo vinculacion telefono bot sincronizar qr error spinner admin baileys',
+      description: 'Guía paso a paso para conectar WhatsApp escaneando el código QR con tu celular. Disponible para administradores.',
+      keywords: 'whatsapp qr codigo vinculacion telefono bot sincronizar qr error celular conectar admin',
       section: 'configuracion'
     },
     {
-      title: '¿Cómo funciona el Copilot?',
-      description: 'Aprende a redactar demandas, resumir expedientes y calcular la probabilidad de éxito de tus causas con IA.',
-      keywords: 'ia copiloto gemini openai resumen demanda redactar riesgos probabilidad exitos puntos fuertes debiles themis copilot few-shot plantillas',
+      title: '¿Cómo funciona el Copilot de Inteligencia Artificial?',
+      description: 'Aprende a redactar escritos iniciales, resumir proveídos largos y analizar riesgos del juicio con asistencia inteligente.',
+      keywords: 'ia copiloto inteligencia artificial resumen escrito demanda redactar riesgos puntos fuertes debiles plantillas',
       section: 'ia'
     },
     {
       title: '¿Cómo emitir facturas C oficiales con AFIP?',
-      description: 'Pasos para delegar el servicio wsfe en la AFIP, configurar el Punto de Venta obligatorio, domicilio profesional y emitir comprobantes en simulación o producción.',
-      keywords: 'afip factura arca cae punto de venta honorarios factura c delegar wsfe cuit arca simulacion sandbox domicilio obligatorio',
+      description: 'Pasos para vincular tu CUIT, punto de venta y domicilio profesional para emitir facturas oficiales (o usar el simulador de prueba).',
+      keywords: 'afip factura arca cae punto de venta honorarios factura c delegar cuit simulacion pruebas domicilio',
       section: 'afip'
     },
     {
       title: '¿Cómo escanear notificaciones PDF para extraer plazos?',
-      description: 'Sube un PDF de notificación judicial y deja que la IA calcule los plazos hábiles automáticamente y los agende.',
+      description: 'Subí un PDF de notificación judicial y deja que la IA calcule los días hábiles y agende el vencimiento en tu calendario.',
       keywords: 'calendario pdf notificacion plazo vencimiento escanear ia automatica dias habiles cedula agenda',
       section: 'calendario'
     },
     {
-      title: '¿Cómo subir y ver documentos asociados a un caso?',
-      description: 'Almacena archivos en Cloudinary sin límites de peso, con streaming seguro y previsualización interactiva de PDFs e imágenes.',
-      keywords: 'documento pdf subir cloudinary archivo preview imagen streaming ver visor visualizacion interactivo',
+      title: '¿Cómo subir y ver documentos de un caso?',
+      description: 'Almacena escritos de prueba, demandas o resoluciones digitales en la nube, con visualización directa de PDFs e imágenes.',
+      keywords: 'documento pdf subir archivo ver preview foto imagen ver visor visualizacion interactivo',
       section: 'documentos'
     },
     {
-      title: '¿Qué hacer si se bloquea la creación por suscripción?',
-      description: 'Activa tu suscripción mensual mediante MercadoPago para evitar el bloqueo de creación (con 7 días de gracia).',
-      keywords: 'mercadopago suscripcion pago plan precio mensual gracia bloqueado mercadopago preapproval iscreationblocked cancelacion',
+      title: '¿Qué hacer si se bloquea la creación por falta de pago?',
+      description: 'Conectá tu cuenta de Mercado Pago para mantener tu suscripción al día y evitar la suspensión del servicio (con 7 días de gracia).',
+      keywords: 'mercadopago suscripcion pago plan precio mensual gracia bloqueado vencido pagar cancelacion',
       section: 'suscripciones'
     },
     {
-      title: '¿Cómo usar el tablero Kanban de expedientes?',
-      description: 'Arrastra y suelta causas entre etapas procesales para organizar tu flujo de trabajo de forma visual.',
+      title: '¿Cómo usar el tablero visual Kanban de expedientes?',
+      description: 'Arrastrá y soltá las carpetas de tus juicios entre las distintas etapas procesales para organizar tu flujo de trabajo.',
       keywords: 'expediente kanban caratula juzgado fuero estado arrastrar mover columnas etapa',
       section: 'expedientes'
     },
     {
-      title: '¿Cómo buscar clientes rápidamente con debouncer?',
-      description: 'Optimiza la búsqueda en tiempo real que espera 300ms antes de consultar al servidor para evitar saturación.',
-      keywords: 'cliente debouncer buscador paginacion lazy listado nuevo telefono buscar paginado',
+      title: '¿Cómo buscar clientes de forma rápida?',
+      description: 'El buscador inteligente te permite encontrar cualquier cliente ingresando su nombre, apellido, DNI o mail de forma instantánea.',
+      keywords: 'cliente buscador rapido lista buscar nombre dni mail telefono',
       section: 'clientes'
     },
     {
-      title: '¿Qué es el RAG Multimodal en PDFs?',
-      description: 'Permite chatear de forma interactiva con los documentos PDF adjuntos a tus expedientes en el Copilot.',
-      keywords: 'rag chat pdf documento inteligencia artificial copiloto leer expedientes causa adjunto',
+      title: '¿Cómo interactuar con mis PDFs usando Inteligencia Artificial?',
+      description: 'Hacé preguntas en lenguaje natural a los documentos PDF de cédulas, traslados o demandas adjuntas a tus causas.',
+      keywords: 'chat pdf documento inteligencia artificial copiloto leer expedientes causa adjunto',
       section: 'ia'
     },
     {
       title: '¿Cómo usar la Calculadora Judicial?',
-      description: 'Calcula aranceles JUS, intereses de juicios y costos procesales de forma integrada en el módulo de IA.',
+      description: 'Calculá montos en JUS, tasas de interés judicial (activas/pasivas) y gastos procesales directamente desde la app.',
       keywords: 'calculadora judicial liquidacion tasas de interes jus aranceles costos demandas liquidaciones',
       section: 'ia'
     },
     {
-      title: '¿Cómo funcionan las Alertas de WhatsApp por Rol?',
-      description: 'Los abogados reciben alertas personalizadas en su número configurado, programando horarios y cantidad de envíos diarios.',
-      keywords: 'alerta whatsapp rol abogado notificaciones frecuencia horario programar recordatorio',
+      title: '¿Cómo funcionan las Alertas de WhatsApp?',
+      description: 'Configurá días de anticipación, canal de alertas y horario diario preferido para recibir avisos de vencimientos en tu celular.',
+      keywords: 'alerta whatsapp recordatorio notificaciones frecuencia horario programar celular',
       section: 'configuracion'
     }
   ];

@@ -9,7 +9,7 @@ export const subscriptionGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
 
   if (!authService.currentUser()) {
-    return router.createUrlTree(['/auth/login']);
+    return router.createUrlTree(['/']);
   }
 
   return subscriptionService.canAccessApp()

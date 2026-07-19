@@ -6,6 +6,7 @@ import { DocumentsService } from '../../../../core/services/documents.service';
 import { LegalModelService } from '../../../../core/services/legal-model.service';
 import { DeadlineService } from '../../../../core/services/deadline.service';
 import { ActivatedRoute } from '@angular/router';
+import { AuthService } from '../../../../core/services/auth.service';
 import Swal from 'sweetalert2';
 import { jsPDF } from 'jspdf';
 
@@ -23,6 +24,7 @@ export class AiAssistantComponent implements OnInit {
   private legalModelService = inject(LegalModelService);
   private deadlineService = inject(DeadlineService);
   private route = inject(ActivatedRoute);
+  public authService = inject(AuthService);
 
   // Tab control
   selectedTab = signal<'assistant' | 'pdf_analysis' | 'liquidation' | 'costs'>('assistant');

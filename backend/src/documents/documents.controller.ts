@@ -5,7 +5,32 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import * as fs from 'fs';
+import * as http from 'http';
 import * as https from 'https';
+
+function fetchUrlStream(
+  url: string, 
+  callback: (response: http.IncomingMessage) => void, 
+  onError: (err: Error) => void, 
+  redirectCount = 0
+): void {
+    if (redirectCount > 5) {
+        return onError(new Error('Too many redirects'));
+    }
+    const client = url.startsWith('https') ? https : http;
+    client.get(url, (res) => {
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+            const redirectUrl = res.headers.location.startsWith('http') 
+                ? res.headers.location 
+                : new URL(res.headers.location, url).toString();
+            fetchUrlStream(redirectUrl, callback, onError, redirectCount + 1);
+        } else {
+            callback(res);
+        }
+    }).on('error', (err) => {
+        onError(err);
+    });
+}
 
 const ALLOWED_MIME_TYPES = [
   'application/pdf',
@@ -64,15 +89,15 @@ export class DocumentsController {
 
       const safeFilename = (doc.originalName ?? 'file').replace(/[\r\n"]/g, '_');
 
-      https.get(doc.path, (cloudinaryResponse) => {
+      fetchUrlStream(doc.path, (cloudinaryResponse) => {
           if (cloudinaryResponse.statusCode !== 200) {
-              return res.status(500).json({ message: 'Error al descargar el archivo desde el almacenamiento' });
+              return res.status(500).json({ message: `Error al descargar el archivo (Status ${cloudinaryResponse.statusCode})` });
           }
 
           res.setHeader('Content-Type', doc.mimeType);
           res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
           cloudinaryResponse.pipe(res);
-      }).on('error', (err) => {
+      }, (err) => {
           res.status(500).json({ message: 'Error de red al descargar el archivo: ' + err.message });
       });
   }
@@ -95,9 +120,9 @@ export class DocumentsController {
       const safeFilename = (doc.originalName ?? 'file').replace(/[\r\n"]/g, '_');
       const safeContentType = INLINE_TYPES[doc.mimeType];
 
-      https.get(doc.path, (cloudinaryResponse) => {
+      fetchUrlStream(doc.path, (cloudinaryResponse) => {
           if (cloudinaryResponse.statusCode !== 200) {
-              return res.status(500).json({ message: 'Error al obtener el archivo desde el almacenamiento' });
+              return res.status(500).json({ message: `Error al obtener el archivo (Status ${cloudinaryResponse.statusCode})` });
           }
 
           if (safeContentType) {
@@ -110,7 +135,7 @@ export class DocumentsController {
               res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
           }
           cloudinaryResponse.pipe(res);
-      }).on('error', (err) => {
+      }, (err) => {
           res.status(500).json({ message: 'Error de red al visualizar el archivo: ' + err.message });
       });
   }

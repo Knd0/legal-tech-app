@@ -65,3 +65,12 @@ pre::-webkit-scrollbar-thumb:hover {
 .grid > div:hover {
   transform: translateY(-2px);
 }
+
+/* Hide scrollbar for index sidebar */
+aside::-webkit-scrollbar {
+  display: none;
+}
+aside {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

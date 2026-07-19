@@ -124,19 +124,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.configDesktop = desktop;
       });
 
-      // Start polling WhatsApp status unconditionally
-      this.ngZone.run(() => {
-        if (!this.qrPollInterval) {
-          this.startQrPolling();
-        }
-      });
+      // Start polling WhatsApp status only for ADMIN
+      const currentUser = this.authService.currentUser();
+      if (currentUser?.role === 'ADMIN') {
+        this.ngZone.run(() => {
+          if (!this.qrPollInterval) {
+            this.startQrPolling();
+          }
+        });
+      }
     });
   }
 
   ngOnInit() {
     this.loadProfile();
     this.loadSubscription();
-    this.notificationService.loadSettings();
+    if (this.authService.currentUser()?.role === 'ADMIN') {
+        this.notificationService.loadSettings();
+    }
   }
 
   loadSubscription() {

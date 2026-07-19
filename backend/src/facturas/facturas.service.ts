@@ -159,10 +159,10 @@ export class FacturasService {
             puntoVenta: puntoVenta,
             tipoCbte: 11, // Factura C
             nroCbte: Math.floor(Math.random() * 10000),
-            fechaCbte: new Date().toISOString().split('T')[0].replace(/-/g, ''), // YYYYMMDD
-            impTotal: data.total || 0,
+            fechaCbte: new Date().toISOString().split('T')[0], // YYYY-MM-DD (No replace!)
+            impTotal: Math.abs(data.total || 0),
             cae: 'SIMULATED_CAE_' + Math.floor(Math.random() * 10000000000000),
-            vtoCae: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0].replace(/-/g, ''), // YYYYMMDD
+            vtoCae: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // YYYY-MM-DD (No replace!)
             docNro: docNro,
             clientId: data.clientId,
             userId: userId
@@ -179,7 +179,7 @@ export class FacturasService {
     }
 
     const date = new Date(Date.now() - ((new Date()).getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-    const totalAmount = parseFloat(data.total);
+    const totalAmount = Math.abs(parseFloat(data.total));
 
     let payload = {
         'CantReg': 1, // Cantidad de comprobantes a registrar
@@ -219,15 +219,22 @@ export class FacturasService {
 
         const res = await activeAfip.ElectronicBilling.createVoucher(payload);
         
+        const formatAfipDate = (str: string | number | null | undefined) => {
+          if (!str) return null;
+          const s = str.toString().replace(/\D/g, '');
+          if (s.length !== 8) return s;
+          return `${s.substring(0, 4)}-${s.substring(4, 6)}-${s.substring(6, 8)}`;
+        };
+
         // Save to DB
         const factura = this.facturasRepository.create({
             puntoVenta: payload.PtoVta,
             tipoCbte: payload.CbteTipo,
             nroCbte: payload['CbteDesde'],
-            fechaCbte: payload.CbteFch.toString(),
+            fechaCbte: formatAfipDate(payload.CbteFch),
             impTotal: payload.ImpTotal,
             cae: res.CAE,
-            vtoCae: res.CAEFchVto,
+            vtoCae: formatAfipDate(res.CAEFchVto),
             docNro: payload.DocNro,
             clientId: data.clientId,
             userId: userId

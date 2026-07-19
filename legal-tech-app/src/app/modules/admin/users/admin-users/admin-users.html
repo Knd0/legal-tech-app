@@ -1,13 +1,28 @@
 <div class="card-pro p-6 md:p-8 bg-[var(--bg-surface)]">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h2 class="text-2xl font-bold text-[var(--text-main)]">Panel Super Administrador</h2>
-        <div class="flex gap-2">
+        <div class="flex gap-2" *ngIf="selectedTab() === 'users'">
             <button pButton type="button" label="Exportar CSV" icon="pi pi-download" class="p-button-outlined p-button-rounded p-button-sm" (click)="exportCsv()"></button>
             <button pButton type="button" label="Nuevo Usuario" icon="pi pi-plus" class="p-button-primary p-button-rounded p-button-sm" (click)="openCreateDialog()"></button>
         </div>
     </div>
 
-    <!-- Metricas de Negocio -->
+    <!-- Tab Switcher -->
+    <div class="flex border-b border-slate-200 dark:border-slate-700 mb-6">
+        <button (click)="selectTab('users')" 
+            class="px-5 py-3 font-bold text-sm border-b-2 transition-all duration-200 focus:outline-none"
+            [ngClass]="selectedTab() === 'users' ? 'border-[var(--accent-terracotta)] text-[var(--accent-terracotta)]' : 'border-transparent text-slate-500 hover:text-slate-700'">
+            <i class="pi pi-users mr-2"></i>Gestión de Usuarios
+        </button>
+        <button (click)="selectTab('tickets')" 
+            class="px-5 py-3 font-bold text-sm border-b-2 transition-all duration-200 focus:outline-none"
+            [ngClass]="selectedTab() === 'tickets' ? 'border-[var(--accent-terracotta)] text-[var(--accent-terracotta)]' : 'border-transparent text-slate-500 hover:text-slate-700'">
+            <i class="pi pi-ticket mr-2"></i>Tickets de Soporte
+        </button>
+    </div>
+
+    <div *ngIf="selectedTab() === 'users'">
+        <!-- Metricas de Negocio -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="card-pro p-6 text-center bg-[var(--bg-surface)] hover:scale-[1.02] transition-transform duration-300">
             <h3 class="text-[var(--text-muted)] font-bold uppercase tracking-wider text-xs mb-2">Total Usuarios</h3>
@@ -109,6 +124,76 @@
             </tr>
         </ng-template>
     </p-table>
+    </div>
+
+    <!-- Tickets View -->
+    <div *ngIf="selectedTab() === 'tickets'" class="space-y-4 animate-fade-in">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-[var(--text-main)]">Reportes de Soporte Técnico</h3>
+            <span class="text-xs text-[var(--text-muted)] font-medium">{{ tickets().length }} tickets registrados</span>
+        </div>
+
+        <p-table
+            [value]="tickets()"
+            [loading]="loadingTickets()"
+            [paginator]="true"
+            [rows]="10"
+            [tableStyle]="{ 'min-width': '50rem' }"
+            styleClass="p-datatable-striped">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Fecha</th>
+                    <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Usuario</th>
+                    <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Asunto</th>
+                    <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Detalle</th>
+                    <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Estado</th>
+                    <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Acciones</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-ticket>
+                <tr>
+                    <td class="py-4 px-6 text-sm text-[var(--text-main)]">{{ ticket.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td class="py-4 px-6">
+                        <div class="flex flex-col">
+                            <span class="font-semibold text-sm text-[var(--text-main)]">{{ ticket.user?.fullName || 'N/A' }}</span>
+                            <span class="text-xs text-[var(--text-muted)]">{{ ticket.user?.email || 'N/A' }}</span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 font-bold text-sm text-[var(--text-main)]">{{ ticket.asunto }}</td>
+                    <td class="py-4 px-6 text-sm text-[var(--text-muted)] max-w-xs truncate" [pTooltip]="ticket.descripcion" tooltipPosition="top">
+                        {{ ticket.descripcion }}
+                    </td>
+                    <td class="py-4 px-6">
+                        <span
+                            [class]="'px-2.5 py-0.5 rounded-full text-xs font-bold ' + (ticket.status === 'open' ? 'bg-green-100 text-green-800 dark:bg-green-950/20 dark:text-green-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400')">
+                            {{ ticket.status === 'open' ? 'ABIERTO' : 'RESUELTO' }}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <button pButton type="button" 
+                            *ngIf="ticket.status === 'open'"
+                            label="Resolver"
+                            icon="pi pi-check" 
+                            class="p-button-success p-button-rounded p-button-sm p-button-outlined" 
+                            pTooltip="Marcar como resuelto"
+                            (click)="resolveTicket(ticket)">
+                        </button>
+                        <span *ngIf="ticket.status === 'resolved'" class="text-xs text-slate-400 italic font-medium">
+                            Resuelto
+                        </span>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-slate-500 dark:text-slate-400">
+                        <i class="pi pi-check-circle text-3xl mb-2 block text-green-500"></i>
+                        No hay reportes de soporte pendientes ni registrados.
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
 
     <p-dialog [header]="headerText" [(visible)]="displayCreateDialog" [modal]="true" [style]="{ width: '40vw' }">
         <app-user-form [userToEdit]="selectedUser" (userCreated)="onUserCreated()"

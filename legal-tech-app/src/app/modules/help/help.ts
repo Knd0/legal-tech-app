@@ -1,4 +1,6 @@
-import { Component, AfterViewInit, OnDestroy, ElementRef } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, ElementRef, inject } from '@angular/core';
+import { SupportService } from '../../core/services/support.service';
+import Swal from 'sweetalert2';
 
 interface SearchTopic {
   title: string;
@@ -14,6 +16,12 @@ interface SearchTopic {
   styleUrl: './help.css',
 })
 export class Help implements AfterViewInit, OnDestroy {
+  private supportService = inject(SupportService);
+
+  showSupportModal = false;
+  supportAsunto = '';
+  supportDescripcion = '';
+  sendingSupport = false;
   activeSection = 'intro';
   selectedCategory = 'all';
   searchQuery = '';
@@ -264,5 +272,52 @@ export class Help implements AfterViewInit, OnDestroy {
       deadline: 0,
       dueDate: ''
     };
+  }
+
+  openSupportModal() {
+    this.supportAsunto = '';
+    this.supportDescripcion = '';
+    this.showSupportModal = true;
+  }
+
+  closeSupportModal() {
+    this.showSupportModal = false;
+  }
+
+  submitSupportTicket() {
+    if (!this.supportAsunto.trim() || !this.supportDescripcion.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos incompletos',
+        text: 'Por favor completa todos los campos del formulario.',
+        timer: 3000,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      });
+      return;
+    }
+    this.sendingSupport = true;
+    this.supportService.createTicket(this.supportAsunto, this.supportDescripcion).subscribe({
+      next: () => {
+        this.sendingSupport = false;
+        this.showSupportModal = false;
+        Swal.fire({
+          icon: 'success',
+          title: 'Reporte Enviado',
+          text: 'Tu reporte de soporte técnico fue enviado con éxito. El administrador lo revisará pronto.',
+          confirmButtonColor: 'var(--accent-terracotta)',
+        });
+      },
+      error: (err) => {
+        this.sendingSupport = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Ocurrió un error al enviar el reporte. Por favor, intenta de nuevo.',
+          confirmButtonColor: 'var(--accent-terracotta)',
+        });
+      }
+    });
   }
 }

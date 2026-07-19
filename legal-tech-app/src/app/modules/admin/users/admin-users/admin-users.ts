@@ -10,6 +10,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { MessageService } from 'primeng/api';
 import { UsersService, User } from '../../../../core/services/users';
+import { SupportService, SupportTicket } from '../../../../core/services/support.service';
 import { UserForm } from '../user-form/user-form';
 import Swal from 'sweetalert2';
 
@@ -23,7 +24,12 @@ import Swal from 'sweetalert2';
 })
 export class AdminUsers implements OnInit {
   private usersService = inject(UsersService);
+  private supportService = inject(SupportService);
   private messageService = inject(MessageService);
+
+  selectedTab = signal<'users' | 'tickets'>('users');
+  tickets = signal<SupportTicket[]>([]);
+  loadingTickets = signal<boolean>(false);
 
   users = signal<User[]>([]);
   totalRecords = signal<number>(0);
@@ -186,5 +192,58 @@ export class AdminUsers implements OnInit {
 
   getSeverity(isActive: boolean): any {
     return isActive ? 'warning' : 'success';
+  }
+
+  selectTab(tab: 'users' | 'tickets') {
+    this.selectedTab.set(tab);
+    if (tab === 'tickets') {
+      this.loadTickets();
+    } else {
+      this.loadPage(1);
+    }
+  }
+
+  loadTickets() {
+    this.loadingTickets.set(true);
+    this.supportService.getTickets().subscribe({
+      next: (res) => {
+        this.tickets.set(res);
+        this.loadingTickets.set(false);
+      },
+      error: () => {
+        this.loadingTickets.set(false);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los tickets de soporte' });
+      }
+    });
+  }
+
+  resolveTicket(ticket: SupportTicket) {
+    Swal.fire({
+      title: '¿Marcar ticket como resuelto?',
+      text: `Asunto: ${ticket.asunto}`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: 'var(--accent-moss)',
+      confirmButtonText: 'Sí, resolver',
+      cancelButtonText: 'Cancelar'
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.supportService.resolveTicket(ticket.id).subscribe({
+          next: (updatedTicket) => {
+            this.messageService.add({ severity: 'success', summary: 'Resuelto', detail: 'Ticket marcado como resuelto exitosamente' });
+            this.tickets.update(prev => {
+              const idx = prev.findIndex(t => t.id === updatedTicket.id);
+              if (idx !== -1) {
+                const next = [...prev];
+                next[idx] = updatedTicket;
+                return next;
+              }
+              return prev;
+            });
+          },
+          error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo resolver el ticket' })
+        });
+      }
+    });
   }
 }

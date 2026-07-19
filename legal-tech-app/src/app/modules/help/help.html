@@ -24,18 +24,12 @@
         </nav>
 
         <div class="p-4 border-t border-slate-100 dark:border-slate-700">
-            <div class="bg-indigo-50 dark:bg-indigo-950/30 rounded-xl p-4 border border-indigo-100/50 dark:border-indigo-900/30">
-                <p class="text-xs font-bold text-indigo-800 dark:text-indigo-300 mb-1 flex items-center gap-1.5">
-                    <i class="pi pi-envelope text-indigo-500"></i> ¿Necesitas soporte técnico?
-                </p>
-                <p class="text-[11px] text-indigo-600 dark:text-indigo-400 mb-3 leading-relaxed">
-                    Contacta al administrador del estudio para reportar errores o solicitar ayuda adicional.
-                </p>
-                <a href="mailto:soporte@themis.com"
-                    class="text-xs bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-3 py-2 rounded-lg font-bold block text-center transition-colors shadow-sm">
-                    Contactar Soporte
-                </a>
-            </div>
+            <button pButton type="button" 
+                label="Solicitar Soporte" 
+                icon="pi pi-ticket" 
+                class="w-full p-button-primary p-button-rounded p-button-sm shadow-sm" 
+                (click)="openSupportModal()">
+            </button>
         </div>
     </aside>
 
@@ -805,3 +799,57 @@
         </div>
     </main>
 </div>
+
+<!-- Modal de Solicitud de Soporte Técnico -->
+<p-dialog 
+    [(visible)]="showSupportModal" 
+    [header]="'Solicitar Soporte Técnico'" 
+    [modal]="true" 
+    [style]="{width: '90%', maxWidth: '500px'}" 
+    [draggable]="false" 
+    [resizable]="false" 
+    styleClass="custom-dialog">
+    
+    <div class="flex flex-col gap-4 py-2">
+        <p class="text-xs text-slate-500 dark:text-slate-400 leading-normal">
+            ¿Tenés alguna duda o encontraste un error en la plataforma? Describilo a continuación y el administrador del estudio lo resolverá.
+        </p>
+
+        <div class="flex flex-col gap-1.5">
+            <label for="supportAsunto" class="text-xs font-bold text-slate-700 dark:text-slate-300">Asunto / Resumen</label>
+            <input 
+                pInputText 
+                id="supportAsunto" 
+                [(ngModel)]="supportAsunto" 
+                placeholder="Ej: Error al emitir factura, Duda con el calendario..." 
+                class="w-full text-sm" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+            <label for="supportDescripcion" class="text-xs font-bold text-slate-700 dark:text-slate-300">Detalle del Problema</label>
+            <textarea 
+                rows="5" 
+                id="supportDescripcion" 
+                [(ngModel)]="supportDescripcion" 
+                placeholder="Describe el inconveniente o consulta con el mayor detalle posible..." 
+                class="w-full text-sm p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2 mt-2">
+            <button pButton type="button" 
+                label="Cancelar" 
+                class="p-button-text p-button-secondary p-button-rounded p-button-sm text-slate-500 hover:bg-slate-100" 
+                (click)="closeSupportModal()">
+            </button>
+            <button pButton type="button" 
+                [label]="sendingSupport ? 'Enviando...' : 'Enviar Reporte'" 
+                icon="pi pi-check" 
+                [disabled]="sendingSupport || !supportAsunto.trim() || !supportDescripcion.trim()"
+                class="p-button-primary p-button-rounded p-button-sm" 
+                (click)="submitSupportTicket()">
+            </button>
+        </div>
+    </ng-template>
+</p-dialog>

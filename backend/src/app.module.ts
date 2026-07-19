@@ -22,6 +22,7 @@ import { SeedService } from './seed.service';
 import { MercadopagoModule } from './mercadopago/mercadopago.module';
 import { AiModule } from './ai/ai.module';
 import { LegalModelsModule } from './legal-models/legal-models.module';
+import { SupportTicketsModule } from './support-tickets/support-tickets.module';
 
 
 @Module({
@@ -85,6 +86,7 @@ import { LegalModelsModule } from './legal-models/legal-models.module';
     MercadopagoModule,
     AiModule,
     LegalModelsModule,
+    SupportTicketsModule,
   ],
   controllers: [AppController],
   providers: [AppService, SeedService],

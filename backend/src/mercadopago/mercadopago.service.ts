@@ -20,6 +20,21 @@ export class MercadopagoService {
     }
   }
 
+  getAccessTokenStatus() {
+    const accessToken = this.configService.get<string>('MP_ACCESS_TOKEN');
+    if (!accessToken) {
+      return { configured: false, error: 'MP_ACCESS_TOKEN is missing or empty' };
+    }
+    const parts = accessToken.split('-');
+    return {
+      configured: true,
+      length: accessToken.length,
+      prefix: parts[0] || 'unknown',
+      isSandbox: accessToken.startsWith('TEST-'),
+      clientInitialized: !!this.client
+    };
+  }
+
   async createSubscriptionForUser(userId: string, payerEmail: string, planName: string = 'Themis Pro', amount: number = 35000) {
     if (!this.client) throw new Error("MercadoPago not configured");
 

@@ -10,6 +10,11 @@ export class MercadopagoController {
 
   constructor(private readonly mpService: MercadopagoService) {}
 
+  @Get('config-check')
+  configCheck() {
+    return this.mpService.getAccessTokenStatus();
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post('create-subscription')
   async createSubscription(@Req() req, @Body('plan') plan: string, @Res() res: Response) {

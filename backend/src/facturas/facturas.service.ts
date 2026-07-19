@@ -24,6 +24,11 @@ export class FacturasService {
     private usersService: UsersService,
     private whatsappService: WhatsappService,
   ) {
+    if (process.env.RESEND_API_KEY) {
+      console.log('Resend Email Service Initialized.');
+    } else {
+      console.warn('RESEND_API_KEY not configured. Email invoice sending is disabled.');
+    }
     // Initialize global system AFIP SDK as fallback
     try {
         const fs = require('fs');

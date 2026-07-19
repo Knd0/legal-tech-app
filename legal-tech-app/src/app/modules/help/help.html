@@ -376,7 +376,7 @@
                     </div>
                     <div>
                         <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Copilot</h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Inteligencia Artificial premium integrada para escritos y auditorías rápidas</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Inteligencia Artificial premium integrada para escritos, análisis RAG y liquidaciones</p>
                     </div>
                 </div>
 
@@ -388,13 +388,13 @@
                         <span class="bg-white/20 text-violet-100 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full">Tecnología Premium</span>
                         <h3 class="text-lg font-bold">Un Abogado Experto a un clic</h3>
                         <p class="text-xs text-violet-100 leading-relaxed">
-                            Alimentado por Gemini 2.5 Flash y ChatGPT de OpenAI como respaldo. El Copilot analiza el expediente judicial completo seleccionado para proveerte cuatro flujos fundamentales:
+                            Alimentado por Google Gemini y ChatGPT como fallback de alto rendimiento. El Copilot analiza tus expedientes y te brinda herramientas avanzadas:
                         </p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-[11px] text-violet-100 font-medium">
-                            <div class="flex items-center gap-1.5"><i class="pi pi-check text-[10px]"></i> Redactor de escritos adaptado a la terminología forense argentina.</div>
-                            <div class="flex items-center gap-1.5"><i class="pi pi-check text-[10px]"></i> Resumen estratégico procesal que extrae hechos y plan de acción.</div>
-                            <div class="flex items-center gap-1.5"><i class="pi pi-check text-[10px]"></i> Estimador de probabilidad de éxito basado en doctrina y riesgo.</div>
-                            <div class="flex items-center gap-1.5"><i class="pi pi-check text-[10px]"></i> Analizador general de textos para auditar cláusulas abusivas.</div>
+                            <div class="flex items-center gap-1.5"><i class="pi pi-check text-[10px]"></i> **RAG Multimodal en PDFs:** Sube escritos, demandas de la contraparte o notificaciones e interactúa conversando directamente con tus PDFs en el chat de IA.</div>
+                            <div class="flex items-center gap-1.5"><i class="pi pi-check text-[10px]"></i> **Redactor con Plantillas (Few-shot):** Genera escritos profesionales adaptados a la terminología forense argentina, vinculados al repositorio de modelos.</div>
+                            <div class="flex items-center gap-1.5"><i class="pi pi-check text-[10px]"></i> **Calculadora Judicial:** Ejecuta liquidaciones complejas de montos reclamados, tasas de interés activas/pasivas y estimaciones de costos del juicio.</div>
+                            <div class="flex items-center gap-1.5"><i class="pi pi-check text-[10px]"></i> **Análisis Estratégico y de Riesgo:** Evalúa fortalezas, debilidades, riesgos procesales y la probabilidad matemática de éxito basada en doctrina.</div>
                         </div>
                     </div>
                 </div>
@@ -505,22 +505,31 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
                         <h3 class="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-2">
                             <i class="pi pi-sync text-orange-500 animate-spin" style="animation-duration: 8s;"></i> Sincronización Google Calendar
                         </h3>
-                        <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
-                            Al vincular tu cuenta de Google en tu Perfil, cada audiencia, reunión o vencimiento perentorio que cargues en Themis se sincronizará automáticamente en tu calendario de Google en tiempo real, permitiendo alertas móviles instantáneas.
+                        <p class="text-slate-650 dark:text-slate-400 text-xs leading-relaxed">
+                            Al vincular tu cuenta de Google en tu Perfil, cada audiencia o vencimiento perentorio que cargues en Themis se sincronizará automáticamente en tu calendario personal de Google en tiempo real para alertas móviles instantáneas.
                         </p>
                     </div>
 
                     <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
                         <h3 class="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-2">
-                            <i class="pi pi-file-pdf text-red-500"></i> Escáner de PDFs Judiciales (Notificaciones)
+                            <i class="pi pi-file-pdf text-red-500"></i> Escáner de Cédulas y PDFs
                         </h3>
-                        <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
-                            ¿Recibiste una cédula o notificación judicial con plazos ajustados? En lugar de calcular a mano, Themis te permite subir el archivo PDF. La IA de Gemini leerá el texto legal, deducirá los plazos otorgados, verificará la fecha de notificación y los fines de semana/feriados de Argentina, calculando de inmediato tu fecha límite exacta.
+                        <p class="text-slate-650 dark:text-slate-400 text-xs leading-relaxed">
+                            Sube cualquier cédula o notificación judicial en PDF. La IA de Gemini leerá el proveído, deducirá los plazos procesales otorgados y calculará de inmediato tu fecha límite exacta, descontando feriados y fines de semana de Argentina.
+                        </p>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-2">
+                            <i class="pi pi-bell text-yellow-500"></i> Alertas y Doble Anticipación
+                        </h3>
+                        <p class="text-slate-650 dark:text-slate-400 text-xs leading-relaxed">
+                            Personaliza tus recordatorios definiendo dos momentos de alerta independientes (ej: 3 días antes y 1 día antes), además del aviso matutino a las 9:00 AM el mismo día. Filtra qué tipos de plazos notificar.
                         </p>
                     </div>
                 </div>
@@ -593,49 +602,45 @@
                     </div>
                     <div>
                         <h2 class="text-xl font-extrabold text-slate-800 dark:text-white">Facturación Electrónica AFIP / ARCA</h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Emisión de Factura C oficial, CAE digital y cálculo de aranceles JUS</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Emisión de Factura C oficial, CAE digital, Modo Simulación y auto-envío multicanal</p>
                     </div>
                 </div>
 
                 <div class="bg-purple-50 dark:bg-purple-950/20 border-l-4 border-purple-500 p-5 rounded-r-2xl space-y-2">
-                    <h4 class="font-bold text-purple-900 dark:text-purple-300 text-sm">¿Cómo funciona la emisión integrada?</h4>
+                    <h4 class="font-bold text-purple-900 dark:text-purple-300 text-sm">Emisión Integrada y Modo Simulación</h4>
                     <p class="text-xs text-purple-800 dark:text-purple-450 leading-relaxed">
-                        Para simplificar la contabilidad, Themis utiliza el sistema oficial de **Delegación de Relaciones** del portal de la AFIP. 
-                        No necesitas cargar tu certificado digital ni tu clave privada del certificado `.key` en la plataforma; simplemente autorizas al CUIT central de Themis a facturar y el sistema se comunica de forma segura con el WebService (wsfe) para obtener el **CAE**.
+                        Themis te permite emitir facturas C oficiales comunicándose directamente con el WebService de AFIP (wsfe) de forma segura. Si aún no posees certificados o simplemente deseas probar la plataforma, **el sistema opera automáticamente en Modo Simulación** cuando dejas los campos de certificados vacíos, generando documentos PDF simulados con un CAE de pruebas instantáneo.
                     </p>
                 </div>
 
                 <div class="space-y-6">
-                    <h3 class="font-bold text-slate-850 dark:text-white text-sm">Proceso de Activación en 3 Pasos</h3>
+                    <h3 class="font-bold text-slate-850 dark:text-white text-sm">Configuración y Automatización en 3 Pasos</h3>
                     
                     <div class="space-y-6 relative border-l-2 border-slate-200 dark:border-slate-700 pl-6 ml-4">
                         <!-- Paso 1 -->
                         <div class="relative">
                             <div class="absolute -left-[35px] top-0.5 w-6 h-6 rounded-full bg-purple-600 text-white font-bold text-xs flex items-center justify-center shadow">1</div>
-                            <h4 class="font-bold text-slate-800 dark:text-white text-xs">Adherir el Servicio en el Portal de AFIP</h4>
+                            <h4 class="font-bold text-slate-800 dark:text-white text-xs">Completar Datos Obligatorios en el Perfil</h4>
                             <p class="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed mt-1">
-                                Ingresa con tu CUIT y Clave Fiscal al portal de <a href="https://auth.afip.gob.ar/contribuyente_/login.xhtml" target="_blank" class="text-blue-500 hover:underline">AFIP/ARCA <i class="pi pi-external-link text-[9px]"></i></a>. 
-                                Dirígete al **"Administrador de Relaciones de Clave Fiscal"** > click en **"Adherir Servicio"** > selecciona el logo de **"AFIP"** > **"Webservices"** > selecciona **"Facturación Electrónica (wsfe)"**. 
-                                En el campo "Representante", ingresa el CUIT administrador provisto en el correo de bienvenida.
+                                Para emitir comprobantes, debes ingresar a <a routerLink="/profile" class="text-blue-500 hover:underline">Mi Perfil</a> y completar tu **Domicilio Profesional** en la sección de datos personales, además de tu **CUIT** (11 dígitos sin guiones) y **Punto de Venta Web Service** en la sección de AFIP. Estos datos son obligatorios y aparecerán en el encabezado de tus facturas.
                             </p>
                         </div>
                         
                         <!-- Paso 2 -->
                         <div class="relative">
                             <div class="absolute -left-[35px] top-0.5 w-6 h-6 rounded-full bg-purple-600 text-white font-bold text-xs flex items-center justify-center shadow">2</div>
-                            <h4 class="font-bold text-slate-800 dark:text-white text-xs">Ingresar tu CUIT en Themis</h4>
+                            <h4 class="font-bold text-slate-800 dark:text-white text-xs">Vincular Certificados de AFIP (Producción)</h4>
                             <p class="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed mt-1">
-                                En Themis, ve a la sección <a routerLink="/profile" class="text-blue-500 hover:underline">Mi Perfil</a>, busca la tarjeta de AFIP y escribe tu CUIT de 11 dígitos sin guiones y el número de tu **Punto de Venta** (debe estar habilitado para factura electrónica / factura en línea). Guarda los cambios.
+                                Si decides operar con facturas reales, dirígete a la sección AFIP en tu Perfil, sube tu certificado `.crt` firmado y tu llave privada `.key`, y activa la opción **"Producción"**. Para la delegación en la web de AFIP, debes buscar la opción **"Delegar" el servicio wsfe** al CUIT administrador de la plataforma.
                             </p>
                         </div>
 
                         <!-- Paso 3 -->
                         <div class="relative">
                             <div class="absolute -left-[35px] top-0.5 w-6 h-6 rounded-full bg-purple-600 text-white font-bold text-xs flex items-center justify-center shadow">3</div>
-                            <h4 class="font-bold text-slate-800 dark:text-white text-xs">Emitir Factura C en Un Clic</h4>
+                            <h4 class="font-bold text-slate-800 dark:text-white text-xs">Facturación en Un Clic y Envío Multicanal</h4>
                             <p class="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed mt-1">
-                                En la ficha del cliente, ve a la pestaña **Cuenta Corriente**. Al lado de cualquier cobro de Honorarios, haz clic en el botón de ticket <i class="pi pi-receipt text-purple-600"></i>. 
-                                La plataforma facturará el monto directamente en AFIP, recuperará el CAE oficial e imprimirá la factura con tu membrete en formato PDF profesional para el cliente.
+                                En la pestaña **Cuenta Corriente** del cliente, al lado de cualquier cobro, haz clic en el botón de ticket <i class="pi pi-receipt text-purple-600"></i>. Themis generará la factura (con validación de montos absolutos), obtendrá el CAE y **despachará automáticamente el PDF adjunto** al cliente en segundo plano: por **WhatsApp** (usando el bot) y por **Correo Electrónico** (vía Resend).
                             </p>
                         </div>
                     </div>
@@ -678,6 +683,15 @@
                                 Vencido el periodo de gracia sin saldar la suscripción, se activará el bloqueo preventivo (`isCreationBlocked`). Conservarás acceso de lectura para consultar tus datos y expedientes cargados, pero no podrás agregar nuevos clientes ni causas.
                             </p>
                         </div>
+
+                        <div class="p-4 rounded-xl border border-slate-100 dark:border-slate-750 bg-slate-50/50 dark:bg-slate-900/30 space-y-2 col-span-1 sm:col-span-2">
+                            <span class="font-bold text-slate-750 dark:text-slate-200 text-xs flex items-center gap-1">
+                                <i class="pi pi-sync text-emerald-500"></i> Proceso de Alta y Sincronización Real
+                            </span>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                                Al hacer clic en **"Suscribirse"** en la sección de planes, serás redirigido a la pasarela oficial de Mercado Pago. Al completar la suscripción (PreApproval), Themis recibe una notificación automática de pago y extiende tu vencimiento (`subscriptionExpiresAt`) al próximo periodo facturado. Puedes dar de baja o administrar tu suscripción en cualquier momento desde tu panel de Mercado Pago.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -699,31 +713,34 @@
                     <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
                         <div class="flex items-start justify-between">
                             <div>
-                                <h4 class="font-bold text-slate-800 dark:text-white text-sm">Bot de WhatsApp Integrado</h4>
-                                <p class="text-[10px] text-slate-400 dark:text-slate-500">Automatizaciones directas 24/7</p>
+                                <h4 class="font-bold text-slate-800 dark:text-white text-sm">Bot de WhatsApp (Tecnología Baileys)</h4>
+                                <p class="text-[10px] text-slate-400 dark:text-slate-500">Automatizaciones eficientes sin Puppeteer</p>
                             </div>
                             <i class="pi pi-whatsapp text-2xl text-green-500"></i>
                         </div>
                         <p class="text-xs text-slate-650 dark:text-slate-400 leading-relaxed">
-                            Al enlazar tu número mediante código QR o código de emparejamiento, el sistema inicia un navegador en segundo plano en el servidor Railway. 
-                            Las credenciales se guardan en la base de datos PostgreSQL (`whatsapp_sessions`) para evitar desconexiones accidentales al reiniciar el servidor. 
-                            De este modo, se despacharán recordatorios de plazos procesales directamente desde tu número telefónico a tus clientes.
+                            Themis utiliza la librería `@whiskeysockets/baileys` para conectarse a WhatsApp Web. A diferencia de Puppeteer/Chromium, consume solo ~30MB de RAM y evita caídas de servidor. Las credenciales se resguardan en PostgreSQL (`whatsapp_sessions`) manteniendo la sesión vinculada ante reinicios.
                         </p>
+                        <div class="bg-slate-50 dark:bg-slate-900/60 p-3 rounded-lg border dark:border-slate-750 text-[11px] leading-relaxed space-y-1.5">
+                            <div><strong>• Administrador (ADMIN):</strong> Vincula la sesión central de la plataforma escaneando el código QR o ingresando un código de emparejamiento.</div>
+                            <div><strong>• Abogados (USER):</strong> Activan alertas directas a sus propios teléfonos, configurando la frecuencia (1, 2, 3 o 4 veces al día) y la hora de inicio para recibir recordatorios automáticos del bot central.</div>
+                        </div>
                     </div>
 
                     <!-- Push notifications VAPID card -->
-                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <h4 class="font-bold text-slate-800 dark:text-white text-sm">Push en Segundo Plano Profundo</h4>
-                                <p class="text-[10px] text-slate-400 dark:text-slate-500">Alertas de sistema con navegador cerrado</p>
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4 flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h4 class="font-bold text-slate-800 dark:text-white text-sm">Push en Navegador (Servicio VAPID)</h4>
+                                    <p class="text-[10px] text-slate-400 dark:text-slate-500">Alertas matutinas con navegador cerrado</p>
+                                </div>
+                                <i class="pi pi-bell text-2xl text-blue-500 animate-bounce" style="animation-duration: 3s;"></i>
                             </div>
-                            <i class="pi pi-bell text-2xl text-blue-500 animate-bounce" style="animation-duration: 3s;"></i>
+                            <p class="text-xs text-slate-650 dark:text-slate-400 leading-relaxed">
+                                A través de Angular Service Worker y del firmado criptográfico VAPID (llaves públicas/privadas persistidas en Railway), puedes autorizar notificaciones en tu PC o móvil. Si el servidor procesa un vencimiento para hoy o mañana a las 9:00 AM, recibirás un aviso Web Push que aparecerá directamente en el centro de notificaciones de tu sistema operativo.
+                            </p>
                         </div>
-                        <p class="text-xs text-slate-650 dark:text-slate-400 leading-relaxed">
-                            Gracias a la tecnología Angular Service Worker y al firmado criptográfico VAPID, puedes autorizar notificaciones en tu computadora o celular. 
-                            Incluso si apagas o cierras el navegador, cuando la tarea diaria de Themis detecte un vencimiento inminente a las 9:00 AM, el sistema enviará un push que aparecerá directamente en tu centro de alertas del sistema operativo.
-                        </p>
                     </div>
                 </div>
 

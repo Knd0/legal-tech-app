@@ -46,51 +46,69 @@ export class Help implements AfterViewInit, OnDestroy {
   searchableTopics: SearchTopic[] = [
     {
       title: '¿Cómo vincular el bot de WhatsApp?',
-      description: 'Guía paso a paso para escanear el QR o usar el código de teléfono para automatizar recordatorios.',
-      keywords: 'whatsapp qr codigo vinculacion telefono bot sincronizar qr error spinner',
+      description: 'Guía paso a paso para escanear el QR o usar el código de teléfono para automatizar recordatorios. Solo para administradores.',
+      keywords: 'whatsapp qr codigo vinculacion telefono bot sincronizar qr error spinner admin baileys',
       section: 'configuracion'
     },
     {
       title: '¿Cómo funciona el Copilot?',
       description: 'Aprende a redactar demandas, resumir expedientes y calcular la probabilidad de éxito de tus causas con IA.',
-      keywords: 'ia copiloto gemini openai resumen demanda redactar riesgos probabilidad exitos puntos fuertes debiles themis copilot',
+      keywords: 'ia copiloto gemini openai resumen demanda redactar riesgos probabilidad exitos puntos fuertes debiles themis copilot few-shot plantillas',
       section: 'ia'
     },
     {
       title: '¿Cómo emitir facturas C oficiales con AFIP?',
-      description: 'Pasos para delegar el servicio wsfe en la AFIP, configurar el Punto de Venta y emitir comprobantes.',
-      keywords: 'afip factura arca cae punto de venta honorarios factura c delegar wsfe cuit arca',
+      description: 'Pasos para delegar el servicio wsfe en la AFIP, configurar el Punto de Venta obligatorio, domicilio profesional y emitir comprobantes en simulación o producción.',
+      keywords: 'afip factura arca cae punto de venta honorarios factura c delegar wsfe cuit arca simulacion sandbox domicilio obligatorio',
       section: 'afip'
     },
     {
       title: '¿Cómo escanear notificaciones PDF para extraer plazos?',
-      description: 'Sube un PDF de notificación judicial y deja que la IA calcule los plazos hábiles automáticamente.',
-      keywords: 'calendario pdf notificacion plazo vencimiento escanear ia automatica dias habiles cedula',
+      description: 'Sube un PDF de notificación judicial y deja que la IA calcule los plazos hábiles automáticamente y los agende.',
+      keywords: 'calendario pdf notificacion plazo vencimiento escanear ia automatica dias habiles cedula agenda',
       section: 'calendario'
     },
     {
       title: '¿Cómo subir y ver documentos asociados a un caso?',
-      description: 'Almacena archivos en Cloudinary sin límites de peso y visualiza previews interactivos.',
-      keywords: 'documento pdf subir cloudinary archivo preview imagen streaming ver visor',
+      description: 'Almacena archivos en Cloudinary sin límites de peso, con streaming seguro y previsualización interactiva de PDFs e imágenes.',
+      keywords: 'documento pdf subir cloudinary archivo preview imagen streaming ver visor visualizacion interactivo',
       section: 'documentos'
     },
     {
       title: '¿Qué hacer si se bloquea la creación por suscripción?',
-      description: 'Activa tu suscripción mensual mediante MercadoPago para desbloquear la carga de clientes y causas.',
-      keywords: 'mercadopago suscripcion pago plan precio mensual gracia bloqueado mercadopago preapproval',
+      description: 'Activa tu suscripción mensual mediante MercadoPago para evitar el bloqueo de creación (con 7 días de gracia).',
+      keywords: 'mercadopago suscripcion pago plan precio mensual gracia bloqueado mercadopago preapproval iscreationblocked cancelacion',
       section: 'suscripciones'
     },
     {
       title: '¿Cómo usar el tablero Kanban de expedientes?',
-      description: 'Arrastra y suelta causas entre etapas procesales para organizar tu flujo de trabajo.',
+      description: 'Arrastra y suelta causas entre etapas procesales para organizar tu flujo de trabajo de forma visual.',
       keywords: 'expediente kanban caratula juzgado fuero estado arrastrar mover columnas etapa',
       section: 'expedientes'
     },
     {
       title: '¿Cómo buscar clientes rápidamente con debouncer?',
-      description: 'Optimiza la búsqueda en tiempo real que espera 300ms antes de consultar al servidor.',
-      keywords: 'cliente debouncer buscador paginacion lazy listado nuevo telefono buscar',
+      description: 'Optimiza la búsqueda en tiempo real que espera 300ms antes de consultar al servidor para evitar saturación.',
+      keywords: 'cliente debouncer buscador paginacion lazy listado nuevo telefono buscar paginado',
       section: 'clientes'
+    },
+    {
+      title: '¿Qué es el RAG Multimodal en PDFs?',
+      description: 'Permite chatear de forma interactiva con los documentos PDF adjuntos a tus expedientes en el Copilot.',
+      keywords: 'rag chat pdf documento inteligencia artificial copiloto leer expedientes causa adjunto',
+      section: 'ia'
+    },
+    {
+      title: '¿Cómo usar la Calculadora Judicial?',
+      description: 'Calcula aranceles JUS, intereses de juicios y costos procesales de forma integrada en el módulo de IA.',
+      keywords: 'calculadora judicial liquidacion tasas de interes jus aranceles costos demandas liquidaciones',
+      section: 'ia'
+    },
+    {
+      title: '¿Cómo funcionan las Alertas de WhatsApp por Rol?',
+      description: 'Los abogados reciben alertas personalizadas en su número configurado, programando horarios y cantidad de envíos diarios.',
+      keywords: 'alerta whatsapp rol abogado notificaciones frecuencia horario programar recordatorio',
+      section: 'configuracion'
     }
   ];
 

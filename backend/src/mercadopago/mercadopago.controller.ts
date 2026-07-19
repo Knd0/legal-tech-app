@@ -16,11 +16,12 @@ export class MercadopagoController {
     try {
       const user = req.user;
       const targetPlan = plan === 'basic' ? 'basic' : 'pro';
-      const amount = targetPlan === 'basic' ? 1 : 1; // Cambiado temporalmente a 1 para pruebas de producción
+      const amount = targetPlan === 'basic' ? 100 : 100; // Cambiado temporalmente a 100 para pruebas de producción (mínimo de MP)
       const planName = targetPlan === 'basic' ? 'Themis Básico' : 'Themis Pro';
       const result = await this.mpService.createSubscriptionForUser(user.userId, user.username, planName, amount);
       return res.status(200).json({ preapprovalLink: result.init_point });
     } catch (error) {
+      console.error('[MP Error] Failed to create subscription:', error);
       return res.status(500).json({ message: error.message });
     }
   }

@@ -48,6 +48,16 @@
                                 class="w-full text-sm bg-slate-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400" />
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Domicilio Profesional *</label>
+                            <input pInputText formControlName="address"
+                                class="w-full text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                                placeholder="Calle 123, Piso 1, Dpto A" />
+                            <small class="text-red-500"
+                                *ngIf="profileForm.get('address')?.invalid && profileForm.get('address')?.touched">
+                                El domicilio profesional es requerido.
+                            </small>
+                        </div>
+                        <div>
                             <div class="flex justify-between items-center mb-1">
                                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Teléfono (WhatsApp)</label>
                                 <span *ngIf="authService.currentUser()?.isPhoneVerified" 

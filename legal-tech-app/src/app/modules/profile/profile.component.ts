@@ -70,7 +70,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       email: [{ value: '', disabled: true }, [Validators.required, Validators.email]],
       phoneNumber: [''],
       cuit: [''],
-      address: [''],
+      address: ['', Validators.required],
       daysBeforeAlert: [1, [Validators.required, Validators.min(0)]],
       role: [{ value: '', disabled: true }],
       

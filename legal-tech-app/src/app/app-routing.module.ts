@@ -22,6 +22,8 @@ const routes: Routes = [
   { path: 'admin/users', loadComponent: () => import('./modules/admin/users/admin-users/admin-users').then(m => m.AdminUsers), canActivate: [authGuard, AdminGuard] },
   { path: 'ai', loadChildren: () => import('./modules/ai/ai.module').then(m => m.AiModule), canActivate: [authGuard, subscriptionGuard] },
   { path: 'modelos', loadChildren: () => import('./modules/modelos/modelos.module').then(m => m.ModelosModule), canActivate: [authGuard, subscriptionGuard] },
+  { path: 'terminos', loadComponent: () => import('./pages/terminos/terminos').then(m => m.TerminosComponent) },
+  { path: 'privacidad', loadComponent: () => import('./pages/privacidad/privacidad').then(m => m.PrivacidadComponent) },
   { path: '**', redirectTo: '' }
 ];
 

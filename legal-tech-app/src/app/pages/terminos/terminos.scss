@@ -1,0 +1,23 @@
+.legal-container {
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: 1.8;
+  font-family: 'Epilogue', sans-serif;
+  color: var(--text-earth);
+
+  h1, h2, h3, h4 {
+    font-family: 'Fraunces', serif !important;
+    color: var(--text-earth);
+  }
+
+  p, li {
+    font-size: 0.875rem;
+    color: var(--text-earth);
+    opacity: 0.9;
+  }
+
+  strong {
+    color: var(--text-earth);
+    font-weight: 700;
+  }
+}

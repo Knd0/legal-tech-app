@@ -1,0 +1,165 @@
+<div class="min-h-screen bg-[var(--bg-app)] py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+  <div class="max-w-4xl mx-auto">
+    
+    <!-- Navigation header -->
+    <div class="flex items-center justify-between mb-8 border-b border-[var(--text-earth)]/10 pb-6">
+      <button (click)="goBack()" class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--text-earth)] hover:text-[#C66B3D] transition-colors">
+        <i class="pi pi-arrow-left"></i> Volver a la Landing
+      </button>
+      <div class="flex items-center gap-2">
+        <i class="pi pi-lock text-[#C66B3D] text-xl"></i>
+        <span class="font-serif-organic text-lg font-bold text-[var(--text-earth)]">Themis Privacidad</span>
+      </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <article class="bg-[var(--bg-surface)] rounded-3xl p-6 sm:p-10 md:p-12 border border-[var(--text-earth)]/10 shadow-sm legal-container">
+      
+      <div class="space-y-4 text-center mb-10">
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[var(--text-earth)]">Políticas de Privacidad</h1>
+        <p class="text-xs text-[var(--text-earth)]/70 uppercase tracking-wider font-bold">Última actualización: 19 de Julio de 2026</p>
+      </div>
+
+      <div class="space-y-8 text-justify">
+        
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">1. Compromiso de Privacidad y Normativa Aplicable</h2>
+          <p>
+            Themis (en adelante, la "Plataforma") respeta profundamente la confidencialidad de la información y el secreto profesional que rige la relación entre los abogados y sus clientes. Estas Políticas de Privacidad detallan cómo recopilamos, utilizamos, almacenamos y protegemos los datos personales de los usuarios profesionales que contratan la Plataforma (los "Usuarios"), así como de los terceros cuyos datos son ingresados en el sistema (tales como "Clientes de los Usuarios" y detalles de "Expedientes Judiciales").
+          </p>
+          <p>
+            El tratamiento de datos personales en la Plataforma se realiza en estricto cumplimiento de la <strong>Ley de Protección de Datos Personales N° 25.326</strong>, su Decreto Reglamentario N° 1558/2001 y las disposiciones emitidas por la Agencia de Acceso a la Información Pública (AAIP) de la República Argentina, implementando además medidas razonables alineadas con estándares internacionales de privacidad (GDPR).
+          </p>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">2. Datos Recopilados</h2>
+          <p>
+            La Plataforma almacena diferentes tipos de información proporcionada de manera voluntaria por el Usuario en el marco de la prestación del Servicio:
+          </p>
+          <ul class="list-disc pl-6 space-y-2">
+            <li>
+              <strong>Datos de Cuenta del Profesional:</strong> Nombre completo, correo electrónico, número de teléfono (para envío de alertas), contraseña cifrada, CUIT y datos de facturación profesional.
+            </li>
+            <li>
+              <strong>Credenciales de Terceros (Opcional):</strong> Certificados digitales `.crt` y claves privadas `.key` provistas por el Usuario para la integración directa con los servidores fiscales de AFIP/ARCA, las cuales se almacenan de manera cifrada en la base de datos.
+            </li>
+            <li>
+              <strong>Información de Clientes de los Usuarios:</strong> Nombres, DNI/CUIT, dirección, correos electrónicos, teléfonos, información de familiares y saldos contables de cuenta corriente.
+            </li>
+            <li>
+              <strong>Información de Expedientes:</strong> Carátulas de causas judiciales, juzgados, secretarías, fueros, números de expediente, notas procesales, fechas de audiencias y actuaciones.
+            </li>
+            <li>
+              <strong>Archivos de Documentos Adjuntos:</strong> Documentación judicial, copias de demandas, fallos o escritos cargados en formato PDF o de imagen. Estos archivos se almacenan en servidores de almacenamiento seguro en la nube (Cloudinary).
+            </li>
+          </ul>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">3. Finalidad del Tratamiento de Datos</h2>
+          <p>
+            La recopilación y el tratamiento de los datos tienen como única y exclusiva finalidad proveer el funcionamiento correcto y seguro de la Plataforma, lo que incluye:
+          </p>
+          <ul class="list-disc pl-6 space-y-2">
+            <li>
+              Gestionar las cuentas de usuario y procesar los cobros mensuales recurrentes mediante Mercado Pago.
+            </li>
+            <li>
+              Permitir al Usuario organizar y consultar su cartera de clientes y el estado de avance de sus expedientes.
+            </li>
+            <li>
+              Calcular las fechas de vencimiento de los plazos judiciales informados en la agenda.
+            </li>
+            <li>
+              Transmitir los datos de cobro seleccionados por el Usuario hacia la AFIP/ARCA para emitir y autorizar facturas C.
+            </li>
+            <li>
+              Despachar recordatorios de vencimiento procesal o facturas adjuntas a través de la mensajería del bot de WhatsApp.
+            </li>
+            <li>
+              Registrar logs de auditoría interna de control para que el administrador del estudio pueda conocer qué cambios se realizaron sobre los expedientes o saldos.
+            </li>
+          </ul>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">4. Prohibición Absoluta de Comercialización de Datos</h2>
+          <p>
+            <strong>Themis garantiza bajo compromiso contractual que bajo ninguna circunstancia vende, alquila, cede, comparte ni comercializa los datos de los Usuarios, de sus clientes ni la información contenida en sus expedientes con terceras empresas con fines publicitarios, de marketing ni perfiles de datos.</strong>
+          </p>
+          <p>
+            Los datos solo son transmitidos a aquellas plataformas de terceros necesarias para la prestación de las funciones que el propio Usuario activa de manera voluntaria en su perfil:
+          </p>
+          <ul class="list-disc pl-6 space-y-2">
+            <li>
+              <strong>AFIP / ARCA:</strong> Para la delegación y emisión del CAE de facturación fiscal.
+            </li>
+            <li>
+              <strong>Mercado Pago:</strong> Para procesar y conciliar los pagos de la suscripción al software.
+            </li>
+            <li>
+              <strong>Cloudinary:</strong> Para el almacenamiento en la nube de los archivos adjuntos.
+            </li>
+            <li>
+              <strong>Resend:</strong> Para el envío de correos del flujo de recuperación de clave e informes de facturación.
+            </li>
+          </ul>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">5. Medidas de Seguridad y Resguardo</h2>
+          <p>
+            Implementamos estrictas medidas de seguridad técnicas, organizativas y físicas para proteger la confidencialidad de la información e impedir accesos no autorizados:
+          </p>
+          <ul class="list-disc pl-6 space-y-2">
+            <li>
+              <strong>Cifrado en Tránsito:</strong> Toda comunicación entre el navegador del Usuario y nuestros servidores del backend se realiza utilizando protocolos seguros de transferencia hipertexto (HTTPS con certificados TLS/SSL válidos).
+            </li>
+            <li>
+              <strong>Cifrado en Reposo:</strong> Las contraseñas de acceso de los Usuarios se encriptan utilizando algoritmos criptográficos robustos de hash unidireccional (bcrypt), impidiendo que puedan ser leídas en texto claro en caso de filtración de datos.
+            </li>
+            <li>
+              <strong>Autenticación Segura:</strong> Las sesiones se gestionan mediante tokens de autenticación web firmados (JSON Web Tokens - JWT) con una vigencia limitada en el tiempo.
+            </li>
+            <li>
+              <strong>Logs de Auditoría Inalterables:</strong> Cada movimiento contable o alteración de causas queda asentado en logs de auditoría que no pueden ser modificados por ningún usuario, asegurando la integridad histórica de los datos del estudio.
+            </li>
+          </ul>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">6. Derechos de los Titulares de los Datos (Derechos ARCO)</h2>
+          <p>
+            De conformidad con la Ley N° 25.326, los Usuarios profesionales tienen el derecho de solicitar el **Acceso, Rectificación, Actualización y Eliminación** de sus datos personales almacenados en la Plataforma en cualquier momento. 
+          </p>
+          <p>
+            Para ejercer estos derechos, o si decide dar de baja definitiva su suscripción y desea solicitar la supresión de la base de datos de sus expedientes y clientes cargados, el titular de la cuenta puede contactar al Administrador general del estudio o enviar una solicitud por escrito a través del sistema de tickets de soporte técnico indicando su requerimiento. Responderemos a su solicitud en los plazos fijados por la legislación vigente.
+          </p>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">7. Retención y Conservación de la Información</h2>
+          <p>
+            Conservaremos los datos personales e información cargada mientras la cuenta del Usuario se mantenga activa y la suscripción se encuentre al día. Si un Usuario decide dar de baja o cancelar de forma definitiva su suscripción, Themis conservará la información de la cuenta suspendida de manera bloqueada por un periodo de hasta 90 días para permitirle descargar copias de respaldo o reactivar el servicio si lo desea, transcurrido el cual la información podrá ser purgada de manera definitiva de nuestros servidores de producción.
+          </p>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">8. Modificaciones a la Política de Privacidad</h2>
+          <p>
+            Nos reservamos el derecho de modificar estas Políticas de Privacidad en cualquier momento para adaptarlas a nuevas normativas legales o cambios funcionales en el software. Cada vez que realicemos modificaciones, actualizaremos la fecha de última actualización que figura al inicio de este documento y notificaremos al Usuario mediante un aviso destacado en la Plataforma al iniciar sesión. El uso continuado del Servicio luego de la publicación de las modificaciones constituirá aceptación expresa de las nuevas políticas.
+          </p>
+        </section>
+
+      </div>
+
+      <div class="mt-12 pt-8 border-t border-[var(--text-earth)]/10 text-center">
+        <p class="text-xs text-[var(--text-earth)]/70">
+          La protección y el respeto por los datos de tu estudio son nuestro valor fundamental.
+        </p>
+      </div>
+
+    </article>
+  </div>
+</div>

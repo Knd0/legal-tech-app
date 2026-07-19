@@ -1,0 +1,141 @@
+<div class="min-h-screen bg-[var(--bg-app)] py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+  <div class="max-w-4xl mx-auto">
+    
+    <!-- Navigation header -->
+    <div class="flex items-center justify-between mb-8 border-b border-[var(--text-earth)]/10 pb-6">
+      <button (click)="goBack()" class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--text-earth)] hover:text-[#C66B3D] transition-colors">
+        <i class="pi pi-arrow-left"></i> Volver a la Landing
+      </button>
+      <div class="flex items-center gap-2">
+        <i class="pi pi-shield text-[#C66B3D] text-xl"></i>
+        <span class="font-serif-organic text-lg font-bold text-[var(--text-earth)]">Themis Legal</span>
+      </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <article class="bg-[var(--bg-surface)] rounded-3xl p-6 sm:p-10 md:p-12 border border-[var(--text-earth)]/10 shadow-sm legal-container">
+      
+      <div class="space-y-4 text-center mb-10">
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[var(--text-earth)]">Términos del Servicio</h1>
+        <p class="text-xs text-[var(--text-earth)]/70 uppercase tracking-wider font-bold">Última actualización: 19 de Julio de 2026</p>
+      </div>
+
+      <div class="space-y-8 text-justify">
+        
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">1. Aceptación de los Términos</h2>
+          <p>
+            Bienvenido a Themis (en adelante, la "Plataforma" o el "Servicio"), un software en la nube provisto para la gestión administrativa de estudios jurídicos y profesionales del derecho. Al acceder, registrarse o utilizar nuestro Servicio, usted (en adelante, el "Usuario" o "Licenciatario") declara estar matriculado profesionalmente en su correspondiente jurisdicción, contar con plena capacidad civil para contratar y aceptar expresamente y sin reservas las presentes condiciones generales de uso. Si usted no está de acuerdo con alguna disposición de estos Términos, deberá abstenerse de registrarse y de utilizar la Plataforma de manera inmediata.
+          </p>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">2. Descripción del Servicio y Licencia</h2>
+          <p>
+            Themis es una plataforma que funciona bajo el modelo de Software como Servicio (SaaS), permitiendo a los abogados y estudios jurídicos gestionar expedientes judiciales, centralizar carteras de clientes, controlar cobros y cuentas corrientes, agendar audiencias o vencimientos, emitir facturación electrónica autorizada por AFIP/ARCA, y asistir en la redacción de escritos y resúmenes mediante el Copilot (Inteligencia Artificial). 
+          </p>
+          <p>
+            Se otorga al Usuario una licencia de uso personal, no exclusiva, temporal, revocable e intransferible para acceder y operar la Plataforma exclusivamente en el marco de sus funciones profesionales y de acuerdo con el plan de suscripción que mantenga activo.
+          </p>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">3. Planes de Suscripción, Pagos y Facturación</h2>
+          <p>
+            El acceso a la Plataforma se divide en planes de pago con diferentes límites y características funcionales:
+          </p>
+          <ul class="list-disc pl-6 space-y-2">
+            <li>
+              <strong>Plan Básico ($20.000 ARS/mes o tarifa anual equivalente):</strong> Permite la administración limitada de hasta 10 clientes activos y hasta 15 expedientes activos en total. Incluye calendario básico y agenda de plazos, y no posee acceso al Copilot de IA, vinculación fiscal de AFIP/ARCA ni envío automatizado de alertas por WhatsApp.
+            </li>
+            <li>
+              <strong>Plan Estudio Pro ($35.000 ARS/mes o tarifa anual equivalente):</strong> Otorga capacidad ilimitada para clientes y expedientes activos. Habilita el Copilot de IA (análisis de documentos PDF, estimador de costos y redactores), integración fiscal directa de AFIP para emitir facturas C oficiales, y el bot de WhatsApp centralizado para programar recordatorios periódicos.
+            </li>
+          </ul>
+          <p>
+            Todos los cobros periódicos se procesan de manera automática a través de la pasarela de pagos integrada de <strong>Mercado Pago</strong>. El cargo se realiza de forma anticipada cada mes según la fecha original de suscripción.
+          </p>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">4. Período de Gracia y Suspensión del Servicio</h2>
+          <p>
+            En caso de que el cobro mensual automático falle por motivos ajenos a la Plataforma (tales como saldo insuficiente en cuenta, tarjeta de crédito bloqueada o vencida), Themis otorgará un **Período de Gracia de 7 días corridos** a partir de la fecha de cobro fallida. Durante este lapso, el Usuario podrá continuar operando el Servicio con normalidad para evitar interrupciones en su actividad. 
+          </p>
+          <p>
+            Vencido el Período de Gracia sin que se haya regularizado el pago, el sistema **bloqueará automáticamente la creación de nuevos expedientes, clientes y la emisión de facturas**, manteniendo únicamente el acceso de consulta a los datos existentes. Transcurridos 30 días corridos de falta de pago, Themis se reserva el derecho de suspender definitivamente la cuenta y proceder a la baja temporal de la información asociada.
+          </p>
+        </section>
+
+        <section class="space-y-3 bg-amber-50 dark:bg-amber-950/20 p-5 rounded-2xl border border-amber-200 dark:border-amber-900/30">
+          <h2 class="text-lg font-bold text-amber-800 dark:text-amber-300 flex items-center gap-2">
+            <i class="pi pi-exclamation-triangle"></i> EXCLUSIÓN CRÍTICA DE RESPONSABILIDAD: PLAZOS PROCESALES
+          </h2>
+          <p class="text-amber-900 dark:text-amber-200 font-medium">
+            <strong>Themis es exclusivamente un software de soporte y organización administrativa. El control y cumplimiento oportuno de los plazos procesales, términos judiciales, caducidades y prescripciones es responsabilidad exclusiva, personal e indelegable del abogado matriculado patrocinante o apoderado de las causas.</strong>
+          </p>
+          <p class="text-amber-800 dark:text-amber-300">
+            Bajo ninguna circunstancia, la Plataforma ni sus desarrolladores serán responsables por pérdidas de plazos procesales, caducidades de instancia, prescripción de acciones, rechazos de escritos, imposición de costas judiciales o cualquier perjuicio material o moral directo o indirecto que sufra el Usuario o sus clientes debido a fallas de software, problemas de conexión del bot de WhatsApp, cortes de luz o de red del servidor, falta de envío de notificaciones push, errores matemáticos o lógicos en el calendario o cualquier otro desperfecto del sistema. El abogado debe validar sus plazos mediante los canales oficiales de notificación judicial (PJN, MEV o equivalentes de cada jurisdicción).
+          </p>
+        </section>
+
+        <section class="space-y-3 bg-indigo-50 dark:bg-indigo-950/20 p-5 rounded-2xl border border-indigo-200 dark:border-indigo-900/30">
+          <h2 class="text-lg font-bold text-indigo-800 dark:text-indigo-300 flex items-center gap-2">
+            <i class="pi pi-sparkles"></i> DESLINDE SOBRE LA INTELIGENCIA ARTIFICIAL (COPILOT)
+          </h2>
+          <p class="text-indigo-900 dark:text-indigo-200 font-medium">
+            La funcionalidad "Copilot" utiliza modelos avanzados de procesamiento de lenguaje natural provistos por terceros (como Google Gemini u OpenAI) y opera bajo un modelo de probabilidad. Esto significa que la IA puede incurrir en errores materiales, falsedades conceptuales o falsos proveídos (comúnmente denominados "alucinaciones").
+          </p>
+          <p class="text-indigo-800 dark:text-indigo-300">
+            <strong>El Usuario asume la obligación estricta y absoluta de revisar minuciosamente, verificar la doctrina/jurisprudencia citada y corregir cualquier error en todo escrito judicial, demanda, contestación, liquidación o resumen generado por el Copilot antes de proceder a su firma y presentación en expedientes judiciales o administrativos. Themis no asume ninguna responsabilidad frente a reclamos de mala praxis profesional derivados de escritos generados automáticamente.</strong>
+          </p>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">5. Integración con AFIP / ARCA</h2>
+          <p>
+            Themis permite a los usuarios del Plan Estudio Pro facturar sus cobros de cuenta corriente de forma directa integrando las credenciales de facturación de AFIP/ARCA (CUIT, certificados y llaves privadas). El Usuario declara bajo juramento que los certificados cargados le corresponden legalmente y que las delegaciones de Web Services (wsfe) en el portal fiscal de AFIP se realizan con su pleno consentimiento de contribuyente.
+          </p>
+          <p>
+            La Plataforma actúa únicamente como canal técnico de transmisión de datos. No nos responsabilizamos por multas fiscales, rechazos de comprobantes, errores impositivos en las alícuotas declaradas, facturación duplicada o cualquier inconveniente legal ante los entes recaudadores nacionales, provinciales o municipales.
+          </p>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">6. Integración del Bot de WhatsApp</h2>
+          <p>
+            El bot centralizado de alertas por WhatsApp para notificaciones de audiencias y envío de facturas adjuntas utiliza una vinculación basada en la emulación de sesiones (protocolo de Baileys). Debido a que este servicio depende de servidores e infraestructuras de terceros no controladas por Themis (Meta Platforms, Inc.), el servicio de mensajería automática puede sufrir demoras, fallos de entrega o bloqueos temporales por políticas de spam del canal de WhatsApp.
+          </p>
+          <p>
+            La vinculación de la sesión central mediante código QR queda reservada exclusivamente a los administradores del estudio jurídico (Super Admin). Los usuarios comunes son responsables de mantener sus números telefónicos configurados correctamente y de corroborar que no se bloqueen por acciones indebidas de spam de cara a sus clientes.
+          </p>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">7. Seguridad de Cuentas, Credenciales y Auditoría</h2>
+          <p>
+            Cada Usuario es responsable de mantener la más absoluta confidencialidad de su contraseña y clave de ingreso. Las acciones realizadas bajo su perfil de usuario (creación de causas, borrado de clientes, movimientos de dinero) se reputarán válidamente imputadas al titular de la cuenta. 
+          </p>
+          <p>
+            Para garantizar la seguridad interna y el control contra fraudes o desvíos contables, la Plataforma implementa un **log de auditoría permanente** no modificable que registra de manera exacta qué usuario modificó o eliminó expedientes, clientes o saldos. Estos logs se conservan de forma segura en la base de datos y pueden ser consultados por el Administrador del estudio.
+          </p>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-xl font-bold text-[var(--text-earth)]">8. Ley Aplicable y Jurisdicción</h2>
+          <p>
+            Los presentes Términos del Servicio se regirán e interpretarán de conformidad con las leyes vigentes de la República Argentina. Para cualquier divergencia, litigio o reclamo derivado del uso de la Plataforma o del cumplimiento de estas condiciones, las partes acuerdan someterse expresamente a la jurisdicción exclusiva de los Tribunales Ordinarios en lo Comercial de la Ciudad Autónoma de Buenos Aires, renunciando a cualquier otro fuero o jurisdicción que pudiera corresponderles por sus domicilios presentes o futuros.
+          </p>
+        </section>
+
+      </div>
+
+      <div class="mt-12 pt-8 border-t border-[var(--text-earth)]/10 text-center">
+        <p class="text-xs text-[var(--text-earth)]/70">
+          Si tenés dudas acerca de estos términos, por favor contactanos a través del administrador de tu estudio o iniciá un ticket de soporte.
+        </p>
+      </div>
+
+    </article>
+  </div>
+</div>

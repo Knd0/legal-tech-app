@@ -425,11 +425,11 @@ export class FacturasService {
     let emailSent = false;
     let whatsappSent = false;
 
-    // 1. Send Email via Resend
     if (factura.client?.email && this.resend) {
       try {
+        const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
         await this.resend.emails.send({
-          from: 'Themis Legal Tech <onboarding@resend.dev>',
+          from: `${factura.user?.fullName || 'Themis Legal Tech'} <${fromEmail}>`,
           to: factura.client.email,
           subject: `Factura de Honorarios - ${factura.user?.fullName || 'Estudio Jurídico'}`,
           html: `<p>Estimado/a ${factura.client.nombre},</p>

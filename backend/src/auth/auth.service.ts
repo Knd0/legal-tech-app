@@ -94,8 +94,9 @@ export class AuthService {
 
     if (this.resend) {
       try {
+        const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
         await this.resend.emails.send({
-          from: 'Themis <no-reply@themis.com.ar>',
+          from: `Themis <${fromEmail}>`,
           to: email,
           subject: 'Código para restablecer tu contraseña',
           html: `<p>Tu código para restablecer la contraseña es: <strong>${code}</strong></p><p>Expira en 5 minutos.</p>`,

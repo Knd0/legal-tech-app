@@ -28,8 +28,8 @@ export class Factura {
   @Column({ nullable: true, type: 'date' })
   vtoCae: string; // YYYYMMDD
 
-  @Column()
-  docNro: number; // DNI/CUIT Cliente
+  @Column({ type: 'bigint' })
+  docNro: number; // DNI/CUIT Cliente (bigint to support 11-digit CUITs)
 
   @ManyToOne(() => Client)
   @JoinColumn({ name: 'clientId' })

@@ -16,7 +16,7 @@ export class MercadopagoController {
     try {
       const user = req.user;
       const targetPlan = plan === 'basic' ? 'basic' : 'pro';
-      const amount = targetPlan === 'basic' ? 20000 : 35000;
+      const amount = targetPlan === 'basic' ? 1 : 1; // Cambiado temporalmente a 1 para pruebas de producción
       const planName = targetPlan === 'basic' ? 'Themis Básico' : 'Themis Pro';
       const result = await this.mpService.createSubscriptionForUser(user.userId, user.username, planName, amount);
       return res.status(200).json({ preapprovalLink: result.init_point });

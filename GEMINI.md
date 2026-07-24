@@ -261,4 +261,9 @@ ALTER TABLE "user" DROP COLUMN IF EXISTS "mpSubscriptionId";
   - Corregido desbordamiento del número de documento (docNro): Cambiado el tipo de columna a `bigint` para soportar CUITs de 11 dígitos, evitando el error de desbordamiento en PostgreSQL (out of range for type integer).
 - **Evitar bucle de error 403**:
   - Restringido el llamado a `/settings` (Notification settings y startQrPolling) únicamente a usuarios con el rol `ADMIN`. Los usuarios de rol `USER` ya no provocan llamadas no autorizadas al cargar la página de Perfil, erradicando los errores 403 Forbidden.
+- **Optimización Responsiva Integral para Dispositivos Móviles (2026-07-24)**:
+  - **Reemplazo de Tablas Anchas con Scroll Horizontal por Tarjetas Móviles**: Se implementó una vista responsiva dual (`hidden md:block` para escritorio y `block md:hidden` para móviles) en los listados de Clientes, Expedientes, Cuenta Corriente, Calendario (Vencimientos y Eventos) y Panel Admin (Usuarios y Tickets). Los móviles ahora muestran tarjetas táctiles compactas con acciones directas (WhatsApp, Ver, Editar, Eliminar, AFIP) y paginador integrado (`p-paginator`), eliminando las barras de desplazamiento horizontal.
+  - **Tablero Kanban Adaptado para Móviles**: Pestañas selectoras de columna (`Iniciado`, `Prueba`, `Alegatos`, `Sentencia`, `Archivado`) con contador de casos para ver columnas a ancho completo en celulares. Cada tarjeta incluye selector directo de estado en 1 toque.
+  - **Navegación Rápida en Centro de Ayuda**: Agregada barra pegajosa (`sticky section bar`) en la parte superior en móviles para saltar a cualquier tema instantáneamente.
+  - **Optimización de Grillas y Diálogos**: Ajustadas cuadrículas de KPIs en Dashboard y Cuenta Corriente a 2x2 en móviles y ancho adaptable (`w-[92vw] max-w-[600px]`) en modales.
 

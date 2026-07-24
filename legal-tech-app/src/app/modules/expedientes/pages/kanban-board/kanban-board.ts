@@ -22,6 +22,7 @@ export class KanbanBoard implements OnInit {
 
   private dragging = false;
   saving = signal<string | null>(null);
+  activeMobileColumn = signal<EstadoExpediente>('INICIADO');
 
   private expedienteService = inject(ExpedienteService);
 
@@ -98,6 +99,33 @@ export class KanbanBoard implements OnInit {
         showConfirmButton: false,
         timer: 3000,
       });
+    }, () => {
+      this.saving.set(null);
+    });
+  }
+
+  changeStatusManual(item: Expediente, newStatus: EstadoExpediente) {
+    if (item.estado === newStatus) return;
+    const previousStatus = item.estado;
+    this.saving.set(item.id);
+
+    // Mover localmente
+    const oldCol = this.columns.find(c => c.id === previousStatus);
+    const newCol = this.columns.find(c => c.id === newStatus);
+    if (oldCol && newCol) {
+      oldCol.items = oldCol.items.filter(i => i.id !== item.id);
+      item.estado = newStatus;
+      newCol.items.unshift(item);
+    }
+
+    this.expedienteService.updateExpedienteKanban(item.id, newStatus, () => {
+      this.saving.set(null);
+      if (oldCol && newCol) {
+        newCol.items = newCol.items.filter(i => i.id !== item.id);
+        item.estado = previousStatus;
+        oldCol.items.unshift(item);
+      }
+      Swal.fire({ icon: 'error', title: 'Error al cambiar estado', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false });
     }, () => {
       this.saving.set(null);
     });

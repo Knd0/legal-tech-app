@@ -16,6 +16,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { TextareaModule } from 'primeng/textarea';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TooltipModule } from 'primeng/tooltip';
+import { PaginatorModule } from 'primeng/paginator';
 
 @NgModule({
   declarations: [
@@ -35,6 +36,7 @@ import { TooltipModule } from 'primeng/tooltip';
     TextareaModule,
     CheckboxModule,
     TooltipModule,
+    PaginatorModule,
     GavelLoaderComponent
   ]
 })

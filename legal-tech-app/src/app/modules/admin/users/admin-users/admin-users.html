@@ -1,204 +1,286 @@
-<div class="card-pro p-6 md:p-8 bg-[var(--bg-surface)]">
+<div class="card-pro p-4 sm:p-6 md:p-8 bg-[var(--bg-surface)]">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h2 class="text-2xl font-bold text-[var(--text-main)]">Panel Super Administrador</h2>
-        <div class="flex gap-2" *ngIf="selectedTab() === 'users'">
-            <button pButton type="button" label="Exportar CSV" icon="pi pi-download" class="p-button-outlined p-button-rounded p-button-sm" (click)="exportCsv()"></button>
-            <button pButton type="button" label="Nuevo Usuario" icon="pi pi-plus" class="p-button-primary p-button-rounded p-button-sm" (click)="openCreateDialog()"></button>
+        <h2 class="text-xl sm:text-2xl font-bold text-[var(--text-main)]">Panel Super Administrador</h2>
+        <div class="flex gap-2 w-full md:w-auto" *ngIf="selectedTab() === 'users'">
+            <button pButton type="button" label="Exportar CSV" icon="pi pi-download" class="p-button-outlined p-button-rounded p-button-sm flex-1 sm:flex-none justify-center text-xs sm:text-sm" (click)="exportCsv()"></button>
+            <button pButton type="button" label="Nuevo Usuario" icon="pi pi-plus" class="p-button-primary p-button-rounded p-button-sm flex-1 sm:flex-none justify-center text-xs sm:text-sm" (click)="openCreateDialog()"></button>
         </div>
     </div>
 
     <!-- Tab Switcher -->
     <div class="flex border-b border-slate-200 dark:border-slate-700 mb-6">
         <button (click)="selectTab('users')" 
-            class="px-5 py-3 font-bold text-sm border-b-2 transition-all duration-200 focus:outline-none"
+            class="px-4 sm:px-5 py-3 font-bold text-xs sm:text-sm border-b-2 transition-all duration-200 focus:outline-none flex items-center gap-1.5"
             [ngClass]="selectedTab() === 'users' ? 'border-[var(--accent-terracotta)] text-[var(--accent-terracotta)]' : 'border-transparent text-slate-500 hover:text-slate-700'">
-            <i class="pi pi-users mr-2"></i>Gestión de Usuarios
+            <i class="pi pi-users"></i>Gestión de Usuarios
         </button>
         <button (click)="selectTab('tickets')" 
-            class="px-5 py-3 font-bold text-sm border-b-2 transition-all duration-200 focus:outline-none"
+            class="px-4 sm:px-5 py-3 font-bold text-xs sm:text-sm border-b-2 transition-all duration-200 focus:outline-none flex items-center gap-1.5"
             [ngClass]="selectedTab() === 'tickets' ? 'border-[var(--accent-terracotta)] text-[var(--accent-terracotta)]' : 'border-transparent text-slate-500 hover:text-slate-700'">
-            <i class="pi pi-ticket mr-2"></i>Tickets de Soporte
+            <i class="pi pi-ticket"></i>Tickets de Soporte
         </button>
     </div>
 
     <div *ngIf="selectedTab() === 'users'">
-        <!-- Metricas de Negocio -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="card-pro p-6 text-center bg-[var(--bg-surface)] hover:scale-[1.02] transition-transform duration-300">
-            <h3 class="text-[var(--text-muted)] font-bold uppercase tracking-wider text-xs mb-2">Total Usuarios</h3>
-            <p class="text-3xl font-extrabold text-[var(--text-main)]">{{ totalRecords() }}</p>
+        <!-- Méticas de Negocio -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div class="card-pro p-4 sm:p-6 text-center bg-[var(--bg-surface)] hover:scale-[1.01] transition-transform">
+                <h3 class="text-[var(--text-muted)] font-bold uppercase tracking-wider text-[10px] sm:text-xs mb-1">Total Usuarios</h3>
+                <p class="text-2xl sm:text-3xl font-extrabold text-[var(--text-main)]">{{ totalRecords() }}</p>
+            </div>
+            <div class="bg-[var(--accent-sage)]/10 border border-[var(--accent-sage)]/30 p-4 sm:p-6 rounded-2xl text-center hover:scale-[1.01] transition-transform">
+                <h3 class="text-[var(--accent-moss)] font-bold uppercase tracking-wider text-[10px] sm:text-xs mb-1">Suscripciones Activas</h3>
+                <p class="text-2xl sm:text-3xl font-extrabold text-[var(--text-earth)]">{{ activeSubscriptionsCount() }}</p>
+            </div>
+            <div class="bg-[var(--accent-terracotta)]/10 border border-[var(--accent-terracotta)]/30 p-4 sm:p-6 rounded-2xl text-center hover:scale-[1.01] transition-transform">
+                <h3 class="text-[var(--accent-terracotta)] font-bold uppercase tracking-wider text-[10px] sm:text-xs mb-1">Cancelados</h3>
+                <p class="text-2xl sm:text-3xl font-extrabold text-[var(--accent-terracotta)]">{{ cancelledCount() }}</p>
+            </div>
         </div>
-        <div class="bg-[var(--accent-sage)]/10 border border-[var(--accent-sage)]/30 p-6 rounded-2xl text-center hover:scale-[1.02] transition-transform duration-300">
-            <h3 class="text-[var(--accent-moss)] font-bold uppercase tracking-wider text-xs mb-2">Suscripciones Activas</h3>
-            <p class="text-3xl font-extrabold text-[var(--text-earth)]">{{ activeSubscriptionsCount() }}</p>
-        </div>
-        <div class="bg-[var(--accent-terracotta)]/10 border border-[var(--accent-terracotta)]/30 p-6 rounded-2xl text-center hover:scale-[1.02] transition-transform duration-300">
-            <h3 class="text-[var(--accent-terracotta)] font-bold uppercase tracking-wider text-xs mb-2">Tasa de Cancelación</h3>
-            <p class="text-3xl font-extrabold text-[var(--accent-terracotta)]">{{ cancelledCount() }}</p>
-        </div>
-    </div>
 
-    <!-- Search & Filter Bar -->
-    <div class="flex flex-col sm:flex-row gap-3 mb-4">
-        <div class="relative flex-1">
-            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm"></i>
-            <input pInputText
-                [ngModel]="searchTerm()"
-                (ngModelChange)="onSearchChange($event)"
-                placeholder="Buscar por nombre, email o rol..."
-                class="w-full pl-9 text-sm" />
+        <!-- Search & Filter Bar -->
+        <div class="flex flex-col sm:flex-row gap-3 mb-4">
+            <div class="relative flex-1">
+                <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm"></i>
+                <input pInputText
+                    [ngModel]="searchTerm()"
+                    (ngModelChange)="onSearchChange($event)"
+                    placeholder="Buscar por nombre, email o rol..."
+                    class="w-full pl-9 text-sm" />
+            </div>
+            <p-select
+                [options]="statusOptions"
+                [ngModel]="filterStatus()"
+                (ngModelChange)="onStatusChange($event)"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Suscripción"
+                styleClass="text-sm w-full sm:w-48">
+            </p-select>
+            <span class="text-xs text-[var(--text-muted)] self-center whitespace-nowrap">
+                {{ totalRecords() }} usuarios
+            </span>
         </div>
-        <p-select
-            [options]="statusOptions"
-            [ngModel]="filterStatus()"
-            (ngModelChange)="onStatusChange($event)"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Suscripción"
-            styleClass="text-sm w-full sm:w-48">
-        </p-select>
-        <span class="text-xs text-[var(--text-muted)] self-center whitespace-nowrap">
-            {{ totalRecords() }} usuarios
-        </span>
-    </div>
 
-    <p-table
-        [value]="users()"
-        [lazy]="true"
-        [paginator]="true"
-        [rows]="pageSize"
-        [totalRecords]="totalRecords()"
-        [loading]="loading()"
-        (onLazyLoad)="onLazyLoad($event)"
-        [tableStyle]="{ 'min-width': '50rem' }"
-        styleClass="p-datatable-striped">
-        <ng-template pTemplate="header">
-            <tr>
-                <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Nombre</th>
-                <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Email</th>
-                <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Rol</th>
-                <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Estado Acceso</th>
-                <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Suscripción</th>
-                <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Vencimiento</th>
-                <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Acciones</th>
-            </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-user>
-            <tr>
-                <td class="py-4 px-6 font-medium text-[var(--text-main)]">{{ user.fullName }}</td>
-                <td class="py-4 px-6 text-sm text-[var(--text-muted)]">{{ user.email }}</td>
-                <td class="py-4 px-6">
-                    <span
-                        [class]="'px-2.5 py-0.5 rounded-full text-xs font-bold ' + (user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-[var(--accent-sage)]/20 text-[var(--accent-moss)] dark:bg-[var(--accent-sage)]/10 dark:text-[var(--text-earth)]')">
+        <!-- Mobile User Cards (Mobile Only) -->
+        <div class="block md:hidden space-y-3 mb-6">
+            <div *ngIf="users().length === 0" class="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 text-center">
+                <i class="pi pi-users text-3xl text-slate-300 dark:text-slate-600 mb-2 block"></i>
+                <p class="text-xs font-bold text-slate-600 dark:text-slate-400">No hay usuarios registrados.</p>
+            </div>
+
+            <div *ngFor="let user of users()" class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-3">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h4 class="font-bold text-slate-900 dark:text-white text-base">{{ user.fullName }}</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ user.email }}</p>
+                    </div>
+                    <span [class]="'px-2.5 py-0.5 rounded-full text-[10px] font-bold ' + (user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-[var(--accent-sage)]/20 text-[var(--accent-moss)] dark:bg-[var(--accent-sage)]/10 dark:text-[var(--text-earth)]')">
                         {{ user.role }}
                     </span>
-                </td>
-                <td class="py-4 px-6">
-                    <span
-                        [class]="'px-2.5 py-0.5 rounded-full text-xs font-bold ' + (user.isActive ? 'bg-green-100 text-green-800 dark:bg-green-950/20 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-950/20 dark:text-red-300')">
+                </div>
+
+                <div class="flex items-center gap-2 text-xs">
+                    <span [class]="'px-2 py-0.5 rounded-full text-[10px] font-bold ' + (user.isActive ? 'bg-green-100 text-green-800 dark:bg-green-950/20 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-950/20 dark:text-red-300')">
                         {{ user.isActive ? 'ACTIVO' : 'SUSPENDIDO' }}
                     </span>
-                </td>
-                <td class="py-4 px-6">
-                    <span
-                        [class]="'uppercase px-2.5 py-0.5 rounded-full text-xs font-bold ' + (user.subscriptionStatus === 'active' ? 'bg-[var(--accent-sage)]/20 text-[var(--accent-moss)] dark:bg-[var(--accent-sage)]/10 dark:text-[var(--text-earth)]' : user.subscriptionStatus === 'trial' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-350')">
-                        {{ user.subscriptionStatus || 'N/A' }}
+                    <span [class]="'uppercase px-2 py-0.5 rounded-full text-[10px] font-bold ' + (user.subscriptionStatus === 'active' ? 'bg-[var(--accent-sage)]/20 text-[var(--accent-moss)]' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300')">
+                        Plan: {{ user.subscriptionStatus || 'N/A' }}
                     </span>
-                </td>
-                <td class="py-4 px-6">
-                    <span class="text-sm font-medium text-[var(--text-muted)]">
-                        {{ user.subscriptionExpiresAt ? (user.subscriptionExpiresAt | date:'dd/MM/yyyy') : 'N/A' }}
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700 text-xs">
+                    <span class="text-[11px] text-slate-400">
+                        Vence: {{ user.subscriptionExpiresAt ? (user.subscriptionExpiresAt | date:'dd/MM/yyyy') : 'N/A' }}
                     </span>
-                </td>
-                <td class="py-4 px-6 flex gap-2">
-                    <button pButton type="button" icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta)]/10" pTooltip="Editar"
-                        (click)="editUser(user)"></button>
+                    <div class="flex items-center gap-1.5">
+                        <button pButton type="button" icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-[var(--accent-terracotta)]" (click)="editUser(user)"></button>
+                        <button pButton type="button" [icon]="user.isActive ? 'pi pi-ban' : 'pi pi-check'" class="p-button-rounded p-button-text p-button-sm text-amber-600" (click)="toggleSuspension(user)"></button>
+                        <button pButton type="button" icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-red-600" (click)="deleteUser(user)"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                    <button pButton type="button" [icon]="user.isActive ? 'pi pi-ban' : 'pi pi-check'" class="p-button-rounded p-button-text p-button-sm text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/20"
-                        pTooltip="{{ user.isActive ? 'Suspender' : 'Activar' }}" (click)="toggleSuspension(user)">
-                    </button>
+        <!-- Desktop Users Table (Desktop Only) -->
+        <div class="hidden md:block">
+            <p-table
+                [value]="users()"
+                [lazy]="true"
+                [paginator]="true"
+                [rows]="pageSize"
+                [totalRecords]="totalRecords()"
+                [loading]="loading()"
+                (onLazyLoad)="onLazyLoad($event)"
+                [tableStyle]="{ 'min-width': '50rem' }"
+                styleClass="p-datatable-striped">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Nombre</th>
+                        <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Email</th>
+                        <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Rol</th>
+                        <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Estado Acceso</th>
+                        <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Suscripción</th>
+                        <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Vencimiento</th>
+                        <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Acciones</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-user>
+                    <tr>
+                        <td class="py-4 px-6 font-medium text-[var(--text-main)]">{{ user.fullName }}</td>
+                        <td class="py-4 px-6 text-sm text-[var(--text-muted)]">{{ user.email }}</td>
+                        <td class="py-4 px-6">
+                            <span
+                                [class]="'px-2.5 py-0.5 rounded-full text-xs font-bold ' + (user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-[var(--accent-sage)]/20 text-[var(--accent-moss)] dark:bg-[var(--accent-sage)]/10 dark:text-[var(--text-earth)]')">
+                                {{ user.role }}
+                            </span>
+                        </td>
+                        <td class="py-4 px-6">
+                            <span
+                                [class]="'px-2.5 py-0.5 rounded-full text-xs font-bold ' + (user.isActive ? 'bg-green-100 text-green-800 dark:bg-green-950/20 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-950/20 dark:text-red-300')">
+                                {{ user.isActive ? 'ACTIVO' : 'SUSPENDIDO' }}
+                            </span>
+                        </td>
+                        <td class="py-4 px-6">
+                            <span
+                                [class]="'uppercase px-2.5 py-0.5 rounded-full text-xs font-bold ' + (user.subscriptionStatus === 'active' ? 'bg-[var(--accent-sage)]/20 text-[var(--accent-moss)] dark:bg-[var(--accent-sage)]/10 dark:text-[var(--text-earth)]' : user.subscriptionStatus === 'trial' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-350')">
+                                {{ user.subscriptionStatus || 'N/A' }}
+                            </span>
+                        </td>
+                        <td class="py-4 px-6">
+                            <span class="text-sm font-medium text-[var(--text-muted)]">
+                                {{ user.subscriptionExpiresAt ? (user.subscriptionExpiresAt | date:'dd/MM/yyyy') : 'N/A' }}
+                            </span>
+                        </td>
+                        <td class="py-4 px-6 flex gap-2">
+                            <button pButton type="button" icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta)]/10" pTooltip="Editar"
+                                (click)="editUser(user)"></button>
 
-                    <button pButton type="button" icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20" pTooltip="Eliminar"
-                        (click)="deleteUser(user)"></button>
-                </td>
-            </tr>
-        </ng-template>
-    </p-table>
+                            <button pButton type="button" [icon]="user.isActive ? 'pi pi-ban' : 'pi pi-check'" class="p-button-rounded p-button-text p-button-sm text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/20"
+                                pTooltip="{{ user.isActive ? 'Suspender' : 'Activar' }}" (click)="toggleSuspension(user)">
+                            </button>
+
+                            <button pButton type="button" icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20" pTooltip="Eliminar"
+                                (click)="deleteUser(user)"></button>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
     </div>
 
     <!-- Tickets View -->
     <div *ngIf="selectedTab() === 'tickets'" class="space-y-4 animate-fade-in">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-[var(--text-main)]">Reportes de Soporte Técnico</h3>
-            <span class="text-xs text-[var(--text-muted)] font-medium">{{ tickets().length }} tickets registrados</span>
+            <h3 class="text-base sm:text-lg font-bold text-[var(--text-main)]">Reportes de Soporte Técnico</h3>
+            <span class="text-xs text-[var(--text-muted)] font-medium">{{ tickets().length }} tickets</span>
         </div>
 
-        <p-table
-            [value]="tickets()"
-            [loading]="loadingTickets()"
-            [paginator]="true"
-            [rows]="10"
-            [tableStyle]="{ 'min-width': '50rem' }"
-            styleClass="p-datatable-striped">
-            <ng-template pTemplate="header">
-                <tr>
-                    <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Fecha</th>
-                    <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Usuario</th>
-                    <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Asunto</th>
-                    <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Detalle</th>
-                    <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Estado</th>
-                    <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Acciones</th>
-                </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-ticket>
-                <tr>
-                    <td class="py-4 px-6 text-sm text-[var(--text-main)]">{{ ticket.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                    <td class="py-4 px-6">
-                        <div class="flex flex-col">
-                            <span class="font-semibold text-sm text-[var(--text-main)]">{{ ticket.user?.fullName || 'N/A' }}</span>
-                            <span class="text-xs text-[var(--text-muted)]">{{ ticket.user?.email || 'N/A' }}</span>
-                        </div>
-                    </td>
-                    <td class="py-4 px-6 font-bold text-sm text-[var(--text-main)]">{{ ticket.asunto }}</td>
-                    <td class="py-4 px-6 text-sm text-[var(--text-muted)] max-w-xs truncate" [pTooltip]="ticket.descripcion" tooltipPosition="top">
-                        {{ ticket.descripcion }}
-                    </td>
-                    <td class="py-4 px-6">
-                        <span
-                            [class]="'px-2.5 py-0.5 rounded-full text-xs font-bold ' + (ticket.status === 'open' ? 'bg-green-100 text-green-800 dark:bg-green-950/20 dark:text-green-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400')">
-                            {{ ticket.status === 'open' ? 'ABIERTO' : 'RESUELTO' }}
-                        </span>
-                    </td>
-                    <td class="py-4 px-6">
-                        <button pButton type="button" 
-                            *ngIf="ticket.status === 'open'"
-                            label="Resolver"
-                            icon="pi pi-check" 
-                            class="p-button-success p-button-rounded p-button-sm p-button-outlined" 
-                            pTooltip="Marcar como resuelto"
-                            (click)="resolveTicket(ticket)">
-                        </button>
-                        <span *ngIf="ticket.status === 'resolved'" class="text-xs text-slate-400 italic font-medium">
-                            Resuelto
-                        </span>
-                    </td>
-                </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-                <tr>
-                    <td colspan="6" class="text-center py-8 text-slate-500 dark:text-slate-400">
-                        <i class="pi pi-check-circle text-3xl mb-2 block text-green-500"></i>
-                        No hay reportes de soporte pendientes ni registrados.
-                    </td>
-                </tr>
-            </ng-template>
-        </p-table>
+        <!-- Mobile Tickets View (Mobile Only) -->
+        <div class="block md:hidden space-y-3">
+            <div *ngIf="tickets().length === 0" class="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 text-center">
+                <i class="pi pi-check-circle text-3xl text-green-500 mb-2 block"></i>
+                <p class="text-xs font-bold text-slate-600 dark:text-slate-400">No hay reportes de soporte pendientes.</p>
+            </div>
+
+            <div *ngFor="let ticket of tickets()" class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-2.5">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="font-bold text-slate-900 dark:text-white text-sm block">{{ ticket.asunto }}</span>
+                        <span class="text-xs text-slate-500 dark:text-slate-400">{{ ticket.user?.fullName }} ({{ ticket.user?.email }})</span>
+                    </div>
+                    <span [class]="'px-2 py-0.5 rounded-full text-[10px] font-bold ' + (ticket.status === 'open' ? 'bg-green-100 text-green-800 dark:bg-green-950/20 dark:text-green-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400')">
+                        {{ ticket.status === 'open' ? 'ABIERTO' : 'RESUELTO' }}
+                    </span>
+                </div>
+
+                <p class="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/40 p-2.5 rounded-xl leading-relaxed">
+                    {{ ticket.descripcion }}
+                </p>
+
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700 text-xs">
+                    <span class="text-[10px] text-slate-400">{{ ticket.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                    <button pButton type="button" 
+                        *ngIf="ticket.status === 'open'"
+                        label="Resolver"
+                        icon="pi pi-check" 
+                        class="p-button-success p-button-rounded p-button-sm !text-xs !py-1" 
+                        (click)="resolveTicket(ticket)">
+                    </button>
+                    <span *ngIf="ticket.status === 'resolved'" class="text-xs text-slate-400 italic">
+                        Resuelto
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Tickets Table (Desktop Only) -->
+        <div class="hidden md:block">
+            <p-table
+                [value]="tickets()"
+                [loading]="loadingTickets()"
+                [paginator]="true"
+                [rows]="10"
+                [tableStyle]="{ 'min-width': '50rem' }"
+                styleClass="p-datatable-striped">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Fecha</th>
+                        <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Usuario</th>
+                        <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Asunto</th>
+                        <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Detalle</th>
+                        <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Estado</th>
+                        <th class="font-bold text-[var(--text-muted)] text-xs uppercase tracking-wider py-4 px-6">Acciones</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-ticket>
+                    <tr>
+                        <td class="py-4 px-6 text-sm text-[var(--text-main)]">{{ ticket.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                        <td class="py-4 px-6">
+                            <div class="flex flex-col">
+                                <span class="font-semibold text-sm text-[var(--text-main)]">{{ ticket.user?.fullName || 'N/A' }}</span>
+                                <span class="text-xs text-[var(--text-muted)]">{{ ticket.user?.email || 'N/A' }}</span>
+                            </div>
+                        </td>
+                        <td class="py-4 px-6 font-bold text-sm text-[var(--text-main)]">{{ ticket.asunto }}</td>
+                        <td class="py-4 px-6 text-sm text-[var(--text-muted)] max-w-xs truncate" [pTooltip]="ticket.descripcion" tooltipPosition="top">
+                            {{ ticket.descripcion }}
+                        </td>
+                        <td class="py-4 px-6">
+                            <span
+                                [class]="'px-2.5 py-0.5 rounded-full text-xs font-bold ' + (ticket.status === 'open' ? 'bg-green-100 text-green-800 dark:bg-green-950/20 dark:text-green-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400')">
+                                {{ ticket.status === 'open' ? 'ABIERTO' : 'RESUELTO' }}
+                            </span>
+                        </td>
+                        <td class="py-4 px-6">
+                            <button pButton type="button" 
+                                *ngIf="ticket.status === 'open'"
+                                label="Resolver"
+                                icon="pi pi-check" 
+                                class="p-button-success p-button-rounded p-button-sm p-button-outlined" 
+                                pTooltip="Marcar como resuelto"
+                                (click)="resolveTicket(ticket)">
+                            </button>
+                            <span *ngIf="ticket.status === 'resolved'" class="text-xs text-slate-400 italic font-medium">
+                                Resuelto
+                            </span>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-slate-500 dark:text-slate-400">
+                            <i class="pi pi-check-circle text-3xl mb-2 block text-green-500"></i>
+                            No hay reportes de soporte pendientes ni registrados.
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
     </div>
 
-    <p-dialog [header]="headerText" [(visible)]="displayCreateDialog" [modal]="true" [style]="{ width: '40vw' }">
+    <p-dialog [header]="headerText" [(visible)]="displayCreateDialog" [modal]="true" styleClass="w-[92vw] max-w-[600px]">
         <app-user-form [userToEdit]="selectedUser" (userCreated)="onUserCreated()"
             (userUpdated)="onUserUpdated()" (cancel)="displayCreateDialog = false"></app-user-form>
     </p-dialog>
-
-    <p-toast></p-toast>
 </div>

@@ -1,33 +1,33 @@
-<div class="fade-in-up relative">
+<div class="fade-in-up relative pb-10">
     <div *ngIf="loadingService.isLoading()"
         class="absolute inset-0 z-50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
         <app-gavel-loader></app-gavel-loader>
     </div>
+
     <!-- Header -->
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-slate-900 dark:text-white">Clientes</h1>
-            <p class="text-slate-500 dark:text-slate-400 mt-1">Gestión de cartera y contactos.</p>
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Clientes</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1">Gestión de cartera y contactos de tu estudio.</p>
         </div>
-        <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+        <div class="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full md:w-auto">
             <button pButton icon="pi pi-file-excel" label="Exportar"
-                class="p-button-outlined p-button-success border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 w-full sm:w-auto"
+                class="p-button-outlined p-button-success border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 w-full sm:w-auto text-xs sm:text-sm"
                 (click)="exportList()"></button>
             <button pButton icon="pi pi-upload" label="Importar"
                 [disabled]="subscriptionService.isCreationBlocked()"
-                class="p-button-outlined p-button-help premium-locked border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 w-full sm:w-auto"
+                class="p-button-outlined p-button-help premium-locked border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 w-full sm:w-auto text-xs sm:text-sm"
                 (click)="triggerImport()"></button>
             <button pButton label="Nuevo Cliente" icon="pi pi-plus"
                 [disabled]="subscriptionService.isCreationBlocked() || (authService.currentUser()?.subscriptionPlan === 'basic' && clientService.clients().length >= 10)"
                 [pTooltip]="subscriptionService.isCreationBlocked() ? 'Suscripción vencida. Actualice su plan.' : (authService.currentUser()?.subscriptionPlan === 'basic' && clientService.clients().length >= 10 ? 'Límite de 10 clientes (Plan Básico) alcanzado. Actualice a Plan Profesional.' : '')"
-                class="premium-locked w-full sm:w-auto"
+                class="premium-locked col-span-2 sm:col-span-1 w-full sm:w-auto text-xs sm:text-sm"
                 routerLink="new"></button>
         </div>
     </div>
 
     <!-- Search Bar -->
-    <div class="flex flex-col sm:flex-row gap-3 mb-2">
+    <div class="flex flex-col sm:flex-row gap-3 mb-4">
         <div class="relative flex-1">
             <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
             <input pInputText
@@ -37,13 +37,76 @@
                 class="w-full pl-9 text-sm dark:bg-slate-800 dark:text-white dark:border-slate-600" />
         </div>
         <span *ngIf="searchTerm()" class="text-xs text-slate-400 self-center whitespace-nowrap">
-            {{ totalRecords() }} de {{ clientService.clients().length }} clientes encontrados
+            {{ totalRecords() }} de {{ clientService.clients().length }} clientes
         </span>
     </div>
 
-    <!-- Table -->
-    <div
-        class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden overflow-x-auto">
+    <!-- MOBILE CARDS VIEW (Mobile Only) -->
+    <div class="block md:hidden space-y-3">
+        <div *ngIf="clientes().length === 0 && !loading()" class="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 text-center">
+            <i class="pi pi-users text-3xl text-slate-300 dark:text-slate-600 mb-2 block"></i>
+            <p class="text-xs font-bold text-slate-600 dark:text-slate-400">No hay clientes registrados.</p>
+        </div>
+
+        <div *ngFor="let cliente of clientes()" 
+            class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-3">
+            
+            <div class="flex justify-between items-start">
+                <div class="space-y-0.5">
+                    <h3 class="font-bold text-slate-900 dark:text-white text-base">
+                        <a [routerLink]="['/clientes', cliente.id]" class="hover:text-[var(--accent-terracotta)] transition-colors">{{ cliente.apellido }}, {{ cliente.nombre }}</a>
+                    </h3>
+                    <span *ngIf="cliente.dni" class="inline-block text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">
+                        DNI: {{ cliente.dni }}
+                    </span>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono">
+                    {{ cliente.fechaAlta | date:'dd/MM/yyyy' }}
+                </span>
+            </div>
+
+            <!-- Contacts Info -->
+            <div class="space-y-1 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/40 p-2.5 rounded-xl">
+                <div *ngIf="cliente.email" class="flex items-center gap-2 truncate">
+                    <i class="pi pi-envelope text-[11px] text-[var(--accent-terracotta)]"></i>
+                    <span class="truncate">{{ cliente.email }}</span>
+                </div>
+                <div *ngIf="cliente.telefono" class="flex items-center gap-2">
+                    <i class="pi pi-phone text-[11px] text-[var(--accent-moss)]"></i>
+                    <span>{{ cliente.telefono }}</span>
+                </div>
+                <div *ngIf="!cliente.email && !cliente.telefono" class="text-slate-400 italic text-[11px]">
+                    Sin datos de contacto guardados
+                </div>
+            </div>
+
+            <!-- Card Action Bar -->
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700">
+                <button (click)="sendWhatsapp(cliente)" 
+                    class="px-3 py-1.5 rounded-lg bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-bold text-xs flex items-center gap-1.5 hover:bg-green-100 transition-colors">
+                    <i class="pi pi-whatsapp text-sm"></i> WhatsApp
+                </button>
+                <div class="flex items-center gap-2">
+                    <button [routerLink]="['/clientes', cliente.id, 'edit']"
+                        class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors text-xs font-bold flex items-center gap-1">
+                        <i class="pi pi-pencil"></i> Editar
+                    </button>
+                    <button (click)="deleteCliente(cliente)"
+                        class="p-2 rounded-lg bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-100 transition-colors text-xs font-bold">
+                        <i class="pi pi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Paginator -->
+        <div class="mt-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+            <p-paginator [rows]="rows()" [totalRecords]="totalRecords()" [first]="first()" (onPageChange)="loadClientsLazy($event)"></p-paginator>
+        </div>
+    </div>
+
+    <!-- DESKTOP TABLE VIEW (Desktop Only) -->
+    <div class="hidden md:block bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden overflow-x-auto">
         <p-table [value]="clientes()" 
             [lazy]="true"
             (onLazyLoad)="loadClientsLazy($event)"

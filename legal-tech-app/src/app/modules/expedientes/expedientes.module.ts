@@ -19,6 +19,7 @@ import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { PaginatorModule } from 'primeng/paginator';
 import { KanbanBoard } from './pages/kanban-board/kanban-board';
 
 @NgModule({
@@ -42,6 +43,7 @@ import { KanbanBoard } from './pages/kanban-board/kanban-board';
     TagModule,
     TooltipModule,
     ToggleSwitchModule,
+    PaginatorModule,
     DragDropModule,
     GavelLoaderComponent
   ]

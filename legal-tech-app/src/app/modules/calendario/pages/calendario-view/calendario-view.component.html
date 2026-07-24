@@ -4,22 +4,22 @@
             <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Calendario</h1>
             <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Agenda de plazos, audiencias y vencimientos.</p>
         </div>
-        <div class="flex flex-col sm:flex-row gap-2 items-center w-full md:w-auto">
+        <div class="grid grid-cols-2 sm:flex sm:flex-row gap-2 items-center w-full md:w-auto">
             <!-- View Toggles -->
             <div
-                class="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg border border-slate-200 dark:border-slate-600 w-full sm:w-auto justify-center">
+                class="col-span-2 sm:col-span-1 flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg border border-slate-200 dark:border-slate-600 w-full sm:w-auto justify-center">
                 <button (click)="toggleView('LIST')" [class.bg-white]="viewMode() === 'LIST'"
                     [class.dark:bg-slate-600]="viewMode() === 'LIST'" [class.shadow-sm]="viewMode() === 'LIST'"
                     [class.text-[var(--accent-terracotta)]]="viewMode() === 'LIST'" [class.dark:text-white]="viewMode() === 'LIST'"
                     [class.text-slate-500]="viewMode() !== 'LIST'" [class.dark:text-slate-400]="viewMode() !== 'LIST'"
-                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 flex-1 sm:flex-none justify-center">
+                    class="px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all flex items-center gap-2 flex-1 sm:flex-none justify-center">
                     <i class="pi pi-list"></i> Lista
                 </button>
                 <button (click)="toggleView('MONTH')" [class.bg-white]="viewMode() === 'MONTH'"
                     [class.dark:bg-slate-600]="viewMode() === 'MONTH'" [class.shadow-sm]="viewMode() === 'MONTH'"
                     [class.text-[var(--accent-terracotta)]]="viewMode() === 'MONTH'" [class.dark:text-white]="viewMode() === 'MONTH'"
                     [class.text-slate-500]="viewMode() !== 'MONTH'" [class.dark:text-slate-400]="viewMode() !== 'MONTH'"
-                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 flex-1 sm:flex-none justify-center">
+                    class="px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all flex items-center gap-2 flex-1 sm:flex-none justify-center">
                     <i class="pi pi-calendar"></i> Mes
                 </button>
             </div>
@@ -27,20 +27,20 @@
             <!-- Hidden PDF File Input -->
             <input type="file" id="pdfFileInput" style="display: none" accept="application/pdf" (change)="onPdfFileSelected($event)">
 
-            <button pButton label="Subir PDF Notificación" icon="pi pi-file-pdf"
+            <button pButton label="PDF Notificación" icon="pi pi-file-pdf"
                 [disabled]="subscriptionService.isCreationBlocked() || analyzingPdf()"
                 [pTooltip]="subscriptionService.isCreationBlocked() ? 'Suscripción vencida. Actualice su plan.' : 'Analizar proveído o notificación PDF con IA'"
-                class="p-button-outlined p-button-danger border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 w-full sm:w-auto" (click)="triggerPdfUpload()">
+                class="p-button-outlined p-button-danger border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 w-full sm:w-auto text-xs sm:text-sm" (click)="triggerPdfUpload()">
             </button>
 
             <button pButton label="Nuevo Vencimiento" icon="pi pi-gavel"
                 [disabled]="subscriptionService.isCreationBlocked()"
                 [pTooltip]="subscriptionService.isCreationBlocked() ? 'Suscripción vencida. Actualice su plan.' : ''"
-                class="premium-locked shadow-sm w-full sm:w-auto" (click)="openNew()">
+                class="premium-locked shadow-sm w-full sm:w-auto text-xs sm:text-sm" (click)="openNew()">
             </button>
             <button pButton label="Nuevo Evento" icon="pi pi-calendar-plus"
                 [disabled]="subscriptionService.isCreationBlocked()"
-                class="p-button-outlined border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 w-full sm:w-auto" (click)="openNewEvent()">
+                class="p-button-outlined border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 w-full sm:w-auto text-xs sm:text-sm" (click)="openNewEvent()">
             </button>
         </div>
     </div>
@@ -48,12 +48,12 @@
     <!-- LIST VIEW -->
     <div *ngIf="viewMode() === 'LIST'">
         <!-- Tabs -->
-        <div class="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg border border-slate-200 dark:border-slate-600 w-fit mb-3">
+        <div class="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg border border-slate-200 dark:border-slate-600 w-fit mb-4">
             <button (click)="listTab.set('VENCIMIENTOS')"
                 [class.bg-white]="listTab() === 'VENCIMIENTOS'" [class.dark:bg-slate-600]="listTab() === 'VENCIMIENTOS'" [class.shadow-sm]="listTab() === 'VENCIMIENTOS'"
                 [class.text-[var(--accent-terracotta)]]="listTab() === 'VENCIMIENTOS'" [class.dark:text-white]="listTab() === 'VENCIMIENTOS'"
                 [class.text-slate-500]="listTab() !== 'VENCIMIENTOS'" [class.dark:text-slate-400]="listTab() !== 'VENCIMIENTOS'"
-                class="px-4 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2">
+                class="px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all flex items-center gap-2">
                 <i class="pi pi-gavel"></i> Vencimientos
                 <span class="text-xs bg-slate-200 dark:bg-slate-500 px-1.5 rounded-full">{{ deadlines().length }}</span>
             </button>
@@ -61,151 +61,260 @@
                 [class.bg-white]="listTab() === 'EVENTOS'" [class.dark:bg-slate-600]="listTab() === 'EVENTOS'" [class.shadow-sm]="listTab() === 'EVENTOS'"
                 [class.text-[var(--accent-terracotta)]]="listTab() === 'EVENTOS'" [class.dark:text-white]="listTab() === 'EVENTOS'"
                 [class.text-slate-500]="listTab() !== 'EVENTOS'" [class.dark:text-slate-400]="listTab() !== 'EVENTOS'"
-                class="px-4 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2">
+                class="px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all flex items-center gap-2">
                 <i class="pi pi-calendar"></i> Eventos
                 <span class="text-xs bg-slate-200 dark:bg-slate-500 px-1.5 rounded-full">{{ calendarEvents().length }}</span>
             </button>
         </div>
 
     <!-- Vencimientos tab -->
-    <div *ngIf="listTab() === 'VENCIMIENTOS'"
-        class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden overflow-x-auto">
-        <p-table [value]="deadlines()" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '50rem' }"
-            styleClass="p-datatable-sm">
-            <ng-template pTemplate="header">
-                <tr class="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
-                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
-                        Fecha</th>
-                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
-                        Título</th>
-                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
-                        Tipo</th>
-                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
-                        Estado</th>
-                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
-                        Urgencia</th>
-                    <th
-                        class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6 text-right">
-                        Acciones
-                    </th>
-                </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-deadline>
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-0"
-                    [ngClass]="{'bg-slate-50 dark:bg-slate-800/50': deadline.estado === 'CUMPLIDO', 'bg-red-50 dark:bg-red-900/10': deadline.estado === 'EXPIRADO'}">
-                    <td class="py-3 px-6 font-bold text-slate-800 dark:text-slate-200"
-                        [ngClass]="{'line-through text-slate-400 dark:text-slate-500': deadline.estado === 'CUMPLIDO'}">
-                        {{
-                        deadline.fechaVencimiento | date:'dd/MM/yyyy' }}
-                    </td>
-                    <td class="py-3 px-6">
-                        <div class="font-semibold text-slate-800 dark:text-slate-200"
-                            [ngClass]="{'line-through text-slate-400 dark:text-slate-500': deadline.estado === 'CUMPLIDO'}">
-                            {{ deadline.titulo }}</div>
-                        <div class="text-xs text-slate-500 dark:text-slate-400 truncate max-w-xs mt-0.5">
-                            {{ deadline.descripcion }}
-                        </div>
-                        <div *ngIf="deadline.expedienteId" class="text-xs text-blue-600 dark:text-blue-400 mt-0.5 flex items-center gap-1">
-                            <i class="pi pi-folder text-[10px]"></i>
-                            {{ expedienteService.getExpedienteById(deadline.expedienteId)?.nroExpediente || 'Exp. vinculado' }}
-                        </div>
-                    </td>
-                    <td class="py-3 px-6 text-slate-600 dark:text-slate-300 text-sm">{{ deadline.tipo }}</td>
-                    <td class="py-3 px-6">
-                        <span class="rounded px-2 py-1 text-xs font-semibold" [ngClass]="{
-                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300': deadline.estado === 'PENDIENTE',
-                        'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300': deadline.estado === 'CUMPLIDO',
-                        'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300': deadline.estado === 'EXPIRADO',
-                        'bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-300': deadline.estado === 'CANCELADO'
-                    }">
+    <div *ngIf="listTab() === 'VENCIMIENTOS'">
+        
+        <!-- Mobile Cards View for Vencimientos -->
+        <div class="block md:hidden space-y-3">
+            <div *ngIf="deadlines().length === 0" class="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 text-center">
+                <i class="pi pi-calendar-times text-3xl text-slate-300 dark:text-slate-600 mb-2 block"></i>
+                <p class="text-xs font-bold text-slate-600 dark:text-slate-400">No hay vencimientos próximos.</p>
+            </div>
+
+            <div *ngFor="let deadline of deadlines()"
+                class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-3"
+                [ngClass]="{'bg-slate-50 dark:bg-slate-800/50': deadline.estado === 'CUMPLIDO', 'bg-red-50/50 dark:bg-red-900/10': deadline.estado === 'EXPIRADO'}">
+                
+                <div class="flex justify-between items-start">
+                    <span class="font-bold text-slate-800 dark:text-slate-200 text-xs" [ngClass]="{'line-through text-slate-400': deadline.estado === 'CUMPLIDO'}">
+                        <i class="pi pi-clock text-[10px] text-slate-400"></i> {{ deadline.fechaVencimiento | date:'dd/MM/yyyy' }}
+                    </span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="rounded px-2 py-0.5 text-[10px] font-bold" [ngClass]="{
+                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300': deadline.estado === 'PENDIENTE',
+                            'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300': deadline.estado === 'CUMPLIDO',
+                            'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300': deadline.estado === 'EXPIRADO',
+                            'bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-300': deadline.estado === 'CANCELADO'
+                        }">
                             {{ deadline.estado }}
                         </span>
-                    </td>
-                    <td class="py-3 px-6">
-                        <ng-container *ngIf="deadline.estado === 'PENDIENTE'; else noUrgency">
-                            <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide border"
-                                [ngClass]="getUrgencyClass(deadline)">
-                                <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" [ngClass]="getUrgencyDot(deadline)"></span>
+                        <ng-container *ngIf="deadline.estado === 'PENDIENTE'">
+                            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border" [ngClass]="getUrgencyClass(deadline)">
                                 {{ urgencyLevel(deadline) }}
                             </span>
                         </ng-container>
-                        <ng-template #noUrgency>
-                            <span class="text-xs text-slate-400 dark:text-slate-600">—</span>
-                        </ng-template>
-                    </td>
-                    <td class="py-3 px-6 text-right">
-                        <button pButton icon="pi pi-check"
-                            *ngIf="deadline.estado === 'PENDIENTE' || deadline.estado === 'EXPIRADO'"
-                            class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 mr-1"
-                            pTooltip="Marcar Cumplido" tooltipPosition="top"
-                            (click)="markAsCompleted(deadline)"></button>
+                    </div>
+                </div>
 
-                        <button pButton icon="pi pi-bell"
-                            class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-                            pTooltip="Enviar Alerta" tooltipPosition="top"
-                            (click)="simulateNotification(deadline)"></button>
-                        <button pButton icon="pi pi-pencil"
-                            class="p-button-rounded p-button-text p-button-sm text-slate-400 dark:text-slate-400 hover:text-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta)]/10"
-                            (click)="editDeadline(deadline)"></button>
-                        <button pButton icon="pi pi-trash"
-                            class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            (click)="deleteDeadline(deadline.id)"></button>
-                    </td>
-                </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-                <tr>
-                    <td colspan="6" class="text-center py-10 text-slate-500 dark:text-slate-400">
-                        <div class="flex flex-col items-center gap-3">
-                            <i class="pi pi-calendar-times text-3xl text-slate-300 dark:text-slate-600"></i>
-                            <span class="text-sm font-medium">No hay vencimientos próximos.</span>
-                        </div>
-                    </td>
-                </tr>
-            </ng-template>
-        </p-table>
+                <div>
+                    <h4 class="font-bold text-slate-900 dark:text-white text-sm" [ngClass]="{'line-through text-slate-400': deadline.estado === 'CUMPLIDO'}">
+                        {{ deadline.titulo }}
+                    </h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ deadline.descripcion }}</p>
+                    <div *ngIf="deadline.expedienteId" class="text-xs text-blue-600 dark:text-blue-400 mt-1 flex items-center gap-1">
+                        <i class="pi pi-folder text-[10px]"></i>
+                        {{ expedienteService.getExpedienteById(deadline.expedienteId)?.nroExpediente || 'Exp. vinculado' }}
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700 text-xs">
+                    <span class="text-[11px] text-slate-400">{{ deadline.tipo }}</span>
+                    <div class="flex items-center gap-1.5">
+                        <button *ngIf="deadline.estado === 'PENDIENTE' || deadline.estado === 'EXPIRADO'"
+                            class="p-1.5 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-bold text-xs"
+                            (click)="markAsCompleted(deadline)" title="Cumplido">
+                            <i class="pi pi-check"></i>
+                        </button>
+                        <button class="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs"
+                            (click)="simulateNotification(deadline)" title="Alerta">
+                            <i class="pi pi-bell"></i>
+                        </button>
+                        <button class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs"
+                            (click)="editDeadline(deadline)">
+                            <i class="pi pi-pencil"></i>
+                        </button>
+                        <button class="p-1.5 rounded-lg bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-xs"
+                            (click)="deleteDeadline(deadline.id)">
+                            <i class="pi pi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Table for Vencimientos -->
+        <div class="hidden md:block bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden overflow-x-auto">
+            <p-table [value]="deadlines()" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '50rem' }" styleClass="p-datatable-sm">
+                <ng-template pTemplate="header">
+                    <tr class="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+                        <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
+                            Fecha</th>
+                        <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
+                            Título</th>
+                        <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
+                            Tipo</th>
+                        <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
+                            Estado</th>
+                        <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">
+                            Urgencia</th>
+                        <th
+                            class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6 text-right">
+                            Acciones
+                        </th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-deadline>
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-0"
+                        [ngClass]="{'bg-slate-50 dark:bg-slate-800/50': deadline.estado === 'CUMPLIDO', 'bg-red-50 dark:bg-red-900/10': deadline.estado === 'EXPIRADO'}">
+                        <td class="py-3 px-6 font-bold text-slate-800 dark:text-slate-200"
+                            [ngClass]="{'line-through text-slate-400 dark:text-slate-500': deadline.estado === 'CUMPLIDO'}">
+                            {{ deadline.fechaVencimiento | date:'dd/MM/yyyy' }}
+                        </td>
+                        <td class="py-3 px-6">
+                            <div class="font-semibold text-slate-800 dark:text-slate-200"
+                                [ngClass]="{'line-through text-slate-400 dark:text-slate-500': deadline.estado === 'CUMPLIDO'}">
+                                {{ deadline.titulo }}</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 truncate max-w-xs mt-0.5">
+                                {{ deadline.descripcion }}
+                            </div>
+                            <div *ngIf="deadline.expedienteId" class="text-xs text-blue-600 dark:text-blue-400 mt-0.5 flex items-center gap-1">
+                                <i class="pi pi-folder text-[10px]"></i>
+                                {{ expedienteService.getExpedienteById(deadline.expedienteId)?.nroExpediente || 'Exp. vinculado' }}
+                            </div>
+                        </td>
+                        <td class="py-3 px-6 text-slate-600 dark:text-slate-300 text-sm">{{ deadline.tipo }}</td>
+                        <td class="py-3 px-6">
+                            <span class="rounded px-2 py-1 text-xs font-semibold" [ngClass]="{
+                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300': deadline.estado === 'PENDIENTE',
+                            'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300': deadline.estado === 'CUMPLIDO',
+                            'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300': deadline.estado === 'EXPIRADO',
+                            'bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-300': deadline.estado === 'CANCELADO'
+                        }">
+                                {{ deadline.estado }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-6">
+                            <ng-container *ngIf="deadline.estado === 'PENDIENTE'; else noUrgency">
+                                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide border"
+                                    [ngClass]="getUrgencyClass(deadline)">
+                                    <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" [ngClass]="getUrgencyDot(deadline)"></span>
+                                    {{ urgencyLevel(deadline) }}
+                                </span>
+                            </ng-container>
+                            <ng-template #noUrgency>
+                                <span class="text-xs text-slate-400 dark:text-slate-600">—</span>
+                            </ng-template>
+                        </td>
+                        <td class="py-3 px-6 text-right">
+                            <button pButton icon="pi pi-check"
+                                *ngIf="deadline.estado === 'PENDIENTE' || deadline.estado === 'EXPIRADO'"
+                                class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 mr-1"
+                                pTooltip="Marcar Cumplido" tooltipPosition="top"
+                                (click)="markAsCompleted(deadline)"></button>
+
+                            <button pButton icon="pi pi-bell"
+                                class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                                pTooltip="Enviar Alerta" tooltipPosition="top"
+                                (click)="simulateNotification(deadline)"></button>
+                            <button pButton icon="pi pi-pencil"
+                                class="p-button-rounded p-button-text p-button-sm text-slate-400 dark:text-slate-400 hover:text-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta)]/10"
+                                (click)="editDeadline(deadline)"></button>
+                            <button pButton icon="pi pi-trash"
+                                class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                (click)="deleteDeadline(deadline.id)"></button>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="6" class="text-center py-10 text-slate-500 dark:text-slate-400">
+                            <div class="flex flex-col items-center gap-3">
+                                <i class="pi pi-calendar-times text-3xl text-slate-300 dark:text-slate-600"></i>
+                                <span class="text-sm font-medium">No hay vencimientos próximos.</span>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
     </div>
 
     <!-- Eventos tab -->
-    <div *ngIf="listTab() === 'EVENTOS'"
-        class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden overflow-x-auto">
-        <p-table [value]="calendarEvents()" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '40rem' }" styleClass="p-datatable-sm">
-            <ng-template pTemplate="header">
-                <tr class="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
-                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">Fecha</th>
-                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">Título</th>
-                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">Tipo</th>
-                    <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6 text-right">Acciones</th>
-                </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-ev>
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-100 dark:border-slate-700">
-                    <td class="py-3 px-6 font-bold text-slate-800 dark:text-slate-200">{{ ev.fecha | date:'dd/MM/yyyy' }}</td>
-                    <td class="py-3 px-6">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full shrink-0" [style.background-color]="ev.color"></span>
-                            <span class="font-semibold text-slate-800 dark:text-slate-200">{{ ev.titulo }}</span>
-                        </div>
-                        <div *ngIf="ev.descripcion" class="text-xs text-slate-400 mt-0.5 pl-4">{{ ev.descripcion }}</div>
-                    </td>
-                    <td class="py-3 px-6 text-slate-600 dark:text-slate-300 text-sm">{{ ev.tipo }}</td>
-                    <td class="py-3 px-6 text-right">
-                        <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-slate-400 dark:text-slate-400 hover:text-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta)]/10" (click)="editEvent(ev)"></button>
-                        <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-red-600 dark:hover:text-red-400" (click)="deleteEvent(ev.id)"></button>
-                    </td>
-                </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-                <tr>
-                    <td colspan="4" class="text-center py-10 text-slate-500 dark:text-slate-400">
-                        <div class="flex flex-col items-center gap-3">
-                            <i class="pi pi-calendar text-3xl text-slate-300 dark:text-slate-600"></i>
-                            <span class="text-sm font-medium">No hay eventos agendados.</span>
-                        </div>
-                    </td>
-                </tr>
-            </ng-template>
-        </p-table>
+    <div *ngIf="listTab() === 'EVENTOS'">
+        
+        <!-- Mobile Cards View for Eventos -->
+        <div class="block md:hidden space-y-3">
+            <div *ngIf="calendarEvents().length === 0" class="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 text-center">
+                <i class="pi pi-calendar text-3xl text-slate-300 dark:text-slate-600 mb-2 block"></i>
+                <p class="text-xs font-bold text-slate-600 dark:text-slate-400">No hay eventos agendados.</p>
+            </div>
+
+            <div *ngFor="let ev of calendarEvents()"
+                class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-2">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full shrink-0" [style.background-color]="ev.color"></span>
+                        <h4 class="font-bold text-slate-900 dark:text-white text-sm">{{ ev.titulo }}</h4>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">
+                        {{ ev.tipo }}
+                    </span>
+                </div>
+                
+                <p *ngIf="ev.descripcion" class="text-xs text-slate-500 dark:text-slate-400 pl-4">{{ ev.descripcion }}</p>
+
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700 text-xs">
+                    <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                        <i class="pi pi-clock text-[10px] text-slate-400"></i> {{ ev.fecha | date:'dd/MM/yyyy' }}
+                    </span>
+                    <div class="flex items-center gap-1.5">
+                        <button class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs" (click)="editEvent(ev)">
+                            <i class="pi pi-pencil"></i>
+                        </button>
+                        <button class="p-1.5 rounded-lg bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-xs" (click)="deleteEvent(ev.id)">
+                            <i class="pi pi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Table for Eventos -->
+        <div class="hidden md:block bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden overflow-x-auto">
+            <p-table [value]="calendarEvents()" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '40rem' }" styleClass="p-datatable-sm">
+                <ng-template pTemplate="header">
+                    <tr class="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+                        <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">Fecha</th>
+                        <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">Título</th>
+                        <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6">Tipo</th>
+                        <th class="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider py-4 px-6 text-right">Acciones</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-ev>
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-100 dark:border-slate-700">
+                        <td class="py-3 px-6 font-bold text-slate-800 dark:text-slate-200">{{ ev.fecha | date:'dd/MM/yyyy' }}</td>
+                        <td class="py-3 px-6">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full shrink-0" [style.background-color]="ev.color"></span>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ ev.titulo }}</span>
+                            </div>
+                            <div *ngIf="ev.descripcion" class="text-xs text-slate-400 mt-0.5 pl-4">{{ ev.descripcion }}</div>
+                        </td>
+                        <td class="py-3 px-6 text-slate-600 dark:text-slate-300 text-sm">{{ ev.tipo }}</td>
+                        <td class="py-3 px-6 text-right">
+                            <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-slate-400 dark:text-slate-400 hover:text-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta)]/10" (click)="editEvent(ev)"></button>
+                            <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-slate-400 hover:text-red-600 dark:hover:text-red-400" (click)="deleteEvent(ev.id)"></button>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="4" class="text-center py-10 text-slate-500 dark:text-slate-400">
+                            <div class="flex flex-col items-center gap-3">
+                                <i class="pi pi-calendar text-3xl text-slate-300 dark:text-slate-600"></i>
+                                <span class="text-sm font-medium">No hay eventos agendados.</span>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
     </div>
     </div><!-- end LIST VIEW wrapper -->
 

@@ -15,6 +15,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { TextareaModule } from 'primeng/textarea';
+import { PaginatorModule } from 'primeng/paginator';
 
 
 @NgModule({
@@ -32,7 +33,8 @@ import { TextareaModule } from 'primeng/textarea';
     InputTextModule,
     SelectModule,
     DatePickerModule,
-    TextareaModule
+    TextareaModule,
+    PaginatorModule
   ]
 })
 export class CalendarioModule { }

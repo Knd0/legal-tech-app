@@ -2,68 +2,112 @@
     <app-gavel-loader *ngIf="!balance()"></app-gavel-loader>
 
     <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4" *ngIf="balance()">
-        <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4" *ngIf="balance()">
+        <div class="bg-slate-50 dark:bg-slate-800/50 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-start">
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Unidades de
-                    Medida</p>
+                <p class="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Unidades</p>
                 <button (click)="openSettings()"
                     class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-                    <i class="pi pi-cog"></i>
+                    <i class="pi pi-cog text-xs"></i>
                 </button>
             </div>
-            <div class="mt-2 space-y-1">
-                <div class="flex justify-between text-sm">
-                    <span class="text-slate-600 dark:text-slate-300">JUS (Entre Ríos):</span>
-                    <span class="font-bold text-slate-800 dark:text-white">{{ configService.valorJus() | currency
-                        }}</span>
+            <div class="mt-1.5 space-y-0.5">
+                <div class="flex justify-between text-xs">
+                    <span class="text-slate-500 dark:text-slate-400">JUS:</span>
+                    <span class="font-bold text-slate-800 dark:text-white">{{ configService.valorJus() | currency }}</span>
                 </div>
-                <div class="flex justify-between text-sm">
-                    <span class="text-slate-600 dark:text-slate-300">UMA (Nación):</span>
-                    <span class="font-bold text-slate-800 dark:text-white">{{ configService.valorUma() | currency
-                        }}</span>
+                <div class="flex justify-between text-xs">
+                    <span class="text-slate-500 dark:text-slate-400">UMA:</span>
+                    <span class="font-bold text-slate-800 dark:text-white">{{ configService.valorUma() | currency }}</span>
                 </div>
             </div>
         </div>
-        <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Honorarios + Gastos
-            </p>
-            <p class="text-2xl font-bold text-slate-800 dark:text-white mt-1">{{ (balance()!.totalHonorarios +
-                balance()!.totalGastos) |
-                currency }}</p>
+        <div class="bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <p class="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Honorarios + Gastos</p>
+            <p class="text-lg sm:text-2xl font-bold text-slate-800 dark:text-white mt-1">{{ (balance()!.totalHonorarios + balance()!.totalGastos) | currency }}</p>
         </div>
-        <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Pagado</p>
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{{ balance()!.totalPagos | currency }}
-            </p>
+        <div class="bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <p class="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Pagado</p>
+            <p class="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{{ balance()!.totalPagos | currency }}</p>
         </div>
-        <div
-            class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
+        <div class="bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
             <div class="absolute right-0 top-0 h-full w-1 bg-gradient-to-b from-transparent"
                 [ngClass]="balance()!.balance < 0 ? 'via-red-500 to-transparent' : 'via-green-500 to-transparent'">
             </div>
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Saldo Final</p>
-            <p class="text-3xl font-bold mt-1"
+            <p class="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Saldo Final</p>
+            <p class="text-xl sm:text-3xl font-bold mt-1"
                 [ngClass]="{'text-red-600 dark:text-red-400': balance()!.balance < 0, 'text-green-600 dark:text-green-400': balance()!.balance >= 0}">
                 {{ balance()!.balance | currency }}
             </p>
-            <p class="text-[10px] text-slate-400 mt-1" *ngIf="balance()!.balance < 0">DEUDA PENDIENTE</p>
-            <p class="text-[10px] text-slate-400 mt-1" *ngIf="balance()!.balance >= 0">SALDO A FAVOR</p>
+            <p class="text-[9px] sm:text-[10px] font-bold text-slate-400 mt-0.5" *ngIf="balance()!.balance < 0">DEUDA PENDIENTE</p>
+            <p class="text-[9px] sm:text-[10px] font-bold text-slate-400 mt-0.5" *ngIf="balance()!.balance >= 0">SALDO A FAVOR</p>
         </div>
     </div>
 
     <!-- Actions -->
     <div class="flex justify-end">
         <button (click)="openModal()"
-            class="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-blue-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-blue-500 transition-colors shadow-sm font-semibold text-sm">
+            class="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-blue-600 text-white rounded-xl hover:bg-slate-800 dark:hover:bg-blue-500 transition-colors shadow-sm font-semibold text-xs sm:text-sm w-full sm:w-auto justify-center">
             <i class="pi pi-plus"></i>
             Registrar Movimiento
         </button>
     </div>
 
-    <!-- Movements List -->
+    <!-- Mobile Movements View (Mobile Only) -->
+    <div class="block md:hidden space-y-3">
+        <div *ngIf="movimientos().length === 0" class="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 text-center">
+            <i class="pi pi-receipt text-3xl text-slate-300 dark:text-slate-600 mb-2 block"></i>
+            <p class="text-xs font-bold text-slate-600 dark:text-slate-400">No hay movimientos registrados.</p>
+        </div>
+
+        <div *ngFor="let m of movimientos()" class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-2.5">
+            <div class="flex justify-between items-start">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-transparent" [ngClass]="getTipoClass(m.tipo)">
+                    {{ getTipoLabel(m.tipo) }}
+                </span>
+                <span class="text-xs font-bold tabular-nums" [ngClass]="{'text-green-600 dark:text-green-400': m.tipo === 'PAGO', 'text-slate-800 dark:text-white': m.tipo !== 'PAGO'}">
+                    <span *ngIf="m.tipo === 'PAGO'">+</span>
+                    <span *ngIf="m.tipo !== 'PAGO'">-</span>
+                    {{ m.monto | currency }}
+                </span>
+            </div>
+
+            <div>
+                <p class="text-sm font-bold text-slate-800 dark:text-white">{{ m.descripcion }}</p>
+                <p *ngIf="m.cantidad" class="text-xs text-slate-400 mt-0.5">
+                    {{ m.cantidad }} {{ m.unidad }} ( Valor hist.: {{ m.montoPesoOriginal | currency }} )
+                </p>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700 text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] text-slate-400">{{ m.fecha | date:'dd/MM/yyyy' }}</span>
+                    <span *ngIf="m.tipo !== 'PAGO'" class="px-2 py-0.5 rounded-full text-[9px] font-bold border" [ngClass]="getEstadoClass(m.estado)">
+                        {{ m.estado }}
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                    <button *ngIf="m.tipo === 'HONORARIO' || m.tipo === 'REGULADO' || m.tipo === 'CONVENIO' || m.tipo === 'PAGO'"
+                        (click)="generateInvoice(m)"
+                        class="p-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg transition-colors text-xs"
+                        title="Factura AFIP">
+                        <i class="pi pi-receipt"></i>
+                    </button>
+                    <button (click)="editMovimiento(m)" class="p-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-lg text-xs">
+                        <i class="pi pi-pencil"></i>
+                    </button>
+                    <button (click)="deleteMovimiento(m.id)" class="p-1.5 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-lg text-xs">
+                        <i class="pi pi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Movements Table (Desktop Only) -->
     <div
-        class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        class="hidden md:block bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
                 <thead>

@@ -12,6 +12,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { TextareaModule } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
+import { PaginatorModule } from 'primeng/paginator';
 
 // Services & Models
 import { DeadlineService } from '../../../../core/services/deadline.service';
@@ -39,7 +40,8 @@ import Swal from 'sweetalert2';
     DatePickerModule, 
     TextareaModule,
     TooltipModule,
-    CheckboxModule
+    CheckboxModule,
+    PaginatorModule
   ],
   templateUrl: './calendario-view.component.html',
   styleUrl: './calendario-view.component.scss'

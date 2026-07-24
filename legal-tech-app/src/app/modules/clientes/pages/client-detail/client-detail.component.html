@@ -1,16 +1,16 @@
-<div class="p-6 fade-in-up" *ngIf="client() as c">
-    <div class="flex justify-between items-center mb-6">
+<div class="fade-in-up w-full max-w-full overflow-hidden" *ngIf="client() as c">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-slate-800 dark:text-white">{{ c.apellido }}, {{ c.nombre }}</h1>
-            <p class="text-slate-500 dark:text-slate-400">Detalle del Cliente</p>
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white">{{ c.apellido }}, {{ c.nombre }}</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">Detalle del Cliente</p>
         </div>
-        <div class="flex gap-2">
-            <p-button label="Volver" icon="pi pi-arrow-left" styleClass="p-button-outlined"
-                (onClick)="goBack()"></p-button>
-            <p-button label="Editar" icon="pi pi-pencil" styleClass="p-button-outlined"
-                [routerLink]="['/clientes', c.id, 'edit']"></p-button>
-            <p-button label="Exportar Excel" icon="pi pi-file-excel" severity="success"
-                (onClick)="exportToExcel()"></p-button>
+        <div class="grid grid-cols-3 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
+            <button pButton label="Volver" icon="pi pi-arrow-left" class="p-button-outlined border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 w-full sm:w-auto text-xs sm:text-sm justify-center"
+                (click)="goBack()"></button>
+            <button pButton label="Editar" icon="pi pi-pencil" class="p-button-outlined border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 w-full sm:w-auto text-xs sm:text-sm justify-center"
+                [routerLink]="['/clientes', c.id, 'edit']"></button>
+            <button pButton label="Exportar Excel" icon="pi pi-file-excel" class="p-button-success border-green-600 text-white w-full sm:w-auto text-xs sm:text-sm justify-center"
+                (click)="exportToExcel()"></button>
         </div>
     </div>
 

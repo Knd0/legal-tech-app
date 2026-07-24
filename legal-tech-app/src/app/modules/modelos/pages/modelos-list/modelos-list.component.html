@@ -1,12 +1,12 @@
 <div class="p-6 max-w-7xl mx-auto fade-in-up">
     <!-- Header -->
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-slate-800 dark:text-white animate-fade-in" style="font-family: 'Fraunces', serif !important;">Repositorio de Modelos</h1>
-            <p class="text-slate-500 dark:text-slate-400 mt-1" style="font-family: 'Epilogue', sans-serif !important;">Subí y buscá tus modelos de demandas exitosos para automatizar tus escritos judiciales con IA.</p>
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white animate-fade-in" style="font-family: 'Fraunces', serif !important;">Repositorio de Modelos</h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-1 text-xs sm:text-sm" style="font-family: 'Epilogue', sans-serif !important;">Subí y buscá tus modelos de demandas exitosos para automatizar tus escritos judiciales con IA.</p>
         </div>
-        <div>
-            <button pButton label="Nuevo Modelo" icon="pi pi-plus" class="p-button-rounded p-button-primary p-button-sm font-semibold bg-[var(--accent-terracotta)] border-[var(--accent-terracotta)] text-white hover:opacity-90" [routerLink]="['/modelos', 'nuevo']"></button>
+        <div class="w-full sm:w-auto">
+            <button pButton label="Nuevo Modelo" icon="pi pi-plus" class="p-button-rounded p-button-primary p-button-sm font-semibold bg-[var(--accent-terracotta)] border-[var(--accent-terracotta)] text-white hover:opacity-90 w-full sm:w-auto justify-center" [routerLink]="['/modelos', 'nuevo']"></button>
         </div>
     </div>
 

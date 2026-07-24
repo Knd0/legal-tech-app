@@ -69,6 +69,11 @@ h1, h2, h3, h4, h5, h6, .p-dialog-title, .p-column-title, .font-serif-organic {
     color: var(--text-main) !important;
 }
 
+html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+}
+
 body, p, span, a, button, input, textarea, select, td, th, li, label, .p-inputtext, .p-button, .p-dropdown, .p-datepicker {
     font-family: 'Epilogue', sans-serif !important;
 }

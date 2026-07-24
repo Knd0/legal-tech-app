@@ -1,16 +1,16 @@
-<div class="p-6 fade-in-up" *ngIf="expediente() as e">
-    <div class="flex justify-between items-center mb-6">
+<div class="fade-in-up w-full max-w-full overflow-hidden" *ngIf="expediente() as e">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Expediente {{ e.nroExpediente }}</h1>
-            <p class="text-slate-500 dark:text-slate-400">Detalle del Caso</p>
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white">Expediente {{ e.nroExpediente }}</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">Detalle del Caso</p>
         </div>
-        <div class="flex gap-2">
-            <p-button label="Volver" icon="pi pi-arrow-left" styleClass="p-button-outlined"
-                (onClick)="goBack()"></p-button>
-            <p-button label="Editar" icon="pi pi-pencil" styleClass="p-button-outlined"
-                [routerLink]="['/expedientes', e.id, 'edit']"></p-button>
-            <p-button label="Exportar Excel" icon="pi pi-file-excel" severity="success"
-                (onClick)="exportToExcel()"></p-button>
+        <div class="grid grid-cols-3 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
+            <button pButton label="Volver" icon="pi pi-arrow-left" class="p-button-outlined border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 w-full sm:w-auto text-xs sm:text-sm justify-center"
+                (click)="goBack()"></button>
+            <button pButton label="Editar" icon="pi pi-pencil" class="p-button-outlined border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 w-full sm:w-auto text-xs sm:text-sm justify-center"
+                [routerLink]="['/expedientes', e.id, 'edit']"></button>
+            <button pButton label="Exportar Excel" icon="pi pi-file-excel" class="p-button-success border-green-600 text-white w-full sm:w-auto text-xs sm:text-sm justify-center"
+                (click)="exportToExcel()"></button>
         </div>
     </div>
 
@@ -95,23 +95,23 @@
         <!-- Timeline of Actuaciones / Judicial History -->
         <p-card styleClass="h-full shadow-sm md:col-span-2 bg-white dark:bg-slate-800 dark:text-white">
             <ng-template pTemplate="header">
-                <div class="px-6 pt-5 flex justify-between items-center w-full">
+                <div class="px-4 sm:px-6 pt-5 flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-3">
                     <div>
-                        <h3 class="text-lg font-bold text-slate-800 dark:text-white" style="font-family: 'Fraunces', serif !important;">Historial de Actuaciones</h3>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-800 dark:text-white" style="font-family: 'Fraunces', serif !important;">Historial de Actuaciones</h3>
                         <p class="text-xs text-slate-400 mt-0.5" style="font-family: 'Epilogue', sans-serif !important;">Cronología de movimientos judiciales registrados.</p>
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
                         <button *ngIf="e.portalJudicial && e.portalJudicial !== 'NINGUNO'" 
                                 pButton 
                                 [label]="syncing() ? 'Sincronizando...' : 'Sincronizar Portal'" 
                                 [icon]="syncing() ? 'pi pi-spin pi-spinner' : 'pi pi-sync'" 
-                                class="p-button-rounded p-button-sm p-button-outlined border-[var(--accent-moss)] text-[var(--accent-moss)] hover:bg-[var(--accent-moss)]/10"
+                                class="p-button-rounded p-button-sm p-button-outlined border-[var(--accent-moss)] text-[var(--accent-moss)] hover:bg-[var(--accent-moss)]/10 text-xs sm:text-sm flex-1 sm:flex-none justify-center"
                                 [disabled]="syncing()"
                                 (click)="triggerSync()"></button>
                         <button pButton 
                                 label="Agregar Actuación" 
                                 icon="pi pi-plus" 
-                                class="p-button-rounded p-button-sm bg-[var(--accent-terracotta)] border-[var(--accent-terracotta)] text-white hover:opacity-90"
+                                class="p-button-rounded p-button-sm bg-[var(--accent-terracotta)] border-[var(--accent-terracotta)] text-white hover:opacity-90 text-xs sm:text-sm flex-1 sm:flex-none justify-center"
                                 (click)="showAddActuacionDialog.set(true)"></button>
                     </div>
                 </div>

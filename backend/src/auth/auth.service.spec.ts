@@ -58,6 +58,57 @@ describe('AuthService - OTP Persistence', () => {
     service = module.get<AuthService>(AuthService);
   });
 
+
+  /**
+   * Regresión de enumeración de usuarios: el endpoint respondía 401 con
+   * "No se encontró una cuenta con ese email", convirtiéndose en un oráculo para
+   * descubrir qué direcciones están registradas.
+   */
+  describe('requestForgotPasswordOtp con email inexistente', () => {
+    beforeEach(() => {
+      usersServiceMock.findOneByEmail.mockResolvedValue(null);
+    });
+
+    it('no revela que la cuenta no existe', async () => {
+      await expect(
+        service.requestForgotPasswordOtp('inexistente@estudio.com'),
+      ).resolves.toEqual({ channel: 'email' });
+    });
+
+    it('no genera ni guarda un OTP para una cuenta inexistente', async () => {
+      await service.requestForgotPasswordOtp('inexistente@estudio.com');
+
+      expect(otpRepositoryMock.save).not.toHaveBeenCalled();
+    });
+
+    it('no envía ningún mensaje de WhatsApp', async () => {
+      await service.requestForgotPasswordOtp('inexistente@estudio.com');
+
+      expect(whatsappServiceMock.sendMessage).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('login', () => {
+    it('no devuelve el hash ni las credenciales operativas del usuario', async () => {
+      const result = await service.login({
+        id: 'user-1',
+        email: 'test@estudio.com',
+        passwordHash: '$2b$10$hash',
+        afipKey: '-----BEGIN PRIVATE KEY-----',
+        pjnPassword: 'secreta',
+        mevPassword: 'secreta-mev',
+        subscription: { subscriptionStatus: 'active' },
+      });
+
+      expect(result.user).not.toHaveProperty('passwordHash');
+      expect(result.user).not.toHaveProperty('afipKey');
+      expect(result.user).not.toHaveProperty('pjnPassword');
+      expect(result.user).not.toHaveProperty('mevPassword');
+      expect(result.user.subscriptionStatus).toBe('active');
+      expect(result.access_token).toBe('mock-token');
+    });
+  });
+
   it('should save a new OTP and send WhatsApp in requestForgotPasswordOtp', async () => {
     const result = await service.requestForgotPasswordOtp('test@estudio.com');
 

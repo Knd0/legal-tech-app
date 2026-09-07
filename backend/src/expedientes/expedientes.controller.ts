@@ -47,8 +47,8 @@ export class ExpedientesController {
   }
 
   @Post(':id/sync')
-  sync(@Param('id') id: string) {
-    return this.judicialSyncService.syncExpediente(id);
+  sync(@Param('id') id: string, @Request() req) {
+    return this.judicialSyncService.syncExpediente(id, req.user.userId);
   }
 
   @Get(':id/actuaciones')

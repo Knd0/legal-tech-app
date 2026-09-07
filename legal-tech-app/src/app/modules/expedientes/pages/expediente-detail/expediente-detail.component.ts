@@ -166,11 +166,17 @@ export class ExpedienteDetailComponent implements OnInit {
       },
       error: (err) => {
         this.syncing.set(false);
-        console.error(err);
+        // 503 = la sincronización automática todavía no está implementada. Es
+        // distinto de un fallo de conexión y el abogado tiene que poder
+        // distinguirlo: si cree que "no hay novedades" puede perder un plazo.
+        const noDisponible = err?.status === 503;
         Swal.fire({
-          icon: 'error',
-          title: 'Error de Sincronización',
-          text: 'No se pudo conectar con el portal de consultas o las credenciales son inválidas.',
+          icon: noDisponible ? 'info' : 'error',
+          title: noDisponible ? 'Sincronización no disponible' : 'Error de Sincronización',
+          text: noDisponible
+            ? (err?.error?.message ??
+               'La sincronización automática con portales judiciales todavía no está disponible. Cargá las actuaciones manualmente.')
+            : 'No se pudo conectar con el portal de consultas o las credenciales son inválidas.',
           toast: true,
           position: 'top-end',
           showConfirmButton: false,
@@ -214,6 +220,16 @@ export class ExpedienteDetailComponent implements OnInit {
         Swal.fire('Error', 'No se pudo registrar la actuación manual.', 'error');
       }
     });
+  }
+
+  /**
+   * Una actuación es "no verificada" si la generó el mock de sincronización.
+   * `AUTOMATICO_*` es el prefijo histórico (las filas que el cron nocturno ya
+   * escribió antes de apagar el mock); `SIMULADO_*` es el actual.
+   */
+  esActuacionNoVerificada(act: any): boolean {
+    const origen = act?.origen ?? '';
+    return origen.startsWith('SIMULADO_') || origen.startsWith('AUTOMATICO_');
   }
 
   deleteActuacion(actuacionId: string) {

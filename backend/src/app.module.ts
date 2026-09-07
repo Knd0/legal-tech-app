@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -23,6 +25,7 @@ import { MercadopagoModule } from './mercadopago/mercadopago.module';
 import { AiModule } from './ai/ai.module';
 import { LegalModelsModule } from './legal-models/legal-models.module';
 import { SupportTicketsModule } from './support-tickets/support-tickets.module';
+import { JurisprudenciaModule } from './jurisprudencia/jurisprudencia.module';
 
 
 @Module({
@@ -30,6 +33,11 @@ import { SupportTicketsModule } from './support-tickets/support-tickets.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    // Rate limiting global. Los endpoints sensibles (login, OTP, reset de
+    // contraseña) endurecen este límite con @Throttle a nivel de handler.
+    ThrottlerModule.forRoot([
+      { name: 'default', ttl: 60_000, limit: 120 },
+    ]),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -87,8 +95,13 @@ import { SupportTicketsModule } from './support-tickets/support-tickets.module';
     AiModule,
     LegalModelsModule,
     SupportTicketsModule,
+    JurisprudenciaModule,
   ],
   controllers: [AppController],
-  providers: [AppService, SeedService],
+  providers: [
+    AppService,
+    SeedService,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

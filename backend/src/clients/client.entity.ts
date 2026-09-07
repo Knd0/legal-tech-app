@@ -13,7 +13,12 @@ export class Client {
   @Column()
   apellido: string;
 
-  @Column()
+  /**
+   * Nullable a propósito: un cliente puede ser persona jurídica (SRL, SA), que
+   * tiene CUIT pero no DNI. Con la columna NOT NULL, dar de alta una empresa
+   * fallaba con un 500 y obligaba a inventar un DNI.
+   */
+  @Column({ nullable: true })
   dni: string;
 
   @Column({ nullable: true })
@@ -28,7 +33,8 @@ export class Client {
   @Column({ nullable: true })
   localidad: string;
 
-  @Column()
+  /** Nullable: no todo cliente aporta teléfono al darse de alta. */
+  @Column({ nullable: true })
   telefono: string;
 
   @Column({ nullable: true })

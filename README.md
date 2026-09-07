@@ -29,7 +29,7 @@
 
 | Capa | Tecnología | Propósito |
 | :--- | :--- | :--- |
-| **Frontend** | Angular 19 | Arquitectura robusta, Standalone Components y Signals. |
+| **Frontend** | Angular 21 | Arquitectura robusta, Standalone Components y Signals. |
 | **Styling** | Tailwind CSS + PrimeNG | Diseño premium, responsive y altamente estético. |
 | **Backend** | NestJS | API REST modular, segura y altamente escalable. |
 | **Base de Datos** | PostgreSQL + TypeORM | Almacenamiento relacional sólido y consistente. |
@@ -89,6 +89,7 @@
 La plataforma implementa los más altos estándares de seguridad:
 *   Contraseñas cifradas con `bcrypt`.
 *   Accesos protegidos por `JWT` persistente.
+*   Validación de entrada global (`ValidationPipe` + DTOs), rate limiting y headers de seguridad (`helmet`).
 *   Validaciones OTP vía WhatsApp para acciones críticas.
 *   Aislamiento de datos por usuario administrador de estudio.
 

@@ -1,8 +1,9 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Vencimiento } from '../models/vencimiento.model';
 import Swal from 'sweetalert2';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,10 +16,24 @@ export class DeadlineService {
 
   private readonly API_URL = `${environment.apiUrl}/deadlines`;
 
+  private authService = inject(AuthService);
+
   constructor(private http: HttpClient) {
-    if (localStorage.getItem('auth_token')) {
-      this.loadDeadlines();
-    }
+    // El servicio es `providedIn: 'root'` y se instancia al arrancar la app,
+    // antes del login. Leer el token una sola vez en el constructor dejaba la
+    // lista vacía durante toda la sesión: el usuario entraba y el dashboard le
+    // decía "sin vencimientos próximos" aunque tuviera uno al día siguiente.
+    //
+    // Reaccionar a `isAuthenticated` cubre las dos transiciones: carga al
+    // iniciar sesión y limpia al cerrarla, para que los datos de un abogado no
+    // queden visibles si otro usa el mismo navegador.
+    effect(() => {
+      if (this.authService.isAuthenticated()) {
+        this.loadDeadlines();
+      } else {
+        this.deadlinesSignal.set([]);
+      }
+    });
   }
 
   loadDeadlines() {

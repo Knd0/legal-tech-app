@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Factura } from './entities/factura.entity';
@@ -136,8 +136,15 @@ export class FacturasService {
     const user = await this.usersService.findOneById(userId);
     const puntoVenta = (user && user.puntoVenta) ? user.puntoVenta : 1;
 
-    // Retrieve client to use proper DocTipo & DocNro
-    const client = await this.clientsRepository.findOne({ where: { id: data.clientId } });
+    // Retrieve client to use proper DocTipo & DocNro.
+    // El filtro por `userId` impide facturar contra el cliente de otro estudio,
+    // lo que filtraría su CUIT/DNI dentro del comprobante emitido.
+    const client = await this.clientsRepository.findOne({
+      where: { id: data.clientId, userId },
+    });
+    if (!client) {
+      throw new NotFoundException('Cliente no encontrado.');
+    }
     let docTipo = 99;
     let docNro = 0;
     if (client) {
@@ -260,12 +267,15 @@ export class FacturasService {
     }
   }
 
-  async findAll(page?: number, limit?: number): Promise<any> {
+  /** Facturas del estudio autenticado. `userId` es obligatorio: sin él la consulta
+   *  devolvía la facturación de todos los inquilinos. */
+  async findAll(userId: string, page?: number, limit?: number): Promise<any> {
     if (page !== undefined && limit !== undefined) {
       const skip = (page - 1) * limit;
       const take = limit;
 
       const [data, total] = await this.facturasRepository.findAndCount({
+        where: { userId },
         order: { createdAt: 'DESC' },
         skip,
         take,
@@ -281,17 +291,18 @@ export class FacturasService {
     }
 
     return this.facturasRepository.find({
+      where: { userId },
       order: { createdAt: 'DESC' },
     });
   }
 
-  async findByClient(clientId: string, page?: number, limit?: number): Promise<any> {
+  async findByClient(clientId: string, userId: string, page?: number, limit?: number): Promise<any> {
     if (page !== undefined && limit !== undefined) {
       const skip = (page - 1) * limit;
       const take = limit;
 
       const [data, total] = await this.facturasRepository.findAndCount({
-        where: { clientId },
+        where: { clientId, userId },
         order: { createdAt: 'DESC' },
         skip,
         take,
@@ -307,17 +318,17 @@ export class FacturasService {
     }
 
     return this.facturasRepository.find({
-      where: { clientId },
+      where: { clientId, userId },
       order: { createdAt: 'DESC' }
     });
   }
 
-  async generateInvoicePdf(facturaId: string): Promise<Buffer> {
+  async generateInvoicePdf(facturaId: string, userId: string): Promise<Buffer> {
     const factura = await this.facturasRepository.findOne({
-      where: { id: facturaId },
+      where: { id: facturaId, userId },
       relations: ['client', 'user']
     });
-    if (!factura) throw new Error('Factura not found');
+    if (!factura) throw new NotFoundException('Factura no encontrada');
 
     return new Promise((resolve, reject) => {
       const doc = new PDFDocument({ margin: 50, size: 'A4' });
@@ -419,7 +430,7 @@ export class FacturasService {
     });
     if (!factura) throw new Error('Factura not found');
 
-    const pdfBuffer = await this.generateInvoicePdf(factura.id);
+    const pdfBuffer = await this.generateInvoicePdf(factura.id, factura.userId);
     const fileName = `Factura_${factura.puntoVenta}_${factura.nroCbte}.pdf`;
 
     let emailSent = false;

@@ -15,7 +15,7 @@ export class MovimientosService {
   async create(createMovimientoDto: Partial<Movimiento>, userId: string) {
     const movimiento = this.movimientosRepository.create({ ...createMovimientoDto, userId });
     const saved = await this.movimientosRepository.save(movimiento);
-    void this.auditLogsService.log(userId, 'CREATE', 'MOVIMIENTO', saved.id, `Created ${saved.tipo} of $${saved.monto}`).catch(err => console.error('Audit log failed:', err));
+    void this.auditLogsService.log(userId, 'CREATE', 'MOVIMIENTO', saved.id, `Registró un movimiento de tipo ${saved.tipo} por $${saved.monto}`).catch(err => console.error('Audit log failed:', err));
     return saved;
   }
 

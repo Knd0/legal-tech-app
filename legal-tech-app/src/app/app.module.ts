@@ -1,7 +1,8 @@
-import { NgModule, provideBrowserGlobalErrorListeners, isDevMode } from '@angular/core';
+import { NgModule, provideBrowserGlobalErrorListeners, isDevMode, LOCALE_ID, DEFAULT_CURRENCY_CODE } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { CommonModule } from '@angular/common';
+import { CommonModule, registerLocaleData } from '@angular/common';
+import localeEsAr from '@angular/common/locales/es-AR';
 import { HttpClientModule, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { MenubarModule } from 'primeng/menubar';
 import { authInterceptor } from './core/interceptors/auth-interceptor';
@@ -18,6 +19,8 @@ import { FooterComponent } from './shared/components/footer/footer.component';
 
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
+
+registerLocaleData(localeEsAr);
 
 @NgModule({
   declarations: [
@@ -43,6 +46,12 @@ import Aura from '@primeng/themes/aura';
     })
   ],
   providers: [
+    // Sin esto Angular usa en-US y la UI mezcla idiomas: "Monday, 7 De
+    // September, 2026" y fechas 9/7/26 en formato norteamericano.
+    { provide: LOCALE_ID, useValue: 'es-AR' },
+    // Sin esto, un `| currency` sin moneda explicita renderiza dolares: el
+    // dashboard mostraba "US$ 0,00" como balance del mes de un estudio argentino.
+    { provide: DEFAULT_CURRENCY_CODE, useValue: 'ARS' },
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor, loadingInterceptor])),
     providePrimeNG({ 

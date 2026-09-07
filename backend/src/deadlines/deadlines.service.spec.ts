@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
 import { DeadlinesService } from './deadlines.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Deadline } from './deadline.entity';
@@ -37,6 +38,67 @@ describe('DeadlinesService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+
+  /**
+   * Regresión de IDOR: `GET/PUT/DELETE /deadlines/:id` no filtraban por dueño,
+   * así que cualquier usuario autenticado podía tocar los vencimientos de otro
+   * estudio enumerando UUIDs.
+   */
+  describe('aislamiento por inquilino', () => {
+    it('findOne filtra por id y userId', async () => {
+      repoMock.findOne.mockResolvedValue(null);
+
+      await service.findOne('deadline-1', 'user-1');
+
+      expect(repoMock.findOne).toHaveBeenCalledWith({
+        where: { id: 'deadline-1', userId: 'user-1' },
+        relations: ['expediente'],
+      });
+    });
+
+    it('update sólo afecta al vencimiento del propio usuario', async () => {
+      repoMock.update.mockResolvedValue({ affected: 1 });
+
+      await service.update('deadline-1', { descripcion: 'Nueva' } as any, 'user-1');
+
+      expect(repoMock.update).toHaveBeenCalledWith(
+        { id: 'deadline-1', userId: 'user-1' },
+        { descripcion: 'Nueva' },
+      );
+    });
+
+    it('update no permite reasignar el dueño desde el body', async () => {
+      repoMock.update.mockResolvedValue({ affected: 1 });
+
+      await service.update('deadline-1', { userId: 'victima', id: 'otro' } as any, 'user-1');
+
+      expect(repoMock.update.mock.calls[0][1]).not.toHaveProperty('userId');
+      expect(repoMock.update.mock.calls[0][1]).not.toHaveProperty('id');
+    });
+
+    it('update de un vencimiento ajeno devuelve 404', async () => {
+      repoMock.update.mockResolvedValue({ affected: 0 });
+
+      await expect(
+        service.update('de-otro', { descripcion: 'X' } as any, 'user-1'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('remove sólo borra el vencimiento del propio usuario', async () => {
+      repoMock.delete.mockResolvedValue({ affected: 1 });
+
+      await service.remove('deadline-1', 'user-1');
+
+      expect(repoMock.delete).toHaveBeenCalledWith({ id: 'deadline-1', userId: 'user-1' });
+    });
+
+    it('remove de un vencimiento ajeno devuelve 404', async () => {
+      repoMock.delete.mockResolvedValue({ affected: 0 });
+
+      await expect(service.remove('de-otro', 'user-1')).rejects.toThrow(NotFoundException);
+    });
   });
 
   describe('sumarDiasHabiles', () => {

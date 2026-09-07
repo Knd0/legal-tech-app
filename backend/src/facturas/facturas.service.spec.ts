@@ -7,6 +7,7 @@ jest.mock('@whiskeysockets/baileys', () => ({
 }));
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
 import { FacturasService } from './facturas.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Factura } from './entities/factura.entity';
@@ -19,8 +20,20 @@ describe('FacturasService - Pagination', () => {
   let service: FacturasService;
   let usersService: UsersService;
   let repositoryMock: any;
+  let clientsRepositoryMock: any;
 
   beforeEach(async () => {
+    clientsRepositoryMock = {
+      findOne: jest.fn().mockResolvedValue({
+        id: 'client-1',
+        nombre: 'Juan',
+        apellido: 'Perez',
+        dni: '12345678',
+        email: 'juan@gmail.com',
+        telefono: '5491122334455',
+      }),
+    };
+
     repositoryMock = {
       findAndCount: jest.fn().mockResolvedValue([
         [
@@ -55,16 +68,7 @@ describe('FacturasService - Pagination', () => {
         },
         {
           provide: getRepositoryToken(Client),
-          useValue: {
-            findOne: jest.fn().mockResolvedValue({
-              id: 'client-1',
-              nombre: 'Juan',
-              apellido: 'Perez',
-              dni: '12345678',
-              email: 'juan@gmail.com',
-              telefono: '5491122334455',
-            }),
-          },
+          useValue: clientsRepositoryMock,
         },
         {
           provide: ConfigService,
@@ -95,9 +99,10 @@ describe('FacturasService - Pagination', () => {
   });
 
   it('should return paginated all invoices when page and limit are provided', async () => {
-    const result = await service.findAll(1, 10);
+    const result = await service.findAll('user-1', 1, 10);
 
     expect(repositoryMock.findAndCount).toHaveBeenCalledWith({
+      where: { userId: 'user-1' },
       order: { createdAt: 'DESC' },
       skip: 0,
       take: 10,
@@ -113,19 +118,20 @@ describe('FacturasService - Pagination', () => {
   });
 
   it('should return all invoices when page and limit are omitted in findAll', async () => {
-    const result = await service.findAll();
+    const result = await service.findAll('user-1');
 
     expect(repositoryMock.find).toHaveBeenCalledWith({
+      where: { userId: 'user-1' },
       order: { createdAt: 'DESC' },
     });
     expect(result).toHaveLength(2);
   });
 
   it('should return paginated invoices for a client when page and limit are provided', async () => {
-    const result = await service.findByClient('client-1', 1, 10);
+    const result = await service.findByClient('client-1', 'user-1', 1, 10);
 
     expect(repositoryMock.findAndCount).toHaveBeenCalledWith({
-      where: { clientId: 'client-1' },
+      where: { clientId: 'client-1', userId: 'user-1' },
       order: { createdAt: 'DESC' },
       skip: 0,
       take: 10,
@@ -141,10 +147,10 @@ describe('FacturasService - Pagination', () => {
   });
 
   it('should return client invoices when page and limit are omitted in findByClient', async () => {
-    const result = await service.findByClient('client-1');
+    const result = await service.findByClient('client-1', 'user-1');
 
     expect(repositoryMock.find).toHaveBeenCalledWith({
-      where: { clientId: 'client-1' },
+      where: { clientId: 'client-1', userId: 'user-1' },
       order: { createdAt: 'DESC' },
     });
     expect(result).toHaveLength(2);
@@ -161,5 +167,48 @@ describe('FacturasService - Pagination', () => {
       puntoVenta: 5,
       impTotal: 12000,
     }));
+  });
+
+  /**
+   * Regresión de fuga entre inquilinos: `GET /facturas` y `GET /facturas/:id/pdf`
+   * no filtraban por `userId`, exponiendo la facturación de todos los estudios.
+   */
+  describe('aislamiento por inquilino', () => {
+    it('generateInvoicePdf busca la factura acotada al usuario autenticado', async () => {
+      await service.generateInvoicePdf('1', 'user-1');
+
+      expect(repositoryMock.findOne).toHaveBeenCalledWith({
+        where: { id: '1', userId: 'user-1' },
+        relations: ['client', 'user'],
+      });
+    });
+
+    it('generateInvoicePdf devuelve 404 ante una factura de otro estudio', async () => {
+      repositoryMock.findOne.mockResolvedValueOnce(null);
+
+      await expect(service.generateInvoicePdf('1', 'otro-user')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('createFactura rechaza facturar contra el cliente de otro estudio', async () => {
+      (service as any).afip = null;
+      clientsRepositoryMock.findOne.mockResolvedValueOnce(null);
+
+      await expect(
+        service.createFactura({ total: 1000, clientId: 'client-ajeno' }, 'user-1'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('createFactura busca el cliente filtrando por dueño', async () => {
+      (service as any).afip = null;
+      jest.spyOn(usersService, 'findOneById').mockResolvedValue({ id: 'user-1', puntoVenta: 1 } as any);
+
+      await service.createFactura({ total: 1000, clientId: 'client-1' }, 'user-1');
+
+      expect(clientsRepositoryMock.findOne).toHaveBeenCalledWith({
+        where: { id: 'client-1', userId: 'user-1' },
+      });
+    });
   });
 });

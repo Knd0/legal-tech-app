@@ -43,6 +43,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   // Integrations State
   isAfipLinked = signal<boolean>(false);
+  hasAfipKey = signal<boolean>(false);
   editAfipMode = signal<boolean>(false);
   qrCodeUrl = signal<string | null>(null);
   private qrPollInterval: any;
@@ -247,9 +248,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     puntoVenta: user.puntoVenta,
                     condicionIva: user.condicionIva || 'Resp. Monotributo',
                     afipCert: user.afipCert,
-                    afipKey: user.afipKey,
+                    // La clave privada es de sólo escritura: el backend ya no la
+                    // devuelve. El formulario arranca vacío y sólo se envía si el
+                    // usuario sube una nueva; `hasAfipKey` indica si ya hay una.
+                    afipKey: '',
                     afipProduction: user.afipProduction || false
                 });
+                this.hasAfipKey.set(!!user.hasAfipKey);
 
                 if (user.cuit && user.puntoVenta) {
                     this.isAfipLinked.set(true);
@@ -327,7 +332,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
           puntoVenta: data.puntoVenta,
           condicionIva: data.condicionIva,
           afipCert: data.afipCert,
-          afipKey: data.afipKey,
+          // Sólo se manda la clave si el usuario cargó una nueva; un string vacío
+          // significaría "sin cambios" y el backend lo descarta igualmente.
+          ...(data.afipKey ? { afipKey: data.afipKey } : {}),
           afipProduction: data.afipProduction
       };
 
@@ -378,6 +385,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   next: () => {
                       this.afipForm.reset({ condicionIva: 'Resp. Monotributo' });
                       this.isAfipLinked.set(false);
+                      this.hasAfipKey.set(false);
                       this.editAfipMode.set(true);
                       Swal.fire('Desvinculado', 'Se han eliminado tus datos fiscales.', 'success');
                       const currentUser = this.authService.currentUser();

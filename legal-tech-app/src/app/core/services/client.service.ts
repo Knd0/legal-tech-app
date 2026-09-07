@@ -1,10 +1,12 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Cliente, Familiar } from '../models/cliente.model';
 import { Observable, tap } from 'rxjs';
 import { PaginatedResponse } from '../models/paginated-response.model';
 import Swal from 'sweetalert2';
+
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,8 +21,19 @@ export class ClientService {
 
   private readonly API_URL = `${environment.apiUrl}/clients`;
 
+  private authService = inject(AuthService);
+
   constructor(private http: HttpClient) {
-    this.loadClients();
+    // Se reacciona al estado de sesión en vez de cargar una sola vez: al cerrar
+    // sesión la lista se vacía, para que los datos de un estudio no queden
+    // visibles si otro usuario entra desde el mismo navegador.
+    effect(() => {
+      if (this.authService.isAuthenticated()) {
+        this.loadClients();
+      } else {
+        this.clientsSignal.set([]);
+      }
+    });
   }
 
   getPaginatedClients(page: number, limit: number, search?: string): Observable<PaginatedResponse<Cliente>> {

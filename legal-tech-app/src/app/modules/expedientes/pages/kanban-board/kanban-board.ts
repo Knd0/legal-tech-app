@@ -4,6 +4,13 @@ import { ExpedienteService } from '../../../../core/services/expediente.service'
 import { Expediente, EstadoExpediente } from '../../../../core/models/expediente.model';
 import Swal from 'sweetalert2';
 
+interface KanbanColumn {
+  id: EstadoExpediente;
+  title: string;
+  color: string;
+  items: Expediente[];
+}
+
 @Component({
   selector: 'app-kanban-board',
   standalone: false,
@@ -12,13 +19,25 @@ import Swal from 'sweetalert2';
 })
 export class KanbanBoard implements OnInit {
 
-  columns = [
+  /**
+   * Las columnas viven en un signal, no en un array suelto.
+   *
+   * Antes se mutaba `columns[].items` desde un `effect()`: los datos llegaban a
+   * memoria pero la vista nunca se volvía a chequear, así que el tablero se
+   * mostraba vacío aunque hubiera expedientes cargados. Publicar una referencia
+   * nueva es lo que hace que la plantilla se actualice.
+   *
+   * Los arrays de `items` siguen siendo mutables porque el CDK de drag & drop
+   * los modifica in place (`transferArrayItem`); después de cada mutación hay
+   * que llamar a `publicarCambios()`.
+   */
+  readonly columns = signal<KanbanColumn[]>([
     { id: 'INICIADO' as EstadoExpediente, title: 'Iniciado', color: 'bg-green-500', items: [] as Expediente[] },
     { id: 'PRUEBA' as EstadoExpediente, title: 'Prueba', color: 'bg-blue-500', items: [] as Expediente[] },
     { id: 'ALEGATOS' as EstadoExpediente, title: 'Alegatos', color: 'bg-purple-500', items: [] as Expediente[] },
     { id: 'SENTENCIA' as EstadoExpediente, title: 'Sentencia', color: 'bg-orange-500', items: [] as Expediente[] },
     { id: 'ARCHIVADO' as EstadoExpediente, title: 'Archivado', color: 'bg-gray-500', items: [] as Expediente[] }
-  ];
+  ]);
 
   private dragging = false;
   saving = signal<string | null>(null);
@@ -38,9 +57,15 @@ export class KanbanBoard implements OnInit {
   ngOnInit(): void {}
 
   distributeExpedientes(expedientes: Expediente[]) {
-    this.columns.forEach(col => {
-      col.items = expedientes.filter(e => e.estado === col.id);
-    });
+    this.columns.update((cols) =>
+      cols.map((col) => ({ ...col, items: expedientes.filter((e) => e.estado === col.id) })),
+    );
+  }
+
+  /** Publica una referencia nueva del array de columnas para que la vista vea
+   *  las mutaciones que el CDK hizo sobre los `items`. */
+  private publicarCambios() {
+    this.columns.update((cols) => [...cols]);
   }
 
   onDragStarted() {
@@ -54,12 +79,13 @@ export class KanbanBoard implements OnInit {
   drop(event: CdkDragDrop<Expediente[]>) {
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+      this.publicarCambios();
       this.dragging = false;
       return;
     }
 
     // Detectar columna destino por referencia al array (más robusto que event.container.id)
-    const targetColumn = this.columns.find(c => c.items === event.container.data);
+    const targetColumn = this.columns().find(c => c.items === event.container.data);
     if (!targetColumn) {
       this.dragging = false;
       return;
@@ -77,6 +103,7 @@ export class KanbanBoard implements OnInit {
       event.currentIndex,
     );
     item.estado = newStatus;
+    this.publicarCambios();
     this.dragging = false;
     this.saving.set(item.id);
 
@@ -90,6 +117,7 @@ export class KanbanBoard implements OnInit {
         event.container.data.indexOf(item),
         event.previousIndex,
       );
+      this.publicarCambios();
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -110,12 +138,13 @@ export class KanbanBoard implements OnInit {
     this.saving.set(item.id);
 
     // Mover localmente
-    const oldCol = this.columns.find(c => c.id === previousStatus);
-    const newCol = this.columns.find(c => c.id === newStatus);
+    const oldCol = this.columns().find(c => c.id === previousStatus);
+    const newCol = this.columns().find(c => c.id === newStatus);
     if (oldCol && newCol) {
       oldCol.items = oldCol.items.filter(i => i.id !== item.id);
       item.estado = newStatus;
       newCol.items.unshift(item);
+      this.publicarCambios();
     }
 
     this.expedienteService.updateExpedienteKanban(item.id, newStatus, () => {
@@ -124,6 +153,7 @@ export class KanbanBoard implements OnInit {
         newCol.items = newCol.items.filter(i => i.id !== item.id);
         item.estado = previousStatus;
         oldCol.items.unshift(item);
+        this.publicarCambios();
       }
       Swal.fire({ icon: 'error', title: 'Error al cambiar estado', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false });
     }, () => {

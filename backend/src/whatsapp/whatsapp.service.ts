@@ -55,6 +55,15 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
       return;
     }
 
+    // `ENABLE_WHATSAPP=false` debe apagar el bot de verdad. Sin este corte la
+    // variable se ignoraba y Baileys reintentaba conectar cada pocos segundos,
+    // llenando los logs con "connection closed / Reconnecting" en entornos que
+    // no tienen sesión vinculada (desarrollo, CI, staging).
+    if (process.env.ENABLE_WHATSAPP === 'false') {
+      this.logger.log('ENABLE_WHATSAPP=false: se omite la inicialización de WhatsApp.');
+      return;
+    }
+
     this.initializeOnBootWithRetry();
   }
 

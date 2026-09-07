@@ -11,7 +11,7 @@
 
     <!-- Mobile Column Selector Tabs (Mobile Only) -->
     <div class="md:hidden flex gap-2 overflow-x-auto pb-3 mb-2 no-scrollbar">
-        <button *ngFor="let col of columns" (click)="activeMobileColumn.set(col.id)"
+        <button *ngFor="let col of columns()" (click)="activeMobileColumn.set(col.id)"
             [class.bg-[var(--accent-terracotta)]]="activeMobileColumn() === col.id"
             [class.text-white]="activeMobileColumn() === col.id"
             [class.bg-white]="activeMobileColumn() !== col.id"
@@ -29,7 +29,7 @@
 
     <!-- Mobile Column Display (Mobile Only) -->
     <div class="block md:hidden flex-1 space-y-3 pb-8" cdkDropListGroup>
-        <ng-container *ngFor="let col of columns">
+        <ng-container *ngFor="let col of columns()">
             <div *ngIf="activeMobileColumn() === col.id" class="space-y-3">
                 <div *ngIf="col.items.length === 0" class="bg-white dark:bg-slate-800/60 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 text-center">
                     <i class="pi pi-inbox text-3xl text-slate-300 dark:text-slate-600 mb-2 block"></i>
@@ -47,7 +47,7 @@
                             <i *ngIf="saving() === item.id" class="pi pi-spin pi-spinner text-xs text-slate-400"></i>
                             <select [ngModel]="item.estado" (ngModelChange)="changeStatusManual(item, $event)"
                                 class="text-[11px] font-bold py-1 px-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border-0 focus:ring-1 focus:ring-[var(--accent-terracotta)]">
-                                <option *ngFor="let c of columns" [value]="c.id">{{ c.title }}</option>
+                                <option *ngFor="let c of columns()" [value]="c.id">{{ c.title }}</option>
                             </select>
                         </div>
                     </div>
@@ -76,7 +76,7 @@
     <!-- Desktop Board Container (Desktop Only) -->
     <div class="hidden md:flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-12rem)] w-full max-w-full" cdkDropListGroup>
 
-        <div *ngFor="let col of columns"
+        <div *ngFor="let col of columns()"
             class="flex-shrink-0 w-72 bg-slate-100 dark:bg-slate-800/40 rounded-xl flex flex-col h-full border border-slate-200 dark:border-slate-700/80 transition-colors duration-300">
 
             <!-- Column Header -->

@@ -1,8 +1,9 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, effect, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { CalendarEvent } from '../models/calendar-event.model';
 import Swal from 'sweetalert2';
+import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class CalendarEventService {
@@ -10,10 +11,19 @@ export class CalendarEventService {
   private eventsSignal = signal<CalendarEvent[]>([]);
   readonly events = this.eventsSignal.asReadonly();
 
+  private authService = inject(AuthService);
+
   constructor(private http: HttpClient) {
-    if (localStorage.getItem('auth_token')) {
-      this.loadEvents();
-    }
+    // Mismo problema y misma solución que `DeadlineService`: el servicio se
+    // instancia antes del login, así que se reacciona al estado de sesión en
+    // lugar de leer el token una única vez.
+    effect(() => {
+      if (this.authService.isAuthenticated()) {
+        this.loadEvents();
+      } else {
+        this.eventsSignal.set([]);
+      }
+    });
   }
 
   loadEvents() {

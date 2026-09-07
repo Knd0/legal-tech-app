@@ -1,23 +1,29 @@
 <div class="fade-in-up space-y-8">
 
     <!-- Header & Welcome -->
-    <div class="flex flex-col md:flex-row justify-between items-end gap-4">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
             <h1 class="text-3xl font-bold text-slate-900 dark:text-white">Panel de Control</h1>
-            <p class="text-slate-500 dark:text-slate-400 mt-1 capitalize">{{ currentDate | date:'EEEE, d \'de\' MMMM,
-                yyyy' }}</p>
+            <!-- `first-letter:uppercase` en vez de `capitalize`: este ultimo pone
+                 mayúscula en cada palabra y salía "Lunes, 7 De Septiembre". -->
+            <p class="text-slate-500 dark:text-slate-400 mt-1 first-letter:uppercase">{{ currentDate | date:"EEEE d 'de' MMMM 'de' y" }}</p>
         </div>
+        <!-- Los overrides globales del sistema Organic (styles.scss) ganan sobre las
+             utilidades `bg-*` de Tailwind en elementos `button`: con `bg-slate-900
+             dark:bg-blue-600` estos botones se renderizaban del mismo color que el
+             fondo y la acción principal quedaba prácticamente invisible. Se usan
+             las variables de la paleta, como indican las pautas de diseño. -->
         <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <button routerLink="/clientes/new"
                 [disabled]="subscriptionService.isCreationBlocked()"
                 [pTooltip]="subscriptionService.isCreationBlocked() ? 'Suscripción vencida. Actualice su plan.' : ''"
-                class="w-full sm:w-auto bg-slate-900 dark:bg-blue-600 premium-locked text-white px-4 py-2 rounded-lg font-medium shadow-lg shadow-slate-900/20 dark:shadow-blue-900/20 hover:bg-slate-800 dark:hover:bg-blue-500 transition-all flex items-center justify-center gap-2">
+                class="w-full sm:w-auto premium-locked px-4 py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 bg-[var(--accent-terracotta)] text-white border border-[var(--accent-terracotta)] shadow-lg shadow-black/20 hover:brightness-110">
                 <i class="pi pi-user-plus"></i> Nuevo Cliente
             </button>
             <button routerLink="/expedientes/new"
                 [disabled]="subscriptionService.isCreationBlocked()"
                 [pTooltip]="subscriptionService.isCreationBlocked() ? 'Suscripción vencida. Actualice su plan.' : ''"
-                class="w-full sm:w-auto bg-white dark:bg-slate-800 premium-locked text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2">
+                class="w-full sm:w-auto premium-locked px-4 py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 bg-transparent text-[var(--accent-terracotta)] border border-[var(--accent-terracotta)]/60 hover:bg-[var(--accent-terracotta)]/10">
                 <i class="pi pi-briefcase"></i> Nuevo Expediente
             </button>
         </div>
@@ -83,13 +89,20 @@
             class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 lg:col-span-2 flex flex-col">
             <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4">Balance Financiero (Últimos 6 meses)</h3>
 
-            <div class="flex-grow" style="height: 280px;" *ngIf="chartData">
+            <!-- `chartData` existe aunque todos los meses valgan 0: sin este chequeo
+                 el gráfico se dibujaba como un eje de ceros apilados que no dice nada. -->
+            <div class="flex-grow" style="height: 280px;" *ngIf="chartData && hayDatosFinancieros()">
                 <p-chart type="bar" [data]="chartData" [options]="chartOptions" height="280px"></p-chart>
             </div>
 
-            <div *ngIf="!chartData"
-                class="flex items-center justify-center h-64 text-slate-400 dark:text-slate-500 text-sm">
-                <span>No hay datos financieros suficientes.</span>
+            <div *ngIf="!chartData || !hayDatosFinancieros()"
+                class="flex flex-col items-center justify-center h-64 text-center px-6 gap-3">
+                <i class="pi pi-chart-bar text-3xl text-slate-300 dark:text-slate-600"></i>
+                <p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Todavía no hay cobros ni gastos registrados</p>
+                <p class="text-xs text-slate-400 dark:text-slate-500 max-w-xs leading-relaxed">
+                    El gráfico muestra pagos recibidos y gastos. Los honorarios aparecen recién cuando se registra el cobro.
+                </p>
+                <a routerLink="/clientes" class="text-xs font-bold text-[var(--accent-terracotta)] hover:underline">Ir a cuenta corriente</a>
             </div>
         </div>
 
@@ -137,8 +150,8 @@
                             'bg-red-500': log.action === 'DELETE'
                         }"></div>
 
-                    <p class="text-sm font-bold text-slate-800 dark:text-slate-200 leading-none">{{ log.action }} {{
-                        log.entityType }}</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-slate-200 leading-none">{{
+                        etiquetaActividad(log) }}</p>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{{ log.details }}</p>
                     <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-2 font-medium uppercase tracking-wide">
                         {{ log.createdAt | date:'short' }}

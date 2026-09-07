@@ -115,6 +115,32 @@ export class DashboardComponent implements OnInit {
       .slice(0, 5);
   });
 
+  /** `action` y `entityType` se guardan en inglés en la base; se traducen sólo
+   *  para mostrar, sin tocar el formato almacenado. */
+  private readonly ACCIONES: Record<string, string> = {
+    CREATE: 'Alta de',
+    UPDATE: 'Edición de',
+    DELETE: 'Baja de',
+  };
+
+  private readonly ENTIDADES: Record<string, string> = {
+    CLIENT: 'cliente',
+    EXPEDIENTE: 'expediente',
+    MOVIMIENTO: 'movimiento',
+  };
+
+  etiquetaActividad(log: { action?: string; entityType?: string }): string {
+    const accion = this.ACCIONES[log.action ?? ''] ?? log.action ?? '';
+    const entidad = this.ENTIDADES[log.entityType ?? ''] ?? (log.entityType ?? '').toLowerCase();
+    return `${accion} ${entidad}`.trim();
+  }
+
+  /** True solo si algun mes tiene movimiento. Evita dibujar un grafico de ceros. */
+  hayDatosFinancieros = computed(() => {
+    const financials = this.stats()?.financials ?? [];
+    return financials.some((f: any) => Number(f.income) > 0 || Number(f.expense) > 0);
+  });
+
   currentMonthBalance = computed(() => {
     const financials = this.stats()?.financials;
     if (!financials?.length) return 0;

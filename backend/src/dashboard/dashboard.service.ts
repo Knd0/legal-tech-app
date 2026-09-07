@@ -5,7 +5,7 @@ import { Client } from '../clients/client.entity';
 import { Expediente } from '../expedientes/expediente.entity';
 import { Deadline } from '../deadlines/deadline.entity';
 import { Movimiento } from '../movimientos/entities/movimiento.entity';
-import { startOfMonth, subMonths, endOfMonth, format } from 'date-fns';
+import { startOfMonth, subMonths, endOfMonth } from 'date-fns';
 
 @Injectable()
 export class DashboardService {
@@ -75,11 +75,19 @@ export class DashboardService {
           });
 
           history.push({
-              month: format(date, 'MMM'),
+              // Etiqueta del eje del gráfico. Se usa el ICU nativo en vez del
+              // locale de date-fns: antes salía "Apr"/"Sep" en una UI en español.
+              month: this.nombreMesCorto(date),
               income,
               expense
           });
       }
       return history;
+  }
+
+  /** Nombre corto del mes en español rioplatense: "abr", "sep". */
+  private nombreMesCorto(date: Date): string {
+    const mes = date.toLocaleDateString('es-AR', { month: 'short' });
+    return mes.replace('.', '');
   }
 }

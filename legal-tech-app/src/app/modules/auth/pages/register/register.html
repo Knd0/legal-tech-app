@@ -56,7 +56,11 @@
             </p-inputGroupAddon>
             <input pInputText type="password" formControlName="password" placeholder="••••••••" class="w-full dark:bg-slate-700 dark:text-white dark:border-slate-600" />
           </p-inputGroup>
-          <small class="text-slate-500 dark:text-slate-400 text-xs mt-1 block">
+          <small
+            class="text-xs mt-1 block"
+            [class.text-slate-500]="!(registerForm.get('password')?.invalid && registerForm.get('password')?.touched)"
+            [class.dark:text-slate-400]="!(registerForm.get('password')?.invalid && registerForm.get('password')?.touched)"
+            [class.text-red-500]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
             Mínimo 8 caracteres, una mayúscula y un número.
           </small>
         </div>

@@ -8,6 +8,7 @@ import { Resend } from 'resend';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Otp } from './otp.entity';
+import { sanitizeAndFlattenUser } from '../users/user-response.util';
 
 @Injectable()
 export class AuthService {
@@ -49,26 +50,25 @@ export class AuthService {
       subscriptionExpiresAt: user.subscription?.subscriptionExpiresAt
     };
 
-    const { passwordHash, subscription, ...userRest } = user;
-    const flattenedUser = {
-      ...userRest,
-      subscriptionStatus: subscription?.subscriptionStatus || 'trial',
-      subscriptionExpiresAt: subscription?.subscriptionExpiresAt || null,
-      mpSubscriptionId: subscription?.mpSubscriptionId || null,
-      subscriptionPlan: subscription?.subscriptionPlan || 'pro',
-    };
-
     return {
       access_token: this.jwtService.sign(payload),
-      user: flattenedUser
+      user: sanitizeAndFlattenUser(user),
     };
   }
 
   // OTP functionalities
+
+  /**
+   * Emite un OTP de recuperación.
+   *
+   * No revela si el email existe: para una cuenta inexistente devuelve el mismo
+   * `{ channel: 'email' }` que para una real, sin generar ni enviar código. De lo
+   * contrario el endpoint funciona como oráculo de enumeración de usuarios.
+   */
   async requestForgotPasswordOtp(email: string): Promise<{ channel: 'whatsapp' | 'email' }> {
     const user = await this.usersService.findOneByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('No se encontró una cuenta con ese email.');
+      return { channel: 'email' };
     }
     const code = randomInt(100000, 1000000).toString();
     const key = `forgot_${email}`;

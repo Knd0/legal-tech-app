@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Subscription } from './entities/subscription.entity';
 import * as bcrypt from 'bcrypt';
+import { pickSelfEditableFields } from './user-response.util';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -54,14 +55,37 @@ export class UsersService implements OnModuleInit {
     return this.findOneById(saved.id);
   }
 
-  async updateProfile(id: string, data: Partial<User>): Promise<User> {
-    if (data.phoneNumber !== undefined) {
-      const user = await this.findOneById(id);
-      if (user && user.phoneNumber !== data.phoneNumber) {
-        data.isPhoneVerified = false;
+  /**
+   * Actualiza el perfil del propio usuario.
+   *
+   * El body llega sin tipar desde el cliente, así que se filtra contra una lista
+   * blanca antes de tocar la base: `usersRepository.update()` escribe cualquier
+   * columna que reciba, y sin este filtro un `PATCH /users/profile` con
+   * `{"role":"ADMIN"}` escalaba privilegios.
+   */
+  async updateProfile(id: string, data: Record<string, any>): Promise<User> {
+    const payload = pickSelfEditableFields(data);
+
+    // Los secretos son de sólo escritura: el servidor ya no los devuelve, por lo
+    // que el formulario los reenvía vacíos. Un string vacío significa "sin
+    // cambios"; `null` explícito sí los borra (flujo de desvincular AFIP).
+    for (const field of ['afipCert', 'afipKey', 'pjnPassword', 'mevPassword']) {
+      if (payload[field] === '') {
+        delete payload[field];
       }
     }
-    await this.usersRepository.update(id, data);
+
+    if (payload.phoneNumber !== undefined) {
+      const user = await this.findOneById(id);
+      if (user && user.phoneNumber !== payload.phoneNumber) {
+        // Cambiar de número invalida la verificación previa.
+        payload.isPhoneVerified = false;
+      }
+    }
+
+    if (Object.keys(payload).length > 0) {
+      await this.usersRepository.update(id, payload);
+    }
     return this.findOneById(id);
   }
 
@@ -139,7 +163,7 @@ export class UsersService implements OnModuleInit {
     const user = await this.findOneById(id);
     if (!user) throw new NotFoundException('User not found');
 
-    const { subscriptionStatus, subscriptionExpiresAt, mpSubscriptionId, subscriptionPlan, password, ...rest } = updateData;
+    const { subscriptionStatus, subscriptionExpiresAt, mpSubscriptionId, subscriptionPlan, password, passwordHash: _ignoredHash, ...rest } = updateData;
 
     if (password) {
         const salt = await bcrypt.genSalt();

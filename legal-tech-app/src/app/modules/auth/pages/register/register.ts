@@ -37,7 +37,16 @@ export class Register {
       fullName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       phoneNumber: [''],
-      password: ['', [Validators.required, Validators.minLength(8)]],
+      // El patrón replica la política que valida el backend (RegisterDto), para
+      // que el hint de la UI no prometa algo que el servidor después rechaza.
+      password: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(8),
+          Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/),
+        ],
+      ],
       confirmPassword: ['', Validators.required]
     });
   }

@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { sanitizeAndFlattenUser } from './user-response.util';
 
 @Controller('users')
 export class UsersController {
@@ -14,14 +15,14 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   async getProfile(@Req() req) {
     const user = await this.usersService.findOneById(req.user.userId);
-    return this.sanitizeAndFlattenUser(user);
+    return sanitizeAndFlattenUser(user);
   }
 
   @Patch('profile')
   @UseGuards(JwtAuthGuard)
   async updateProfile(@Req() req, @Body() updateData: any) {
     const user = await this.usersService.updateProfile(req.user.userId, updateData);
-    return this.sanitizeAndFlattenUser(user);
+    return sanitizeAndFlattenUser(user);
   }
 
   // --- Admin Endpoints (Dynamic IDs) ---
@@ -44,11 +45,11 @@ export class UsersController {
       );
       return {
         ...result,
-        data: result.data.map(u => this.sanitizeAndFlattenUser(u)),
+        data: result.data.map(u => sanitizeAndFlattenUser(u)),
       };
     }
     const users = await this.usersService.findAll();
-    return users.map(u => this.sanitizeAndFlattenUser(u));
+    return users.map(u => sanitizeAndFlattenUser(u));
   }
 
   @Post()
@@ -56,7 +57,7 @@ export class UsersController {
   @Roles('ADMIN')
   async create(@Body() createUserDto: any) {
       const user = await this.usersService.createUser(createUserDto);
-      return this.sanitizeAndFlattenUser(user);
+      return sanitizeAndFlattenUser(user);
   }
 
   @Get('test')
@@ -69,7 +70,7 @@ export class UsersController {
   @Roles('ADMIN')
   async toggleStatus(@Param('id') id: string) {
       const user = await this.usersService.toggleStatus(id);
-      return this.sanitizeAndFlattenUser(user);
+      return sanitizeAndFlattenUser(user);
   }
 
   @Patch(':id')
@@ -77,7 +78,7 @@ export class UsersController {
   @Roles('ADMIN')
   async update(@Param('id') id: string, @Body() updateData: any) {
       const user = await this.usersService.updateUser(id, updateData);
-      return this.sanitizeAndFlattenUser(user);
+      return sanitizeAndFlattenUser(user);
   }
 
   @Delete(':id')
@@ -87,15 +88,4 @@ export class UsersController {
       return this.usersService.deleteUser(id);
   }
 
-  private sanitizeAndFlattenUser(user: any): any {
-    if (!user) return null;
-    const { passwordHash, subscription, ...rest } = user;
-    return {
-      ...rest,
-      subscriptionStatus: subscription?.subscriptionStatus || 'trial',
-      subscriptionExpiresAt: subscription?.subscriptionExpiresAt || null,
-      mpSubscriptionId: subscription?.mpSubscriptionId || null,
-      subscriptionPlan: subscription?.subscriptionPlan || 'pro',
-    };
-  }
 }

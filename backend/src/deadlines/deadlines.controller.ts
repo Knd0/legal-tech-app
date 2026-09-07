@@ -15,8 +15,8 @@ export class DeadlinesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.deadlinesService.findOne(id);
+  findOne(@Param('id') id: string, @Request() req) {
+    return this.deadlinesService.findOne(id, req.user.userId);
   }
 
   @Post()
@@ -26,13 +26,13 @@ export class DeadlinesController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() deadline: Partial<Deadline>) {
-    return this.deadlinesService.update(id, deadline);
+  update(@Param('id') id: string, @Body() deadline: Partial<Deadline>, @Request() req) {
+    return this.deadlinesService.update(id, deadline, req.user.userId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.deadlinesService.remove(id);
+  remove(@Param('id') id: string, @Request() req) {
+    return this.deadlinesService.remove(id, req.user.userId);
   }
 
   @Post('analyze-pdf')

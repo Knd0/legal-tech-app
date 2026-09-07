@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Deadline } from './deadline.entity';
@@ -17,8 +17,16 @@ export class DeadlinesService {
     return this.deadlinesRepository.find({ where, relations: ['expediente'] });
   }
 
-  findOne(id: string): Promise<Deadline | null> {
-    return this.deadlinesRepository.findOne({ where: { id }, relations: ['expediente'] });
+  /**
+   * Todas las lecturas y escrituras por id se acotan al `userId` del token: sin
+   * ese filtro cualquier usuario autenticado podía leer, modificar o borrar los
+   * vencimientos de otro estudio enumerando UUIDs.
+   */
+  findOne(id: string, userId: string): Promise<Deadline | null> {
+    return this.deadlinesRepository.findOne({
+      where: { id, userId },
+      relations: ['expediente'],
+    });
   }
 
   async create(deadline: Partial<Deadline>): Promise<Deadline> {
@@ -27,12 +35,20 @@ export class DeadlinesService {
     return savedDeadline;
   }
 
-  async update(id: string, deadline: Partial<Deadline>): Promise<void> {
-    await this.deadlinesRepository.update(id, deadline);
+  async update(id: string, deadline: Partial<Deadline>, userId: string): Promise<void> {
+    // `userId` nunca se reasigna desde el body: un vencimiento no cambia de dueño.
+    const { userId: _ignored, id: _ignoredId, ...changes } = deadline as any;
+    const result = await this.deadlinesRepository.update({ id, userId }, changes);
+    if (!result.affected) {
+      throw new NotFoundException('Vencimiento no encontrado.');
+    }
   }
 
-  async remove(id: string): Promise<void> {
-    await this.deadlinesRepository.delete(id);
+  async remove(id: string, userId: string): Promise<void> {
+    const result = await this.deadlinesRepository.delete({ id, userId });
+    if (!result.affected) {
+      throw new NotFoundException('Vencimiento no encontrado.');
+    }
   }
 
   async analyzePdf(buffer: Buffer): Promise<any> {

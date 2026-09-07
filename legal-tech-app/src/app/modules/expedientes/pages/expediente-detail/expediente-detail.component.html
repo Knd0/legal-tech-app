@@ -125,8 +125,20 @@
                             <div class="p-4 bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 rounded-2xl relative group shadow-sm text-left">
                                 <div class="flex justify-between items-start mb-2">
                                     <div>
-                                        <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-terracotta)] bg-[var(--accent-terracotta)]/10 px-2 py-0.5 rounded">{{ act.origen }}</span>
+                                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded"
+                                              [class]="esActuacionNoVerificada(act)
+                                                ? 'text-amber-800 bg-amber-100 ring-1 ring-amber-400 dark:text-amber-300 dark:bg-amber-900/30 dark:ring-amber-700'
+                                                : 'text-[var(--accent-terracotta)] bg-[var(--accent-terracotta)]/10'">
+                                            {{ esActuacionNoVerificada(act) ? 'Dato simulado' : act.origen }}
+                                        </span>
                                         <h4 class="text-sm font-bold text-slate-800 dark:text-white mt-1.5">{{ act.titulo }}</h4>
+                                        <!-- Las actuaciones de origen SIMULADO_*/AUTOMATICO_* provienen del mock de
+                                             sincronizacion, no de un portal judicial real. No deben computarse como plazos. -->
+                                        <p *ngIf="esActuacionNoVerificada(act)"
+                                           class="text-[11px] text-amber-700 dark:text-amber-400 mt-1 flex items-start gap-1 leading-snug">
+                                            <i class="pi pi-exclamation-triangle text-[10px] mt-0.5"></i>
+                                            <span>Generado por la demo de sincronizacion. <strong>No es una actuacion real</strong>: verificala en el portal judicial antes de computar cualquier plazo.</span>
+                                        </p>
                                     </div>
                                     <div class="flex items-center gap-1.5">
                                         <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-200 text-slate-600 dark:bg-slate-600 dark:text-slate-200" *ngIf="act.foja">Foja: {{ act.foja }}</span>

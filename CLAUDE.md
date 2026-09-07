@@ -61,14 +61,55 @@ Each feature is a NestJS module under `backend/src/`. Key modules:
 - **users** — `User` entity is the tenant root. Every client and expediente belongs to a `User`. Roles: `USER` | `ADMIN`. Auto-seeds `admin@themis.com` on bootstrap via `SeedService`.
 - **clients / expedientes** — Core legal domain. Expedientes track `EstadoExpediente`: `INICIADO → PRUEBA → ALEGATOS → SENTENCIA → ARCHIVADO`. Both support **server-side pagination, status filters, and search queries**.
 - **deadlines** — Judicial vencimientos. Exposes `/deadlines` and `/deadlines/analyze-pdf` to upload a judicial notification PDF and extract/schedule upcoming deadline calendar events using Gemini 2.5 Flash by default. A daily cron job runs at 9 AM to send WhatsApp alerts.
-- **calendar** — Empty module. Google Calendar integration was removed. Controller has no endpoints.
+- **calendar** — Eventos de agenda propios (la integración con Google Calendar fue removida). `CalendarController` expone `GET/POST/PATCH/DELETE /calendar`, todos filtrados por `userId`.
 - **documents** — **File uploads are persisted in Cloudinary** (avoiding local ephemeral filesystem issues on Railway). Safe streaming view/download endpoints are protected by `JwtAuthGuard` to mask public Cloudinary URLs.
 - **mercadopago** — Recurring subscriptions (`PreApproval`). Webhook at `POST /mercadopago/webhook` updates `subscriptionStatus` and `subscriptionExpiresAt` via `UsersService.updateSubscription()`, which writes to the `Subscription` entity.
 - **whatsapp** — whatsapp-web.js session with RemoteAuth. Session stored in PostgreSQL (whatsapp_sessions table) to prevent Railway ephemeral restarts from wiping authentication. Boots asynchronously in the background during application bootstrap (non-blocking) and is completely disabled in CLI/seeder/test environments to conserve RAM and prevent 504 Gateway Timeouts. Cache generation in Puppeteer is disabled via command-line arguments to minimize session size (~1.5MB).
 - **facturas** — AFIP/ARCA e-invoicing. Uses `os.tmpdir()` for cross-platform (Windows dev / Linux prod) temp certificate writing, and reads `AFIP_PRODUCTION` env variable dynamically to switch between homologation (false/default) and production. Falls back to simulation mode if `AFIP_CERT`/`AFIP_KEY` env vars are missing.
 - **movimientos** — Financial movements per client (honorarios, gastos, pagos) with JUS/UMA unit support.
 - **settings** — Key-value config store. Seeded with `VALOR_JUS_ENTRE_RIOS`, `VALOR_UMA_NACION`, `ENABLE_WHATSAPP`, `DAYS_BEFORE_ALERT`, `ENABLE_DESKTOP_NOTIFICATIONS`.
+- **audit-logs** — Bitácora de acciones sobre clients/expedientes/movimientos. `GET /audit-logs` y `/audit-logs/recent`.
+- **dashboard** — `GET /dashboard/stats`: métricas agregadas del estudio autenticado.
+- **notifications** — Web Push (VAPID). `GET /notifications/vapid-public-key`, `POST /notifications/subscribe` y `/unsubscribe`.
+- **legal-models** — Repositorio de plantillas de escritos, integrado con el redactor del Copiloto. CRUD filtrado por `userId`.
+- **support-tickets** — Tickets de soporte. Los crea cualquier usuario; listarlos y resolverlos requiere `ADMIN`.
+- **expedientes/judicial-sync** — ⚠️ **NO está implementado: `fetchNovedadesMock()` devuelve actuaciones inventadas hardcodeadas.** El cron nocturno (3 AM) y `POST /expedientes/:id/sync` las guardan como reales y disparan alertas de WhatsApp al abogado. Ver *Known Bugs → Críticos*.
 - **ai** — **Copilot module**. Exposes `/ai/analyze`, `/ai/draft`, `/ai/summarize-expediente`, `/ai/analyze-risk`, and `/ai/analyze-costs` protected by `JwtAuthGuard`. Leverages Google Gemini 2.5 Flash (free tier) via `GEMINI_API_KEY` (or dynamically configured using `GEMINI_MODEL`) with automated fallback to OpenAI (`gpt-4o-mini`) if `OPENAI_API_KEY` is set.
+
+### jurisprudencia (nuevo — 2026-09-07)
+
+Corpus público de jurisprudencia argentina, ingestado desde **SAIJ** (Ministerio de Justicia).
+
+- **`GET /jurisprudencia`** — búsqueda full-text en español con filtros `q`, `tipo` (`SUMARIO`/`FALLO`), `jurisdiccion`, `page`, `limit`. Validado por `BuscarJurisprudenciaDto`.
+- **`GET /jurisprudencia/:id`** — un documento.
+- **`POST /jurisprudencia/ingestar`** — dispara una tanda de ingesta. **Sólo `ADMIN`**: sale a la red y escribe en un corpus compartido.
+
+**⚠️ Es la primera entidad NO multi-inquilino**: `Jurisprudencia` no lleva `userId` porque es un corpus público común a todos los estudios. La regla de "filtrar siempre por el `userId` del token" **no aplica acá y sí en todo el resto** — no tomarla como precedente. Si se agregan notas o favoritos por abogado, van en una tabla aparte que sí lleva `userId`.
+
+**Fuente y licencia**: SAIJ publica ~904.000 documentos de jurisprudencia (572.689 sumarios + 325.215 fallos) y su buscador devuelve **JSON estructurado** — no hace falta parsear HTML. Los datos están bajo **CC-BY 4.0**: la atribución es obligatoria, por eso `urlOrigen` y `fuente` se conservan siempre y la UI debe mostrar "Fuente: SAIJ".
+
+**El endpoint de SAIJ no es una API con contrato público** — es el que consume su propio frontend y puede cambiar sin aviso. Toda esa fragilidad vive en `SaijAdapter`, detrás de la interfaz `JurisprudenciaSource`. Los tests del adapter corren contra **respuestas reales capturadas** en `src/jurisprudencia/__fixtures__/`, que es lo único que detecta un cambio de estructura en la fuente.
+
+**Búsqueda sin acentos**: `to_tsvector('spanish', …)` es sensible a tildes (indexa "daños" como `dañ` y "danos" como `dan`). Como los abogados escriben sin tildes constantemente, se guarda una copia sin acentos del texto indexable en `textoBusqueda` y se aplica la **misma** normalización a la consulta (`texto-busqueda.util.ts`). Al tocar cualquiera de los dos lados, mantener ambos consistentes. Se resolvió así en vez de con la extensión `unaccent` de Postgres, que no está en todos los planes gestionados y exige un wrapper `IMMUTABLE` para usarse en una columna generada.
+
+**Estado verificado (150 documentos ingestados de prueba)**: ingesta idempotente ✓, búsqueda con y sin tildes devuelve idénticos resultados ✓, índice GIN creado ✓, `ValidationPipe` rechaza parámetros inválidos con 400 ✓.
+
+**Limitaciones conocidas de la Fase 1**:
+- Los **fallos no traen el texto completo** en el listado de búsqueda (sólo tribunal, fecha, actor, demandado, sobre). Hace falta un segundo request por documento para bajarlo — pendiente.
+- Los **fallos tampoco traen `jurisdiccion`**; sólo los sumarios la tienen. El filtro por jurisdicción hoy sólo alcanza a los sumarios.
+- La ingesta usa el orden por defecto de SAIJ: **todavía no permite recortar por fuero o provincia**. Agregar parámetros de búsqueda al adapter es el siguiente paso.
+
+### Seguridad transversal (backend)
+
+Tres piezas se aplican globalmente desde `main.ts` / `app.module.ts` y todo endpoint nuevo las hereda:
+
+- **`ValidationPipe` global** con `whitelist`, `forbidNonWhitelisted` y `transform`. Sólo actúa sobre handlers cuyo `@Body()` está tipado con una **clase DTO decorada** — los tipos inline (`@Body() body: { email: string }`) se borran al compilar y no validan nada. Al agregar un endpoint, crear su DTO en `<módulo>/dto/`.
+- **`helmet`** para headers de seguridad. CSP desactivada a propósito: la API sólo devuelve JSON y streams de archivos.
+- **`ThrottlerGuard` global** (120 req/min). Los endpoints de auth endurecen el límite por handler con `@Throttle` (login 10/min, registro y envío de OTP 5/min).
+
+**Aislamiento por inquilino**: todo acceso por id debe filtrar por el `userId` del token, no sólo verificarlo después de leer. El patrón es `repository.findOne({ where: { id, userId } })` y, para escrituras, `repository.update({ id, userId }, cambios)` comprobando `result.affected` para devolver 404. Un `where: { id }` suelto en un endpoint autenticado es un bug de multi-tenancy.
+
+**Campos sensibles**: `backend/src/users/user-response.util.ts` es la única fuente de verdad sobre qué sale del servidor (`sanitizeUser` / `sanitizeAndFlattenUser`) y qué puede editar el usuario de sí mismo (`pickSelfEditableFields`). Nunca serializar una entidad `User` cruda: incluye `passwordHash`, `afipKey`, `pjnPassword` y `mevPassword`.
 
 Database: PostgreSQL via TypeORM. `synchronize: true` in both dev and prod — schema changes apply on boot. No migration files exist.
 
@@ -117,6 +158,9 @@ Backend (`.env`):
 - `AFIP_KEY` — Content of AFIP private key file (.key)
 - `AFIP_PRODUCTION` (`true` / `false`) — switches AFIP environment between homologation and production
 - `MP_WEBHOOK_SECRET` — Webhook secret signature key from MercadoPago
+- `CORS_ORIGINS` — lista separada por comas de orígenes permitidos. Si no está definida se usan los dos por defecto (Vercel + `localhost:4200`)
+- `ENABLE_WHATSAPP` (`true` / `false`) — con `false` se omite por completo la inicialización del bot en el arranque
+- `JUDICIAL_SYNC_ENABLED` (`true` / `false`, **default `false`**) — habilita la sincronizacion judicial. Mientras `fetchNovedadesMock()` siga siendo la fuente, encenderlo genera actuaciones **inventadas**; usar solo en demos o desarrollo.
 
 Frontend: `environment.ts` → `http://localhost:3000`; `environment.prod.ts` → Railway URL.
 
@@ -167,6 +211,20 @@ To maintain design consistency and prevent bugs (like icon distortion or broken 
 ## Known Bugs
 
 ### Críticos (bloquean producción)
+
+~~- **`judicial-sync.service.ts` — la sincronización judicial fabricaba actuaciones y las notificaba como reales.** `fetchNovedadesMock()` devuelve dos actuaciones hardcodeadas por portal (PJN / MEV_PBA) con `fecha: yesterday`, las persiste en `actuaciones` con `origen: 'AUTOMATICO_*'` y dispara un WhatsApp al abogado. Una de ellas dice *"córrase traslado por el término de cinco (5) días bajo apercibimiento de ley"* — es indistinguible de un plazo procesal real. El cron `@Cron('0 3 * * *')` lo ejecuta todas las noches en producción sobre cada expediente con `autoSync: true`. **Riesgo de mala praxis: un abogado puede computar un plazo inexistente, o confiar en que no hay novedades cuando sí las hay.** **Mitigado (2026-09-07)**: todo el flujo quedó detrás de `JUDICIAL_SYNC_ENABLED`, apagado por defecto. Con el flag apagado el cron no recorre nada y `POST /expedientes/:id/sync` devuelve **503** (no un `added: 0`, que le diría al abogado que no hay novedades). Con el flag encendido las actuaciones se guardan como `SIMULADO_*` y el WhatsApp se anuncia como demo. La UI marca en ámbar toda actuación `SIMULADO_*` o `AUTOMATICO_*` con la leyenda "No es una actuación real". Cubierto por `judicial-sync.service.spec.ts` (6 tests). **Sigue pendiente el scraping real.** ✓~~
+
+  ⚠️ **Acción manual pendiente en la base de producción**: el cron ya venía corriendo, así que puede haber actuaciones inventadas persistidas con `origen LIKE 'AUTOMATICO_%'`. La UI ahora las marca, pero conviene auditarlas:
+
+  ```sql
+  SELECT a.id, a."expedienteId", a.fecha, a.titulo, a.origen
+  FROM "actuacion" a
+  WHERE a.origen LIKE 'AUTOMATICO_%'
+  ORDER BY a."createdAt" DESC;
+  ```
+
+  Todas las filas que devuelva esa consulta son datos fabricados por el mock y deberían borrarse una vez confirmado con los usuarios afectados.
+
 ~~- **`main.ts:5-7`** — `console.log` expone la API URL en la consola del browser en producción. Eliminados los 3 logs de arranque. ✓~~
 ~~- **`mercadopago.service.ts:48,72`** — `back_url` hardcodeada. Movida a `configService.get('FRONTEND_URL')` con fallback. ✓~~
 ~~- **`home.component.html`** — Archivo orphanado (no referenciado en routing). La ruta `/` usa el componente `Landing` real. ✓~~
@@ -188,7 +246,45 @@ To maintain design consistency and prevent bugs (like icon distortion or broken 
 
 ## Security Gaps
 
-Todos los gaps de seguridad conocidos han sido corregidos en el código. Ver sección **"Pendientes de Acción Manual"** al final de este archivo para las variables de entorno que aún faltan configurar en Railway.
+### Corregidos en la revisión de UI del 2026-09-07
+
+Encontrados levantando la app con datos sembrados y recorriéndola en el navegador — ninguno era visible leyendo el código.
+
+~~- **El Kanban se renderizaba vacío con los datos ya cargados.** `kanban-board.ts` mutaba `columns[].items` (un array común) desde un `effect()`; los datos llegaban a memoria pero la vista nunca se marcaba sucia. Verificado en vivo: la instancia tenía `INICIADO=4, PRUEBA=4, ALEGATOS=2...` y el DOM mostraba 0 en las cinco columnas. Corregido pasando `columns` a `signal`; como el CDK de drag & drop muta los arrays in place, cada mutación llama a `publicarCambios()`. ✓~~
+~~- **Los vencimientos no cargaban después del login.** `DeadlineService` es `providedIn: 'root'` y llamaba a `loadDeadlines()` sólo en el constructor, guardado por `if (localStorage.getItem('auth_token'))`. El servicio se instancia al arrancar la app (antes del login), así que la lista quedaba vacía toda la sesión: el dashboard decía **"Sin vencimientos próximos" con un plazo venciendo al día siguiente**. El guard que se había agregado para silenciar un toast causó esta regresión. Ahora los servicios reaccionan a `authService.isAuthenticated()`: cargan al iniciar sesión y **vacían al cerrarla**, para que los datos de un estudio no queden visibles si otro usa el mismo navegador. Aplicado también a `CalendarEventService`, `ExpedienteService` y `ClientService`. ✓~~
+~~- **No se podía dar de alta una persona jurídica.** `dni` y `telefono` eran `NOT NULL` en `Client`: una SRL con CUIT y sin DNI fallaba con 500. Ahora son nullable. ✓~~
+~~- **Mezcla de idiomas en toda la UI.** No había locale registrado: "Monday, 7 De September, 2026", timestamps `9/7/26, 4:49 PM` y eje del gráfico "Apr/May/Sep". Agregados `LOCALE_ID: 'es-AR'` + `registerLocaleData`, y el backend usa ICU nativo (`toLocaleDateString('es-AR')`) en vez de `format(date,'MMM')`. ✓~~
+~~- **El balance se mostraba en dólares.** Un `| currency` sin moneda explícita rendereaba **"US$ 0,00"** como balance del mes de un estudio argentino. Agregado `DEFAULT_CURRENCY_CODE: 'ARS'`. ✓~~
+~~- **Feed de actividad en inglés** ("CREATE EXPEDIENTE — Created expediente..."). Los mensajes nuevos se guardan en español y las etiquetas `action`/`entityType` se traducen sólo para mostrar. ✓~~
+~~- **Los botones principales del dashboard eran casi invisibles.** Los overrides globales del sistema Organic ganan sobre las utilidades `bg-*` de Tailwind en `button`, así que `bg-slate-900 dark:bg-blue-600` renderizaba `rgb(28,24,21)` sobre un fondo casi idéntico. Reescritos con las variables de la paleta (terracota primario, contorno secundario), como indican las pautas de diseño. ✓~~
+~~- **`ENABLE_WHATSAPP=false` no apagaba WhatsApp.** Baileys reintentaba conectar cada pocos segundos llenando los logs. Ahora corta en `onApplicationBootstrap`. ✓~~
+~~- **El gráfico financiero dibujaba un eje de ceros** cuando no había movimientos. Reemplazado por un estado vacío que explica que los honorarios cuentan recién cuando se cobran. ✓~~
+~~- **Overflow en mobile**: `items-end` en un contenedor `flex-col` empujaba el título contra el borde derecho. Ahora `items-start md:items-end`. ✓~~
+
+### Pendiente
+
+- **`getFinancialHistory()` hace 6 queries en un loop** (una por mes) y suma en JavaScript. Debería ser un solo `GROUP BY`. Funciona, pero escala mal.
+- **Errores `NG0100 ExpressionChangedAfterItHasBeenChecked`** en consola al navegar.
+- **La suite de tests del frontend está rota**: `npx vitest run` → 8 de 11 archivos fallan con `NG0203` (componentes instanciados con `new` en vez de TestBed). Quedó obsoleta con Angular 21.
+
+### Corregidos en la auditoría del 2026-09-07
+
+~~- **Escalada de privilegios (`users.service.ts:updateProfile`)** — `usersRepository.update(id, data)` recibía el body sin filtrar, así que un `PATCH /users/profile` con `{"role":"ADMIN"}` promovía al usuario. También permitía escribir `isActive`, `passwordHash` e `isPhoneVerified`. Corregido con lista blanca en `pickSelfEditableFields()` (`users/user-response.util.ts`), cubierto por `users.service.spec.ts`. ✓~~
+~~- **Fuga de facturas entre inquilinos (`facturas.service.ts`)** — `findAll`, `findByClient` y `generateInvoicePdf` no filtraban por `userId`: `GET /facturas` devolvía la facturación de todos los estudios. `createFactura` además permitía facturar contra el cliente de otro estudio, filtrando su CUIT en el comprobante. Todas las consultas ahora exigen `userId`. ✓~~
+~~- **IDOR en vencimientos (`deadlines.controller.ts`)** — `GET/PUT/DELETE /deadlines/:id` no verificaban dueño. Ahora todas las operaciones por id filtran por `userId` y devuelven 404 si no hay match. ✓~~
+~~- **IDOR en sincronización judicial** — `POST /expedientes/:id/sync` no verificaba dueño. `syncExpediente()` acepta un `userId` opcional (el cron nocturno lo omite). ✓~~
+~~- **Sin validación de entrada en toda la API** — no había `ValidationPipe`, ni DTOs, ni `class-validator` instalado; los tipos en `@Body()` se borran en runtime. Agregado `ValidationPipe` global con `whitelist` + `forbidNonWhitelisted` y DTOs para todo el módulo auth. ✓~~
+~~- **Credenciales expuestas al navegador** — el login y `GET /users/profile` devolvían `afipKey` (clave privada AFIP), `pjnPassword` y `mevPassword` en texto plano; el frontend los guarda en localStorage. `GET /users` los exponía de todos los usuarios al admin. Centralizado en `sanitizeUser()`, que además publica las banderas `hasAfipKey` / `hasPjnCredentials` / `hasMevCredentials` para que la UI sepa qué hay cargado sin recibir el contenido. ✓~~
+~~- **Sin rate limiting ni headers de seguridad** — agregados `@nestjs/throttler` (120 req/min global; 5-10/min en auth) y `helmet`. ✓~~
+~~- **Enumeración de usuarios en `/auth/forgot-password`** — respondía 401 "No se encontró una cuenta con ese email". Ahora devuelve la misma respuesta exista o no la cuenta, sin generar OTP. ✓~~
+~~- **`POST /auth/register`** — devolvía el `User` completo incluyendo `passwordHash`, no validaba fuerza de contraseña del lado del servidor y tiraba 500 ante email duplicado. Corregido con `RegisterDto` + `ConflictException` + `sanitizeUser()`. ✓~~
+
+### Pendiente
+
+- **DTOs para el resto de los módulos.** Auth ya está cubierto; `clients`, `expedientes`, `movimientos`, `calendar`, `facturas`, `legal-models`, `documents` y `settings` siguen recibiendo `Partial<Entity>` o `any`. El `ValidationPipe` global ya está activo, así que alcanza con ir agregando la clase DTO en cada módulo — no requiere tocar `main.ts`. Sin ellos, esos endpoints aceptan cualquier JSON.
+- **`pjnPassword` / `mevPassword` se guardan en texto plano** en la tabla `user`. Deberían cifrarse en reposo (o migrar a un secret store) antes de que la sincronización judicial se use en producción.
+
+Ver sección **"Pendientes de Acción Manual"** al final de este archivo para las variables de entorno que aún faltan configurar en Railway.
 
 ---
 
@@ -236,7 +332,7 @@ Todos los gaps de seguridad conocidos han sido corregidos en el código. Ver sec
   - Expedientes: límite de 30 en plan básico hardcodeado en el template frontend
   - Grace period: `GRACE_PERIOD_MS = 7 * 24 * 60 * 60 * 1000` definido una sola vez en `SubscriptionService` (`core/services/subscription.service.ts`). No duplicar.
   - CORS: origins hardcodeados en `backend/src/main.ts`
-- **Tests**: Jest unit test suite has been added for clients pagination, AI activation/fallback logic, and database OTP persistence. Run `npx jest --verbose` in `backend` folder to execute (all 10 tests passing).
+- **Tests**: 106 tests en 15 suites, todos pasando. Ejecutar `npx jest --verbose` desde `backend/`. Cubren paginación de clientes, activación/fallback de IA, persistencia de OTPs, y la capa de seguridad: escalada de privilegios en `updateProfile`, aislamiento por inquilino en facturas y vencimientos, sanitización de campos sensibles y las reglas del `ValidationPipe`. **Al tocar un endpoint autenticado, agregar el test de aislamiento correspondiente** — el patrón está en `deadlines.service.spec.ts` (`describe('aislamiento por inquilino')`).
 - **whatsapp-auth/ in .gitignore**: `backend/whatsapp-auth/` is ignored by `.gitignore` in the repository root to prevent committing chromium session cache.
 - **OTP con crypto.randomInt**: Los OTPs usan `import { randomInt } from 'crypto'` (no `Math.random()`). Límite de 5 intentos fallidos antes de invalidar — y están guardados en la tabla `otps` de PostgreSQL.
 - **Documents service usa userId**: `findAll`, `findOne`, `remove`, `create` reciben `userId` para ownership. El controller extrae `req.user.userId` del JWT.
@@ -246,7 +342,7 @@ Todos los gaps de seguridad conocidos han sido corregidos en el código. Ver sec
 - **Servicios root inyectados en AppComponent**: `CalendarEventService` y `DeadlineService` son `providedIn: 'root'` e inyectados (directamente o vía `NotificationService`) en `AppComponent`, lo que los instancia antes de autenticación. Sus constructores deben guardar el arranque HTTP con `if (localStorage.getItem('auth_token'))`. `ClientService` y `ExpedienteService` tienen el mismo patrón de constructor pero solo se instancian en rutas lazy, por lo que no requieren el guard.
 - **Landing logo**: El logo del navbar/footer usa el SVG de `public/icons/themis.svg` inlineado con `fill="currentColor"`. El color se controla con la variable CSS `--logo-icon-color` definida en `landing.scss` (light: `#160E0A`, dark: `#C9B08A`). El texto "Themis" usa la fuente `Caesar Dressing` (clase `.font-caesar`).
 - **Favicon**: `public/favicon.png` original (1.5 MB, 2048 px) no era renderizado por los navegadores. `index.html` ahora apunta a `icons/themis.svg` (primario, SVG, soportado por Chrome/Firefox/Edge modernos) y `favicon-64.png` (64×64, 6 KB) como fallback.
-- **Local DB dev setup**: PostgreSQL en `localhost:5432`, user `postgres`, password `1234`, database `legal_tech_db`. Cuentas de test sembradas (contraseña `password123`): `multifranco0@gmail.com` (2 clientes, 2 expedientes), `admin@estudio.com` (1 cliente, 2 expedientes).
+- **Local DB dev setup**: PostgreSQL en `localhost:5432`, user `postgres`, password `1234`, database `legal_tech_db`. Cuentas de test sembradas (contraseña `password123`): `multifranco0@gmail.com` (2 clientes, 2 expedientes), `admin@estudio.com` (1 cliente, 2 expedientes). **Verificado 2026-09-07: el servidor Postgres responde pero la base `legal_tech_db` no existe en esta máquina y no hay `backend/.env`** — crearlas antes de levantar el backend localmente (`createdb legal_tech_db` o `docker-compose up -d`).
 
 ---
 

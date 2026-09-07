@@ -15,7 +15,7 @@ Este archivo contiene el registro de contexto de **Gemini** (Antigravity AI) sob
 
 - **PostgreSQL Local:** Activo en `localhost:5432`.
 - **Credenciales:** `postgres` / `1234`
-- **Base de datos:** `legal_tech_db`
+- **Base de datos:** `legal_tech_db` — *verificado 2026-09-07: el servidor Postgres responde en el puerto 5432 pero esta base no existe en la máquina de desarrollo, y no hay `backend/.env`. Crearlas antes de levantar el backend local.*
 - **PostgreSQL Producción:** Hospedado en Railway (inyectado automáticamente vía la variable de entorno `DATABASE_URL`).
 - **Cuentas Sembradas (`SeedService` & script manual con contraseña `password123`):**
   1. `admin@themis.com` (Rol: `ADMIN` — bypass de checks de suscripción).
@@ -32,7 +32,7 @@ Actualmente la aplicación se encuentra en un estado muy avanzado (~99% global):
 |---|---|---|
 | **Auth (BE+FE)** | **100%** | JWT (60m) + local strategy. Recuperación por OTP vía WhatsApp (y fallback a Email vía Resend) **persistido en base de datos (`Otp` entity)** para resistir reinicios en Railway. |
 | **Clientes** | **100%** | Gestión completa. Tabla con **paginación server-side, debouncer de búsqueda (300ms) y carga lazy**. Incluye redirección directa al chat personal de WhatsApp del cliente. |
-| **Expedientes** | **100%** | Seguimiento de causas. Tabla con **paginación server-side, filtro de estado, debouncer y borrado con SweetAlert2**. Kanban interactivo funcional. Cronología de actuaciones con sincronización manual y automática (PJN/MEV). |
+| **Expedientes** | **90%** | Seguimiento de causas. Tabla con **paginación server-side, filtro de estado, debouncer y borrado con SweetAlert2**. Kanban interactivo funcional. Cronología de actuaciones con carga manual. ⚠️ **La sincronización PJN/MEV NO está implementada** (`fetchNovedadesMock` devuelve datos inventados); ver *Known Bugs → Críticos*. |
 | **Calendario** | **99%** | Vista interactiva en frontend (mensual/semanal/diario). Módulo backend (Calendar BE) implementado con eventos en base de datos. Integrado sistema de alertas pop-up nativas (PC/Celular) y en la misma app (SweetAlert2) para eventos y vencimientos de hoy/próximos. |
 | **Profile** | **100%** | Edición de perfil, configuración de alertas, vinculación de WhatsApp (QR/Código) y AFIP. **Persistencia de sesión de WhatsApp en PostgreSQL (`whatsapp_sessions`) usando sincronización de archivos JSON con Baileys (sin Puppeteer).** |
 | **Subscription UI**| **100%** | Verificación real del pago en success page con sincronización en tiempo real consultando la API de pre-aprobación de Mercado Pago (PreApproval). Integración completa de webhooks con soporte para `preapproval` y actualización de vencimientos (`subscriptionExpiresAt` = `next_payment_date`). Simulación local conservada. |
@@ -46,9 +46,59 @@ Actualmente la aplicación se encuentra en un estado muy avanzado (~99% global):
 
 ---
 
+## 🖥️ Revisión de UI en vivo (2026-09-07)
+
+Se levantó la app con datos sembrados y se recorrió en el navegador. Bugs encontrados y corregidos — ninguno era visible leyendo el código:
+
+- **Kanban vacío** aunque el componente tenía los expedientes en memoria (mutación de array dentro de un `effect()`).
+- **Vencimientos que no cargaban tras el login** (servicios `root` que leían el token una sola vez en el constructor). El más grave: el dashboard decía "sin vencimientos próximos" con un plazo venciendo al día siguiente.
+- **Personas jurídicas imposibles de cargar** (`dni` NOT NULL).
+- **Mezcla de idiomas y moneda en dólares** (faltaba `LOCALE_ID: es-AR` y `DEFAULT_CURRENCY_CODE: ARS`).
+- **Botones principales invisibles** por overrides globales que pisan Tailwind.
+- **`ENABLE_WHATSAPP=false` no apagaba el bot.**
+
+Detalle completo en CLAUDE.md → *Security Gaps / Known Bugs*.
+
+---
+
+## 📚 Módulo Jurisprudencia (nuevo — 2026-09-07)
+
+Corpus público de jurisprudencia argentina ingestado desde **SAIJ** (~904.000 documentos, CC-BY 4.0). Endpoints: `GET /jurisprudencia` (búsqueda full-text en español, insensible a tildes), `GET /jurisprudencia/:id`, `POST /jurisprudencia/ingestar` (sólo ADMIN).
+
+Es la **primera entidad no multi-inquilino** del sistema: no lleva `userId` a propósito. Detalle completo, limitaciones y decisiones de diseño en CLAUDE.md.
+
+---
+
 ## 🔒 Seguridad
 
-Todos los gaps de seguridad conocidos están cerrados (JWT guards, filtros por userId, HMAC-SHA256 en webhook de MP, XSS/Header Injection en documents, Mass Assignment en calendar). Ver detalle completo en CLAUDE.md.
+### Capa transversal (aplicada globalmente desde `main.ts` / `app.module.ts`)
+
+- **`ValidationPipe` global** (`whitelist` + `forbidNonWhitelisted` + `transform`). Sólo valida handlers cuyo `@Body()` está tipado con una **clase DTO decorada**: los tipos inline se borran al compilar y no protegen nada. Al agregar un endpoint, crear su DTO en `<módulo>/dto/`.
+- **`helmet`** para headers de seguridad (CSP desactivada: la API sólo emite JSON y streams de archivos).
+- **`ThrottlerGuard` global** a 120 req/min, endurecido por handler en auth con `@Throttle` (login 10/min, registro y OTP 5/min).
+
+### Reglas al escribir endpoints
+
+- **Aislamiento por inquilino**: filtrar por el `userId` del token dentro de la consulta — `findOne({ where: { id, userId } })`, `update({ id, userId }, cambios)` verificando `result.affected`. Un `where: { id }` suelto en un endpoint autenticado es un bug de multi-tenancy.
+- **Campos sensibles**: nunca serializar una entidad `User` cruda. `backend/src/users/user-response.util.ts` decide qué sale (`sanitizeUser`) y qué puede editar el usuario de sí mismo (`pickSelfEditableFields`).
+
+### Auditoría del 2026-09-07 — corregido
+
+~~- **Escalada de privilegios**: `PATCH /users/profile` con `{"role":"ADMIN"}` promovía al usuario, porque el body llegaba sin filtrar a `usersRepository.update()`. Corregido con lista blanca. ✓~~
+~~- **Fuga de facturas entre inquilinos**: `GET /facturas`, `/facturas/client/:clientId` y `/facturas/:id/pdf` no filtraban por `userId`. ✓~~
+~~- **IDOR** en `GET/PUT/DELETE /deadlines/:id` y en `POST /expedientes/:id/sync`. ✓~~
+~~- **Cero validación de entrada**: no había `ValidationPipe`, DTOs ni `class-validator` instalado. ✓~~
+~~- **Credenciales al navegador**: el login y el perfil devolvían `afipKey`, `pjnPassword` y `mevPassword` en texto plano. ✓~~
+~~- **Sin rate limiting ni headers de seguridad**. ✓~~
+~~- **Enumeración de usuarios** en `/auth/forgot-password`. ✓~~
+~~- **`POST /auth/register`** devolvía el `passwordHash`, no validaba la contraseña del lado del servidor y tiraba 500 ante email duplicado. ✓~~
+
+### Pendiente
+
+- **DTOs para el resto de los módulos** (`clients`, `expedientes`, `movimientos`, `calendar`, `facturas`, `legal-models`, `documents`, `settings`). El pipe global ya está activo: alcanza con agregar la clase DTO en cada módulo.
+- **`pjnPassword` / `mevPassword` en texto plano** en la tabla `user`; cifrar en reposo antes de usar la sincronización judicial en producción.
+
+Ver detalle completo en CLAUDE.md.
 
 ---
 
@@ -81,6 +131,8 @@ Todos los gaps de seguridad conocidos están cerrados (JWT guards, filtros por u
 - `JWT_SECRET=super_secret_jwt_key`
 - `PORT` (por defecto 3000)
 - `MP_ACCESS_TOKEN` (Producción/Pruebas de MercadoPago)
+- `CORS_ORIGINS` (lista separada por comas de orígenes permitidos; si falta se usan Vercel + `localhost:4200`)
+- `JUDICIAL_SYNC_ENABLED` (`true` / `false`, **default `false`**) — habilita la sincronizacion judicial. Mientras `fetchNovedadesMock()` siga siendo la fuente, encenderlo genera actuaciones **inventadas**; usar solo en demos o desarrollo.
 - `MP_WEBHOOK_SECRET` (Firma de Webhooks de MercadoPago — **pendiente en Railway**)
 - `RESEND_API_KEY` (Para envío de correos en flujo de olvido de clave — **pendiente en Railway**; sin esta variable el fallback a email no funciona, WhatsApp sigue andando normalmente)
 - `FRONTEND_URL` (URL del frontend — ya se usa en el código; configurar en Railway para que `back_url` de MercadoPago apunte correctamente)
@@ -110,7 +162,7 @@ Todos los gaps de seguridad conocidos están cerrados (JWT guards, filtros por u
   - Expedientes: límite de 30 en plan básico hardcodeado en el template frontend
   - Grace period: `GRACE_PERIOD_MS = 7 * 24 * 60 * 60 * 1000` definido una sola vez en `SubscriptionService` (`core/services/subscription.service.ts`). No duplicar.
   - CORS: origins hardcodeados en `backend/src/main.ts`
-- **Tests**: Suite Jest agregada para paginación de clientes, activación/fallback de IA y persistencia de OTPs en DB. Ejecutar `npx jest --verbose` en carpeta `backend` (todos los 10 tests pasan).
+- **Tests**: 106 tests en 15 suites, todos pasando. Ejecutar `npx jest --verbose` en `backend/`. Además de paginación, IA y OTPs, cubren la capa de seguridad: escalada de privilegios, aislamiento por inquilino en facturas y vencimientos, sanitización de campos sensibles y reglas del `ValidationPipe`. Al tocar un endpoint autenticado, sumar su test de aislamiento (patrón en `deadlines.service.spec.ts`).
 - **OTP con crypto.randomInt**: Los OTPs usan `import { randomInt } from 'crypto'` (no `Math.random()`). Límite de 5 intentos fallidos antes de invalidar — guardados en tabla `otps` de PostgreSQL.
 - **Kanban: detectar columna por referencia**: `this.columns.find(c => c.items === event.container.data)` es más robusto que `event.container.id` (CDK puede devolver ID interno).
 - **Auth endpoints públicos**: `/auth/forgot-password` y `/auth/reset-password` no requieren JWT. OTPs keyed por `forgot_<email>` para no colisionar con los del perfil.
@@ -250,6 +302,17 @@ ALTER TABLE "user" DROP COLUMN IF EXISTS "subscriptionStatus";
 ALTER TABLE "user" DROP COLUMN IF EXISTS "subscriptionExpiresAt";
 ALTER TABLE "user" DROP COLUMN IF EXISTS "mpSubscriptionId";
 ```
+
+---
+
+## 🛡️ Auditoría de Seguridad (2026-09-07)
+
+Hallazgos verificados sobre el código y corregidos en la rama `security/hardening-api`. Detalle y estado en la sección **🔒 Seguridad** de este archivo.
+
+- **Dependencias nuevas**: `class-validator`, `class-transformer`, `helmet`, `@nestjs/throttler`.
+- **Archivos nuevos**: `backend/src/users/user-response.util.ts` (fuente única de verdad sobre campos sensibles y editables), `backend/src/auth/dto/auth.dto.ts`.
+- **Tests**: 25 → 71, con suites de regresión para cada vulnerabilidad corregida.
+- **Frontend**: la clave privada AFIP pasó a ser de sólo escritura (el servidor ya no la devuelve; el perfil usa la bandera `hasAfipKey`), y el validador de contraseña del registro ahora replica la política del backend en vez de sólo exigir 8 caracteres.
 
 ---
 

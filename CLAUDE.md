@@ -72,6 +72,7 @@ Each feature is a NestJS module under `backend/src/`. Key modules:
 - **dashboard** — `GET /dashboard/stats`: métricas agregadas del estudio autenticado.
 - **notifications** — Web Push (VAPID). `GET /notifications/vapid-public-key`, `POST /notifications/subscribe` y `/unsubscribe`.
 - **legal-models** — Repositorio de plantillas de escritos, integrado con el redactor del Copiloto. CRUD filtrado por `userId`.
+- **console** — API interna para la **consola central** (panel único de todos los productos). `GET /internal/console/summary` devuelve los estudios con plan, estado común (`active`/`trial`/`grace`/`expired`/`suspended`/`paused`/`cancelled`), importe mensual y uso; `POST /internal/console/tenants/:id/suspend` y `/reactivate` cambian `isActive` (sólo usuarios `USER`). Protegida por `ConsoleKeyGuard`: sin `CONSOLE_API_KEY` responde 404. El contrato está en `console/console.contract.ts` y es el mismo en todas las apps. Suspender corta el login; un token ya emitido sigue valiendo hasta que vence (60 min).
 - **support-tickets** — Tickets de soporte. Los crea cualquier usuario; listarlos y resolverlos requiere `ADMIN`.
 - **expedientes/judicial-sync** — ⚠️ **NO está implementado: `fetchNovedadesMock()` devuelve actuaciones inventadas hardcodeadas.** El cron nocturno (3 AM) y `POST /expedientes/:id/sync` las guardan como reales y disparan alertas de WhatsApp al abogado. Ver *Known Bugs → Críticos*.
 - **ai** — **Copilot module**. Exposes `/ai/analyze`, `/ai/draft`, `/ai/summarize-expediente`, `/ai/analyze-risk`, and `/ai/analyze-costs` protected by `JwtAuthGuard`. Leverages Google Gemini 2.5 Flash (free tier) via `GEMINI_API_KEY` (or dynamically configured using `GEMINI_MODEL`) with automated fallback to OpenAI (`gpt-4o-mini`) if `OPENAI_API_KEY` is set.
@@ -145,6 +146,7 @@ Backend (`.env`):
 - `DATABASE_URL` or (`DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`)
 - `JWT_SECRET` — **obligatoria**: sin ella el backend no arranca (antes caía a `'secretKey'`, un valor público).
 - `CREDENTIALS_ENCRYPTION_KEY` — cifra en reposo `afipKey`, `pjnPassword` y `mevPassword` (AES-256-GCM, `common/crypto/field-encryption.ts`). Generarla con `openssl rand -base64 32`. Sin ella se guardan en texto plano y se loguea un error. **No cambiarla** una vez cargada: los valores cifrados con la anterior dejan de poder leerse.
+- `CONSOLE_API_KEY` — clave compartida con la consola central (mínimo 32 caracteres, `openssl rand -base64 48`). Sin ella `/internal/console/*` no existe (404).
 - `ENABLE_PAYMENT_SIMULATION` (`true` / `false`, **default `false`**) — habilita `POST /mercadopago/simulate-payment`, que activa una suscripción sin cobrar. Sólo para desarrollo y demos; nunca en producción.
 - `MP_ACCESS_TOKEN` — MercadoPago
 - `ADMIN_PASSWORD` — seed password for admin user (defaults to `ChangeMe123!`)
@@ -336,7 +338,7 @@ Ver sección **"Pendientes de Acción Manual"** al final de este archivo para la
   - Expedientes: límite de 30 en plan básico hardcodeado en el template frontend
   - Grace period: `GRACE_PERIOD_MS = 7 * 24 * 60 * 60 * 1000` definido una sola vez en `SubscriptionService` (`core/services/subscription.service.ts`). No duplicar.
   - CORS: origins hardcodeados en `backend/src/main.ts`
-- **Tests**: 122 tests en 18 suites, todos pasando. Ejecutar `npx jest --verbose` desde `backend/`. Cubren paginación de clientes, activación/fallback de IA, persistencia de OTPs, y la capa de seguridad: escalada de privilegios en `updateProfile`, aislamiento por inquilino en facturas y vencimientos, sanitización de campos sensibles y las reglas del `ValidationPipe`. **Al tocar un endpoint autenticado, agregar el test de aislamiento correspondiente** — el patrón está en `deadlines.service.spec.ts` (`describe('aislamiento por inquilino')`).
+- **Tests**: 132 tests en 19 suites, todos pasando. Ejecutar `npx jest --verbose` desde `backend/`. Cubren paginación de clientes, activación/fallback de IA, persistencia de OTPs, y la capa de seguridad: escalada de privilegios en `updateProfile`, aislamiento por inquilino en facturas y vencimientos, sanitización de campos sensibles y las reglas del `ValidationPipe`. **Al tocar un endpoint autenticado, agregar el test de aislamiento correspondiente** — el patrón está en `deadlines.service.spec.ts` (`describe('aislamiento por inquilino')`).
 - **whatsapp-auth/ in .gitignore**: `backend/whatsapp-auth/` is ignored by `.gitignore` in the repository root to prevent committing chromium session cache.
 - **OTP con crypto.randomInt**: Los OTPs usan `import { randomInt } from 'crypto'` (no `Math.random()`). Límite de 5 intentos fallidos antes de invalidar — y están guardados en la tabla `otps` de PostgreSQL.
 - **Documents service usa userId**: `findAll`, `findOne`, `remove`, `create` reciben `userId` para ownership. El controller extrae `req.user.userId` del JWT.

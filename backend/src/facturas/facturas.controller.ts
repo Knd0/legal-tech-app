@@ -2,6 +2,7 @@ import { Controller, Post, Body, Req, UseGuards, Get, Param, Query, Res, NotFoun
 import { FacturasService } from './facturas.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { Response } from 'express';
+import { PlanLimit, RequiresFeature, AllowWithoutSubscription } from '../plan/plan.decorators';
 
 @Controller('facturas')
 @UseGuards(JwtAuthGuard)
@@ -25,6 +26,7 @@ export class FacturasController {
   }
 
   @Post()
+  @RequiresFeature('afip')
   create(@Body() createFacturaDto: any, @Req() req) {
     return this.facturasService.createFactura(createFacturaDto, req.user.userId);
   }

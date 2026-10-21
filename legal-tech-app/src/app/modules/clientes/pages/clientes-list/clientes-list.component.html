@@ -19,8 +19,8 @@
                 class="p-button-outlined p-button-help premium-locked border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 w-full sm:w-auto text-xs sm:text-sm"
                 (click)="triggerImport()"></button>
             <button pButton label="Nuevo Cliente" icon="pi pi-plus"
-                [disabled]="subscriptionService.isCreationBlocked() || (authService.currentUser()?.subscriptionPlan === 'basic' && clientService.clients().length >= 10)"
-                [pTooltip]="subscriptionService.isCreationBlocked() ? 'Suscripción vencida. Actualice su plan.' : (authService.currentUser()?.subscriptionPlan === 'basic' && clientService.clients().length >= 10 ? 'Límite de 10 clientes (Plan Básico) alcanzado. Actualice a Plan Profesional.' : '')"
+                [disabled]="subscriptionService.isCreationBlocked() || planService.isAtLimit('clientes')"
+                [pTooltip]="subscriptionService.isCreationBlocked() ? 'Suscripción vencida. Actualice su plan.' : planService.limitMessage('clientes')"
                 class="premium-locked col-span-2 sm:col-span-1 w-full sm:w-auto text-xs sm:text-sm"
                 routerLink="new"></button>
         </div>

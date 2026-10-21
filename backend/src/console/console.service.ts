@@ -6,9 +6,14 @@ import { Subscription } from '../users/entities/subscription.entity';
 import { Client } from '../clients/client.entity';
 import { Expediente } from '../expedientes/expediente.entity';
 import { ConsoleSummary, ConsoleTenant, ConsoleTenantStatus } from './console.contract';
+import { PLANS } from '../plan/plan-policy';
 
 /** Precios mensuales vigentes (ver MercadopagoController.createSubscription). */
-export const PLAN_PRICES_ARS: Record<string, number> = { basic: 20000, pro: 35000 };
+/** Precio mensual por plan, tomado del catálogo único de planes. */
+export const PLAN_PRICES_ARS: Record<string, number> = {
+  basic: PLANS.basic.priceArs,
+  pro: PLANS.pro.priceArs,
+};
 /** Mismo período de gracia que el frontend (SubscriptionService). */
 export const GRACE_PERIOD_MS = 7 * 24 * 60 * 60 * 1000;
 

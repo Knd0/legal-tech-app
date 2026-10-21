@@ -32,6 +32,20 @@
     </div>
   </div>
 
+  <!-- Aviso de prueba gratis: cuántos días quedan y salida a los planes -->
+  <div *ngIf="authService.isAuthenticated() && planService.isTrial() && !trialPillDismissed()"
+    class="trial-pill fixed bottom-4 right-4 z-[60] flex items-center gap-3 rounded-full pl-4 pr-2 py-2 shadow-lg border border-[var(--border-color)] bg-[var(--bg-surface)] text-[var(--text-main)] text-sm">
+    <i class="pi pi-clock text-[var(--accent-terracotta)]"></i>
+    <span>
+      Prueba gratis:
+      <strong>{{ planService.info()?.daysLeft === 1 ? 'te queda 1 día' : 'te quedan ' + planService.info()?.daysLeft + ' días' }}</strong>
+    </span>
+    <a [routerLink]="['/subscription/pricing']" class="rounded-full px-3 py-1 font-semibold text-white bg-[var(--accent-terracotta)] hover:opacity-90">Elegir plan</a>
+    <button type="button" (click)="trialPillDismissed.set(true)" aria-label="Cerrar aviso" class="w-7 h-7 rounded-full hover:bg-black/5 flex items-center justify-center">
+      <i class="pi pi-times text-xs"></i>
+    </button>
+  </div>
+
   <nav *ngIf="authService.isAuthenticated()"
     class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 fixed w-full top-0 z-50 h-16 px-6 flex justify-between items-center transition-colors duration-300">
 
@@ -99,9 +113,7 @@
         <div class="flex flex-col text-right hidden sm:flex">
           <span class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ (authService.currentUser()?.fullName) ||
             'Usuario' }}</span>
-          <span class="text-[10px] text-slate-400 dark:text-slate-500 capitalize">{{ (authService.currentUser()?.role)
-            || 'Abogado'
-            }}</span>
+          <span class="text-[10px] text-slate-400 dark:text-slate-500">{{ planService.etiqueta() }}</span>
         </div>
         <div class="relative group">
           <button

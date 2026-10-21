@@ -53,6 +53,9 @@ export class ExpedienteDetailComponent implements OnInit {
   clientName = signal<string>('');
   actuaciones = signal<any[]>([]);
   syncing = signal(false);
+  // La consulta automática a PJN/MEV todavía no existe (el backend responde 503).
+  // Se oculta el botón para no ofrecer a los clientes una función que no anda.
+  readonly syncDisponible = false;
   showAddActuacionDialog = signal(false);
 
   newActuacion = {

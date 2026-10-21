@@ -68,21 +68,31 @@ export class Register {
 
     this.authService.register(email, password, fullName, phoneNumber).subscribe({
       next: () => {
-        this.loading.set(false);
-        Swal.fire({
-          icon: 'success',
-          title: 'Registro Exitoso',
-          text: 'Tu cuenta ha sido creada. Inicia sesión para continuar.',
-          timer: 3000,
-          showConfirmButton: false
-        }).then(() => {
-          this.router.navigate(['/auth/login']);
+        // Entra directo: antes había que volver a escribir email y contraseña.
+        this.authService.login(email, password).subscribe({
+          next: () => {
+            this.loading.set(false);
+            this.router.navigate(['/dashboard']);
+            Swal.fire({
+              icon: 'success',
+              title: '¡Bienvenido a Themis!',
+              text: 'Tu prueba gratis de 14 días ya empezó, con todas las funciones del Plan Profesional. Empezá cargando tu primer cliente.',
+              confirmButtonText: 'Empezar',
+              confirmButtonColor: '#C66B3D',
+            });
+          },
+          error: () => {
+            this.loading.set(false);
+            this.router.navigate(['/auth/login']);
+          },
         });
       },
       error: (err: any) => {
         this.loading.set(false);
-        console.error('Registration error', err);
-        Swal.fire('Error', 'No se pudo crear la cuenta. Verifica que el correo no esté en uso.', 'error');
+        const message = err?.status === 409
+          ? 'Ya existe una cuenta con ese email. Probá iniciar sesión o recuperar la contraseña.'
+          : (Array.isArray(err?.error?.message) ? err.error.message.join(' ') : err?.error?.message) || 'No se pudo crear la cuenta. Intentá de nuevo en unos minutos.';
+        Swal.fire({ icon: 'error', title: 'No pudimos crear la cuenta', text: message, confirmButtonColor: '#C66B3D' });
       }
     });
   }

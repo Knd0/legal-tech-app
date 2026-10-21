@@ -7,6 +7,7 @@ import { ThemeService } from './core/services/theme.service';
 import { PwaUpdateService } from './core/services/pwa-update.service';
 import { LoadingService } from './core/services/loading.service';
 import { MenuItem } from 'primeng/api';
+import { PlanService } from './core/services/plan.service';
 
 @Component({
   selector: 'app-root',
@@ -35,6 +36,8 @@ export class AppComponent implements OnInit {
   deadlineService = inject(DeadlineService);
   authService = inject(AuthService);
   subscriptionService = inject(SubscriptionService);
+  planService = inject(PlanService);
+  trialPillDismissed = signal(false);
   themeService = inject(ThemeService);
   
   // Calculate distinct urgent deadlines (< 3 days)

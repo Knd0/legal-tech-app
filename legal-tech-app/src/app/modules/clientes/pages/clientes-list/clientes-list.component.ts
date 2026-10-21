@@ -9,6 +9,7 @@ import { LoadingService } from '../../../../core/services/loading.service';
 import Swal from 'sweetalert2';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { PlanService } from '../../../../core/services/plan.service';
 
 @Component({
   selector: 'app-clientes-list',
@@ -23,6 +24,7 @@ export class ClientesListComponent implements OnInit, OnDestroy {
   loadingService = inject(LoadingService);
   authService = inject(AuthService);
   subscriptionService = inject(SubscriptionService);
+  planService = inject(PlanService);
 
   searchTerm = signal<string>('');
   clientes = signal<Cliente[]>([]);

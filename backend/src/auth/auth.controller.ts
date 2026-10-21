@@ -21,7 +21,9 @@ import {
   ResetPasswordDto,
   VerifyPhoneOtpDto,
 } from './dto/auth.dto';
+import { PlanLimit, RequiresFeature, AllowWithoutSubscription } from '../plan/plan.decorators';
 
+@AllowWithoutSubscription()
 @Controller('auth')
 export class AuthController {
   constructor(

@@ -75,6 +75,7 @@ Each feature is a NestJS module under `backend/src/`. Key modules:
 - **console** — API interna para la **consola central** (panel único de todos los productos). `GET /internal/console/summary` devuelve los estudios con plan, estado común (`active`/`trial`/`grace`/`expired`/`suspended`/`paused`/`cancelled`), importe mensual y uso; `POST /internal/console/tenants/:id/suspend` y `/reactivate` cambian `isActive` (sólo usuarios `USER`). Protegida por `ConsoleKeyGuard`: sin `CONSOLE_API_KEY` responde 404. El contrato está en `console/console.contract.ts` y es el mismo en todas las apps. Suspender corta el login; un token ya emitido sigue valiendo hasta que vence (60 min).
 - **support-tickets** — Tickets de soporte. Los crea cualquier usuario; listarlos y resolverlos requiere `ADMIN`.
 - **expedientes/judicial-sync** — ⚠️ **NO está implementado: `fetchNovedadesMock()` devuelve actuaciones inventadas hardcodeadas.** El cron nocturno (3 AM) y `POST /expedientes/:id/sync` las guardan como reales y disparan alertas de WhatsApp al abogado. Ver *Known Bugs → Críticos*.
+- **plan** — **Catálogo de planes y su aplicación en el servidor** (`plan/plan-policy.ts` es la única fuente de verdad de precios, límites y funciones). Básico: 10 clientes, 15 expedientes, sin IA/AFIP/WhatsApp, $20.000. Profesional: sin límites, todo incluido, $35.000. Prueba gratis de 14 días con el plan Profesional (`trialExpiry()` al registrarse) y 7 días de gracia tras vencer (sólo lectura). Un `APP_INTERCEPTOR` global lee los decoradores de `plan.decorators.ts`: `@PlanLimit('clientes')` → 403 `PLAN_LIMIT`, `@RequiresFeature('ai')` → 403 `PLAN_FEATURE`, y cualquier escritura sin suscripción vigente → 402 `SUBSCRIPTION_REQUIRED`. `@AllowWithoutSubscription()` exceptúa auth, pagos, soporte, notificaciones y el perfil. `GET /plan` devuelve acceso + uso + catálogo para el frontend. MercadoPago y la consola toman el precio de `PLANS`.
 - **ai** — **Copilot module**. Exposes `/ai/analyze`, `/ai/draft`, `/ai/summarize-expediente`, `/ai/analyze-risk`, and `/ai/analyze-costs` protected by `JwtAuthGuard`. Leverages Google Gemini 2.5 Flash (free tier) via `GEMINI_API_KEY` (or dynamically configured using `GEMINI_MODEL`) with automated fallback to OpenAI (`gpt-4o-mini`) if `OPENAI_API_KEY` is set.
 
 ### jurisprudencia (nuevo — 2026-09-07)
@@ -123,6 +124,8 @@ State management uses **Angular Signals** — no NgRx. The `AuthService` (`core/
 - `isSubscriptionExpired` — true if `subscriptionExpiresAt` is past
 - `isGracePeriod` — 7-day window after expiry; read allowed, creation blocked
 - `isCreationBlocked` — gates all create/edit actions in components
+
+**`PlanService`** (`core/services/plan.service.ts`) refleja `GET /plan`: `hasFeature()`, `isAtLimit()`, `limitMessage()`, `etiqueta` (texto del plan en la barra superior) y el aviso de prueba gratis. Llamar a `planService.refresh()` después de crear algo que cuente para un límite. `plan-errors.interceptor.ts` convierte los 402/403 `PLAN_*` del servidor en un aviso con botón "Ver planes". El servidor es quien aplica los límites; el frontend sólo los anticipa.
 
 Route guards: `authGuard`, `guestGuard`, `subscriptionGuard` (redirects past-grace-period users to `/subscription/pricing`), `AdminGuard`.
 
@@ -229,6 +232,8 @@ To maintain design consistency and prevent bugs (like icon distortion or broken 
 
   Todas las filas que devuelva esa consulta son datos fabricados por el mock y deberían borrarse una vez confirmado con los usuarios afectados.
 
+~~- **El aviso diario por WhatsApp salía también para el plan Básico y para suscripciones vencidas.** `NotificationsService.handleCron` ahora consulta `PlanService.accessFor()`; sólo envía WhatsApp con la función `whatsapp` del plan y estado `trial`/`active`/`grace`. El aviso push sigue saliendo siempre. Cubierto en `notifications.service.spec.ts`. ✓~~
+~~- **Sincronización judicial ofrecida en la UI** — el botón "Sincronizar Portal" y el switch "Auto Sync" se mostraban aunque el backend devuelve 503. Ocultos (`syncDisponible = false` en `expediente-detail`), `autoSync` arranca en `false` y el formulario indica "Sincronización automática: próximamente". ✓~~
 ~~- **`main.ts:5-7`** — `console.log` expone la API URL en la consola del browser en producción. Eliminados los 3 logs de arranque. ✓~~
 ~~- **`mercadopago.service.ts:48,72`** — `back_url` hardcodeada. Movida a `configService.get('FRONTEND_URL')` con fallback. ✓~~
 ~~- **`home.component.html`** — Archivo orphanado (no referenciado en routing). La ruta `/` usa el componente `Landing` real. ✓~~
@@ -303,7 +308,7 @@ Ver sección **"Pendientes de Acción Manual"** al final de este archivo para la
 | Expedientes         | 99%     | —                                                                         |
 | Calendario          | 99%     | —                                                                         |
 | Profile             | 100%    | —                                                                         |
-| Subscription UI     | 99%     | —                                                                         |
+| Subscription UI     | 100%    | Planes aplicados en el servidor, prueba de 14 días, aviso de días restantes y página de precios con los límites reales. |
 | Dashboard           | 99%     | —                                                                         |
 | Admin/Users         | 99%     | —                                                                         |
 | Documents UI        | 99%     | —                                                                         |
@@ -334,11 +339,10 @@ Ver sección **"Pendientes de Acción Manual"** al final de este archivo para la
 - **Bypass de Bug de Código de Emparejamiento en whatsapp-web.js**: La función `requestPairingCode` de `whatsapp-web.js` falla con `TypeError: window.onCodeReceivedEvent is not a function` si el cliente no se inicializó con la opción `pairWithPhoneNumber` en el constructor. Lo solucionamos exponiendo dinámicamente `window.onCodeReceivedEvent` en el contexto del navegador (Puppeteer) antes de llamar a la función interna.
 - **synchronize:true en prod**: TypeORM crea/altera tablas al iniciar. Cambios de columna pueden perder datos. No usar para eliminar columnas — hacerlo manualmente en la DB.
 - **Hardcoded values a recordar**:
-  - MercadoPago: monto `15000 ARS` en `mercadopago.service.ts`
-  - Expedientes: límite de 30 en plan básico hardcodeado en el template frontend
+  - Precios y límites de planes: sólo en `backend/src/plan/plan-policy.ts` (`PLANS`). No repetirlos en MercadoPago, la consola ni el frontend.
   - Grace period: `GRACE_PERIOD_MS = 7 * 24 * 60 * 60 * 1000` definido una sola vez en `SubscriptionService` (`core/services/subscription.service.ts`). No duplicar.
   - CORS: origins hardcodeados en `backend/src/main.ts`
-- **Tests**: 132 tests en 19 suites, todos pasando. Ejecutar `npx jest --verbose` desde `backend/`. Cubren paginación de clientes, activación/fallback de IA, persistencia de OTPs, y la capa de seguridad: escalada de privilegios en `updateProfile`, aislamiento por inquilino en facturas y vencimientos, sanitización de campos sensibles y las reglas del `ValidationPipe`. **Al tocar un endpoint autenticado, agregar el test de aislamiento correspondiente** — el patrón está en `deadlines.service.spec.ts` (`describe('aislamiento por inquilino')`).
+- **Tests**: 149 tests en 20 suites, todos pasando. Ejecutar `npx jest --verbose` desde `backend/`. Cubren el catálogo y la aplicación de planes (`plan.spec.ts`), paginación de clientes, activación/fallback de IA, persistencia de OTPs, y la capa de seguridad: escalada de privilegios en `updateProfile`, aislamiento por inquilino en facturas y vencimientos, sanitización de campos sensibles y las reglas del `ValidationPipe`. **Al tocar un endpoint autenticado, agregar el test de aislamiento correspondiente** — el patrón está en `deadlines.service.spec.ts` (`describe('aislamiento por inquilino')`).
 - **whatsapp-auth/ in .gitignore**: `backend/whatsapp-auth/` is ignored by `.gitignore` in the repository root to prevent committing chromium session cache.
 - **OTP con crypto.randomInt**: Los OTPs usan `import { randomInt } from 'crypto'` (no `Math.random()`). Límite de 5 intentos fallidos antes de invalidar — y están guardados en la tabla `otps` de PostgreSQL.
 - **Documents service usa userId**: `findAll`, `findOne`, `remove`, `create` reciben `userId` para ownership. El controller extrae `req.user.userId` del JWT.

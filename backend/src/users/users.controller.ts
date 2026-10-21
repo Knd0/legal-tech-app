@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { sanitizeAndFlattenUser } from './user-response.util';
+import { PlanLimit, RequiresFeature, AllowWithoutSubscription } from '../plan/plan.decorators';
 
 @Controller('users')
 export class UsersController {
@@ -19,6 +20,7 @@ export class UsersController {
   }
 
   @Patch('profile')
+  @AllowWithoutSubscription()
   @UseGuards(JwtAuthGuard)
   async updateProfile(@Req() req, @Body() updateData: any) {
     const user = await this.usersService.updateProfile(req.user.userId, updateData);

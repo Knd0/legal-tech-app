@@ -3,7 +3,10 @@ import { MercadopagoService } from './mercadopago.service';
 import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import * as crypto from 'crypto';
+import { AllowWithoutSubscription } from '../plan/plan.decorators';
+import { PLANS } from '../plan/plan-policy';
 
+@AllowWithoutSubscription()
 @Controller('mercadopago')
 export class MercadopagoController {
   private readonly logger = new Logger(MercadopagoController.name);
@@ -21,7 +24,8 @@ export class MercadopagoController {
     try {
       const user = req.user;
       const targetPlan = plan === 'basic' ? 'basic' : 'pro';
-      const amount = targetPlan === 'basic' ? 20000 : 35000; // Restaurado a los precios de producción originales
+      // El precio sale del catálogo de planes: es el mismo que muestra GET /plan y la consola.
+      const amount = PLANS[targetPlan].priceArs;
       const planName = targetPlan === 'basic' ? 'Themis Básico' : 'Themis Pro';
       const result = await this.mpService.createSubscriptionForUser(user.userId, user.username, planName, amount);
       return res.status(200).json({ preapprovalLink: result.init_point });

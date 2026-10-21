@@ -1,6 +1,6 @@
 <div class="fade-in-up flex flex-col gap-6 pb-10 relative">
   <!-- Paywall Overlay if Basic Plan -->
-  <div *ngIf="authService.currentUser()?.subscriptionPlan === 'basic' && authService.currentUser()?.role !== 'ADMIN'" 
+  <div *ngIf="!planService.hasFeature('ai')" 
        class="absolute inset-0 z-[100] bg-white/70 dark:bg-slate-900/70 backdrop-blur-md flex flex-col items-center justify-center p-8 rounded-2xl text-center min-h-[500px]">
        <div class="max-w-md bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700 hover:scale-[1.01] transition-transform duration-300">
            <div class="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-4 mx-auto border border-amber-200">

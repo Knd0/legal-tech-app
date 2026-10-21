@@ -9,6 +9,7 @@ import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { SettingsService } from '../settings/settings.service';
 import { PushSubscription } from './entities/push-subscription.entity';
 import { UsersService } from '../users/users.service';
+import { PlanService } from '../plan/plan.service';
 
 @Injectable()
 export class NotificationsService {
@@ -22,6 +23,7 @@ export class NotificationsService {
     private readonly settingsService: SettingsService,
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
+    private readonly planService: PlanService,
     @InjectRepository(PushSubscription)
     private readonly pushSubscriptionRepository: Repository<PushSubscription>,
   ) {
@@ -120,6 +122,21 @@ export class NotificationsService {
     }
   }
 
+  /**
+   * Los avisos por WhatsApp son una función del plan Profesional (y de la prueba
+   * gratis). Con la suscripción vencida o cancelada tampoco se envían: el aviso
+   * push sigue saliendo, porque un vencimiento procesal no debe pasar inadvertido.
+   */
+  private async whatsappIncluido(user: { id: string; role?: string }): Promise<boolean> {
+    try {
+      const access = await this.planService.accessFor(user.id, user.role === 'ADMIN');
+      return access.features.whatsapp && ['trial', 'active', 'grace'].includes(access.state);
+    } catch (e) {
+      this.logger.error(`No se pudo leer el plan del usuario ${user.id}`, e);
+      return false;
+    }
+  }
+
   @Cron(CronExpression.EVERY_DAY_AT_9AM) // Runs at 9:00 AM daily
   async handleCron() {
     this.logger.debug('Running daily deadline check...');
@@ -179,7 +196,8 @@ export class NotificationsService {
             ? (lawyerUser.alertWhatsapp && settings.enableWhatsapp) 
             : settings.enableWhatsapp;
 
-          if (sendWhatsapp && lawyerUser && lawyerUser.phoneNumber && lawyerUser.isPhoneVerified) {
+          if (sendWhatsapp && lawyerUser && lawyerUser.phoneNumber && lawyerUser.isPhoneVerified
+              && await this.whatsappIncluido(lawyerUser)) {
              const daysStr = diffDays === 0 ? 'HOY' : `${diffDays} días`;
              const message = `📅 *Recordatorio de Vencimiento (Themis)*\n\n` +
                              `🔔 Vencimiento: *${d.titulo}*\n` +

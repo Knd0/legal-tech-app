@@ -2,6 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, OneToMany, On
 import { Client } from '../../clients/client.entity';
 import { Expediente } from '../../expedientes/expediente.entity';
 import { Subscription } from './subscription.entity';
+import { encryptedColumn } from '../../common/crypto/field-encryption';
 
 @Entity()
 export class User {
@@ -56,7 +57,7 @@ export class User {
   @Column({ type: 'text', nullable: true })
   afipCert: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, transformer: encryptedColumn })
   afipKey: string;
 
   @Column({ default: false })
@@ -89,13 +90,17 @@ export class User {
   @Column({ nullable: true })
   pjnUser: string;
 
-  @Column({ nullable: true })
+  // Sin `type` explícito a propósito: cambiar varchar→text con synchronize:true
+  // puede hacer que TypeORM recree la columna y pierda los datos.
+  @Column({ nullable: true, transformer: encryptedColumn })
   pjnPassword: string;
 
   @Column({ nullable: true })
   mevUser: string;
 
-  @Column({ nullable: true })
+  // Sin `type` explícito a propósito: cambiar varchar→text con synchronize:true
+  // puede hacer que TypeORM recree la columna y pierda los datos.
+  @Column({ nullable: true, transformer: encryptedColumn })
   mevPassword: string;
 
   @CreateDateColumn()

@@ -143,7 +143,9 @@ Subscription state (`isSubscriptionExpired`, `isGracePeriod`, `isCreationBlocked
 Backend (`.env`):
 
 - `DATABASE_URL` or (`DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`)
-- `JWT_SECRET`
+- `JWT_SECRET` — **obligatoria**: sin ella el backend no arranca (antes caía a `'secretKey'`, un valor público).
+- `CREDENTIALS_ENCRYPTION_KEY` — cifra en reposo `afipKey`, `pjnPassword` y `mevPassword` (AES-256-GCM, `common/crypto/field-encryption.ts`). Generarla con `openssl rand -base64 32`. Sin ella se guardan en texto plano y se loguea un error. **No cambiarla** una vez cargada: los valores cifrados con la anterior dejan de poder leerse.
+- `ENABLE_PAYMENT_SIMULATION` (`true` / `false`, **default `false`**) — habilita `POST /mercadopago/simulate-payment`, que activa una suscripción sin cobrar. Sólo para desarrollo y demos; nunca en producción.
 - `MP_ACCESS_TOKEN` — MercadoPago
 - `ADMIN_PASSWORD` — seed password for admin user (defaults to `ChangeMe123!`)
 - `PORT` (default 3000)
@@ -282,7 +284,9 @@ Encontrados levantando la app con datos sembrados y recorriéndola en el navegad
 ### Pendiente
 
 - **DTOs para el resto de los módulos.** Auth ya está cubierto; `clients`, `expedientes`, `movimientos`, `calendar`, `facturas`, `legal-models`, `documents` y `settings` siguen recibiendo `Partial<Entity>` o `any`. El `ValidationPipe` global ya está activo, así que alcanza con ir agregando la clase DTO en cada módulo — no requiere tocar `main.ts`. Sin ellos, esos endpoints aceptan cualquier JSON.
-- **`pjnPassword` / `mevPassword` se guardan en texto plano** en la tabla `user`. Deberían cifrarse en reposo (o migrar a un secret store) antes de que la sincronización judicial se use en producción.
+~~- **`pjnPassword` / `mevPassword` / `afipKey` se guardaban en texto plano** en la tabla `user`. Ahora se cifran con un transformer de TypeORM y los valores viejos se re-cifran al arrancar (`UsersService.encryptLegacyCredentials`). Requiere `CREDENTIALS_ENCRYPTION_KEY`. ✓~~
+~~- **`POST /mercadopago/simulate-payment` daba el plan Pro gratis a cualquier usuario logueado en producción.** Ahora responde 404 salvo `ENABLE_PAYMENT_SIMULATION=true`, y el frontend oculta los botones en el build de producción. ✓~~
+~~- **`backend/test-mp.js` tenía un access token de producción de Mercado Pago.** Archivo eliminado; el token **debe renovarse** en Mercado Pago porque sigue en el historial de Git. ✓~~
 
 Ver sección **"Pendientes de Acción Manual"** al final de este archivo para las variables de entorno que aún faltan configurar en Railway.
 
@@ -332,7 +336,7 @@ Ver sección **"Pendientes de Acción Manual"** al final de este archivo para la
   - Expedientes: límite de 30 en plan básico hardcodeado en el template frontend
   - Grace period: `GRACE_PERIOD_MS = 7 * 24 * 60 * 60 * 1000` definido una sola vez en `SubscriptionService` (`core/services/subscription.service.ts`). No duplicar.
   - CORS: origins hardcodeados en `backend/src/main.ts`
-- **Tests**: 106 tests en 15 suites, todos pasando. Ejecutar `npx jest --verbose` desde `backend/`. Cubren paginación de clientes, activación/fallback de IA, persistencia de OTPs, y la capa de seguridad: escalada de privilegios en `updateProfile`, aislamiento por inquilino en facturas y vencimientos, sanitización de campos sensibles y las reglas del `ValidationPipe`. **Al tocar un endpoint autenticado, agregar el test de aislamiento correspondiente** — el patrón está en `deadlines.service.spec.ts` (`describe('aislamiento por inquilino')`).
+- **Tests**: 122 tests en 18 suites, todos pasando. Ejecutar `npx jest --verbose` desde `backend/`. Cubren paginación de clientes, activación/fallback de IA, persistencia de OTPs, y la capa de seguridad: escalada de privilegios en `updateProfile`, aislamiento por inquilino en facturas y vencimientos, sanitización de campos sensibles y las reglas del `ValidationPipe`. **Al tocar un endpoint autenticado, agregar el test de aislamiento correspondiente** — el patrón está en `deadlines.service.spec.ts` (`describe('aislamiento por inquilino')`).
 - **whatsapp-auth/ in .gitignore**: `backend/whatsapp-auth/` is ignored by `.gitignore` in the repository root to prevent committing chromium session cache.
 - **OTP con crypto.randomInt**: Los OTPs usan `import { randomInt } from 'crypto'` (no `Math.random()`). Límite de 5 intentos fallidos antes de invalidar — y están guardados en la tabla `otps` de PostgreSQL.
 - **Documents service usa userId**: `findAll`, `findOne`, `remove`, `create` reciben `userId` para ownership. El controller extrae `req.user.userId` del JWT.

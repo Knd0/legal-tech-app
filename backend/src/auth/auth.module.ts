@@ -10,6 +10,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { WhatsappModule } from '../whatsapp/whatsapp.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Otp } from './otp.entity';
+import { resolveJwtSecret } from './jwt-secret';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { Otp } from './otp.entity';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'secretKey',
+        secret: resolveJwtSecret(configService.get<string>('JWT_SECRET')),
         signOptions: { expiresIn: '60m' },
       }),
       inject: [ConfigService],

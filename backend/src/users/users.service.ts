@@ -5,6 +5,7 @@ import { User } from './entities/user.entity';
 import { Subscription } from './entities/subscription.entity';
 import * as bcrypt from 'bcrypt';
 import { pickSelfEditableFields } from './user-response.util';
+import { ENCRYPTED_PREFIX } from '../common/crypto/field-encryption';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -36,6 +37,48 @@ export class UsersService implements OnModuleInit {
         console.log('Seeded default Super Admin account (admin@themis.com).');
       }
     }
+
+    // Nunca bloquea el arranque: si falla, se reintenta en el próximo deploy.
+    await this.encryptLegacyCredentials().catch((err) =>
+      console.error('No se pudieron re-cifrar las credenciales heredadas:', err),
+    );
+  }
+
+  /**
+   * Re-cifra las credenciales que quedaron en texto plano de antes de que
+   * existiera el cifrado en reposo. Es idempotente: sólo toca filas cuyo valor
+   * no tenga el prefijo `enc:v1:`. Sin `CREDENTIALS_ENCRYPTION_KEY` no hace nada.
+   *
+   * Se lee con `getRawMany()` para saltear el transformer (que devolvería el
+   * texto plano igual que uno descifrado) y se escribe con `update()`, que sí lo
+   * aplica.
+   */
+  async encryptLegacyCredentials(): Promise<number> {
+    if (!process.env.CREDENTIALS_ENCRYPTION_KEY) return 0;
+
+    const fields = ['afipKey', 'pjnPassword', 'mevPassword'] as const;
+    let updated = 0;
+
+    for (const field of fields) {
+      const rows: { id: string; value: string }[] = await this.usersRepository
+        .createQueryBuilder('u')
+        .select('u.id', 'id')
+        .addSelect(`u.${field}`, 'value')
+        .where(`u.${field} IS NOT NULL`)
+        .andWhere(`u.${field} <> ''`)
+        .andWhere(`u.${field} NOT LIKE :prefix`, { prefix: `${ENCRYPTED_PREFIX}%` })
+        .getRawMany();
+
+      for (const row of rows) {
+        await this.usersRepository.update({ id: row.id }, { [field]: row.value } as Partial<User>);
+        updated++;
+      }
+    }
+
+    if (updated > 0) {
+      console.log(`Cifradas ${updated} credenciales heredadas en texto plano.`);
+    }
+    return updated;
   }
 
   async findOneByEmail(email: string): Promise<User | undefined> {

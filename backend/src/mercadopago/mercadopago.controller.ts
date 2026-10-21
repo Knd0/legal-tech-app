@@ -78,6 +78,12 @@ export class MercadopagoController {
   @UseGuards(JwtAuthGuard)
   @Post('simulate-payment')
   async simulatePayment(@Req() req, @Body('plan') plan: string, @Res() res: Response) {
+    // Activa una suscripción sin cobrar: sólo para desarrollo y demos. Antes
+    // estaba abierto a cualquier usuario logueado en producción, lo que permitía
+    // darse el plan Pro gratis desde la consola del navegador.
+    if (!isPaymentSimulationEnabled()) {
+      return res.status(404).json({ message: 'Not Found' });
+    }
     try {
       const targetPlan = plan === 'basic' ? 'basic' : 'pro';
       const result = await this.mpService.simulateSubscriptionPayment(req.user.userId, targetPlan);
@@ -123,4 +129,9 @@ export class MercadopagoController {
     await this.mpService.handleWebhook(body);
     return res.status(200).send('OK');
   }
+}
+
+/** La simulación de pagos sólo existe si se habilita explícitamente. */
+export function isPaymentSimulationEnabled(): boolean {
+  return process.env.ENABLE_PAYMENT_SIMULATION === 'true';
 }

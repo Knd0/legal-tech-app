@@ -18,6 +18,8 @@ export class Pricing implements OnInit {
   authService = inject(AuthService);
 
   loading = signal<'basic' | 'pro' | 'reactivate' | null>(null);
+  /** La simulación de pagos sólo se muestra en desarrollo (el backend además la apaga por defecto). */
+  readonly showPaymentSimulation = !environment.production;
 
   get status() {
     return this.authService.currentUser()?.subscriptionStatus ?? 'trial';

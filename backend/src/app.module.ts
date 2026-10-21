@@ -27,6 +27,7 @@ import { LegalModelsModule } from './legal-models/legal-models.module';
 import { SupportTicketsModule } from './support-tickets/support-tickets.module';
 import { JurisprudenciaModule } from './jurisprudencia/jurisprudencia.module';
 import { ConsoleModule } from './console/console.module';
+import { PlanModule } from './plan/plan.module';
 
 
 @Module({
@@ -79,6 +80,7 @@ import { ConsoleModule } from './console/console.module';
     }),
     WhatsappModule,
     ConsoleModule,
+    PlanModule,
     ClientsModule,
     ExpedientesModule,
     NotificationsModule,

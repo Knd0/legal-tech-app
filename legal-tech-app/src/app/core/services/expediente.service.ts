@@ -7,11 +7,13 @@ import { PaginatedResponse } from '../models/paginated-response.model';
 import Swal from 'sweetalert2';
 
 import { AuthService } from './auth.service';
+import { PlanService } from './plan.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExpedienteService {
+  private planService = inject(PlanService);
 
   private expedientesSignal = signal<Expediente[]>([]);
 
@@ -69,6 +71,7 @@ export class ExpedienteService {
     this.http.post<Expediente>(this.API_URL, expediente).subscribe({
       next: (newExp) => {
         this.expedientesSignal.update(list => [...list, newExp]);
+        this.planService.refresh(); // el uso del plan cambió
       },
       error: () => Swal.fire({ icon: 'error', title: 'Error al crear expediente', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
     });

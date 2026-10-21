@@ -4,6 +4,7 @@ import { Expediente } from './expediente.entity';
 import { Actuacion } from './actuacion.entity';
 import { JudicialSyncService } from './judicial-sync.service';
 import { AuthGuard } from '@nestjs/passport';
+import { PlanLimit, RequiresFeature, AllowWithoutSubscription } from '../plan/plan.decorators';
 
 @Controller('expedientes')
 @UseGuards(AuthGuard('jwt'))
@@ -32,6 +33,7 @@ export class ExpedientesController {
   }
 
   @Post()
+  @PlanLimit('expedientes')
   create(@Body() expediente: Partial<Expediente>, @Request() req) {
     return this.expedientesService.create(expediente, req.user.userId);
   }

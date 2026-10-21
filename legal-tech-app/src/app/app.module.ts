@@ -7,6 +7,7 @@ import { HttpClientModule, provideHttpClient, withInterceptors } from '@angular/
 import { MenubarModule } from 'primeng/menubar';
 import { authInterceptor } from './core/interceptors/auth-interceptor';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
+import { planErrorsInterceptor } from './core/interceptors/plan-errors.interceptor';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -53,7 +54,7 @@ registerLocaleData(localeEsAr);
     // dashboard mostraba "US$ 0,00" como balance del mes de un estudio argentino.
     { provide: DEFAULT_CURRENCY_CODE, useValue: 'ARS' },
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(withInterceptors([authInterceptor, loadingInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, loadingInterceptor, planErrorsInterceptor])),
     providePrimeNG({ 
         theme: {
             preset: Aura,

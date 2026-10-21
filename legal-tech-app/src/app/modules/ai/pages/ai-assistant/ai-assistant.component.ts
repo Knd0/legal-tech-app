@@ -9,6 +9,7 @@ import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import Swal from 'sweetalert2';
 import { jsPDF } from 'jspdf';
+import { PlanService } from '../../../../core/services/plan.service';
 
 @Component({
   selector: 'app-ai-assistant',
@@ -18,6 +19,7 @@ import { jsPDF } from 'jspdf';
 })
 export class AiAssistantComponent implements OnInit {
   private aiService = inject(AiService);
+  planService = inject(PlanService);
   private expedienteService = inject(ExpedienteService);
   public configService = inject(ConfiguracionService);
   private documentsService = inject(DocumentsService);

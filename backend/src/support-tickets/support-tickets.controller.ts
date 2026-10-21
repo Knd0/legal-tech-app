@@ -3,7 +3,9 @@ import { SupportTicketsService } from './support-tickets.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { PlanLimit, RequiresFeature, AllowWithoutSubscription } from '../plan/plan.decorators';
 
+@AllowWithoutSubscription()
 @Controller('support-tickets')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class SupportTicketsController {

@@ -8,6 +8,7 @@ import { SubscriptionService } from '../../../../core/services/subscription.serv
 import Swal from 'sweetalert2';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { PlanService } from '../../../../core/services/plan.service';
 
 @Component({
   selector: 'app-expedientes-list',
@@ -18,6 +19,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 export class ExpedientesListComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
   subscriptionService = inject(SubscriptionService);
+  planService = inject(PlanService);
   expedienteService = inject(ExpedienteService);
   excelService = inject(ExcelService);
   loadingService = inject(LoadingService);

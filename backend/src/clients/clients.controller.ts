@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Request, Qu
 import { ClientsService } from './clients.service';
 import { Client } from './client.entity';
 import { AuthGuard } from '@nestjs/passport';
+import { PlanLimit, RequiresFeature, AllowWithoutSubscription } from '../plan/plan.decorators';
 
 @Controller('clients')
 @UseGuards(AuthGuard('jwt'))
@@ -26,6 +27,7 @@ export class ClientsController {
   }
 
   @Post()
+  @PlanLimit('clientes')
   create(@Body() client: Partial<Client>, @Request() req) {
     return this.clientsService.create(client, req.user.userId);
   }

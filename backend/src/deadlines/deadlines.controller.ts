@@ -3,6 +3,7 @@ import { DeadlinesService } from './deadlines.service';
 import { Deadline } from './deadline.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { PlanLimit, RequiresFeature, AllowWithoutSubscription } from '../plan/plan.decorators';
 
 @UseGuards(JwtAuthGuard)
 @Controller('deadlines')
@@ -36,6 +37,7 @@ export class DeadlinesController {
   }
 
   @Post('analyze-pdf')
+  @RequiresFeature('ai')
   @UseInterceptors(FileInterceptor('file', {
     limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
     fileFilter: (req, file, cb) => {

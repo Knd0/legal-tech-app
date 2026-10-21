@@ -7,11 +7,13 @@ import { PaginatedResponse } from '../models/paginated-response.model';
 import Swal from 'sweetalert2';
 
 import { AuthService } from './auth.service';
+import { PlanService } from './plan.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ClientService {
+  private planService = inject(PlanService);
   
   // State managed by Signal
   private clientsSignal = signal<Cliente[]>([]);
@@ -65,6 +67,7 @@ export class ClientService {
     this.http.post<Cliente>(this.API_URL, newClient).subscribe({
       next: (createdClient) => {
         this.clientsSignal.update(clients => [...clients, createdClient]);
+        this.planService.refresh(); // el uso del plan cambió
       },
       error: () => Swal.fire({ icon: 'error', title: 'Error al crear cliente', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 })
     });

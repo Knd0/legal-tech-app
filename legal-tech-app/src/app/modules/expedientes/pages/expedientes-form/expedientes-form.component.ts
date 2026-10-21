@@ -27,7 +27,7 @@ export class ExpedientesFormComponent implements OnInit {
   ];
 
   portales = [
-    { label: 'No Sincronizar', value: 'NINGUNO' },
+    { label: 'Ninguno', value: 'NINGUNO' },
     { label: 'PJN (Lex100 - Nación)', value: 'PJN' },
     { label: 'MEV PBA (Bs. As.)', value: 'MEV_PBA' }
   ];
@@ -69,7 +69,7 @@ export class ExpedientesFormComponent implements OnInit {
       descripcion: [''],
       portalJudicial: ['NINGUNO'],
       portalId: [''],
-      autoSync: [true]
+      autoSync: [false]
     });
   }
 

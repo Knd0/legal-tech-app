@@ -1,3 +1,4 @@
+import { trialExpiry } from '../plan/plan-policy';
 import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -93,7 +94,7 @@ export class UsersService implements OnModuleInit {
     const newUser = this.usersRepository.create(user);
     const saved = await this.usersRepository.save(newUser);
     await this.subscriptionRepository.save(
-      this.subscriptionRepository.create({ userId: saved.id, subscriptionStatus: 'trial' })
+      this.subscriptionRepository.create({ userId: saved.id, subscriptionStatus: 'trial', subscriptionExpiresAt: trialExpiry() })
     );
     return this.findOneById(saved.id);
   }
@@ -186,7 +187,8 @@ export class UsersService implements OnModuleInit {
         userId: savedUser.id,
         subscriptionStatus: subscriptionStatus ?? 'trial',
         subscriptionPlan: subscriptionPlan ?? 'pro',
-        subscriptionExpiresAt: subscriptionExpiresAt ?? null,
+        // Sin fecha, la prueba no vencía nunca: ahora dura TRIAL_DAYS.
+        subscriptionExpiresAt: subscriptionExpiresAt ?? ((subscriptionStatus ?? 'trial') === 'trial' ? trialExpiry() : null),
         mpSubscriptionId: mpSubscriptionId ?? null,
       })
     );

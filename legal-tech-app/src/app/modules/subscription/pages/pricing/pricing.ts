@@ -5,11 +5,13 @@ import { RouterModule, Router } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 import { AuthService } from '../../../../core/services/auth.service';
 import Swal from 'sweetalert2';
+import { ButtonModule } from 'primeng/button';
+import { PlanService } from '../../../../core/services/plan.service';
 
 @Component({
   selector: 'app-pricing',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ButtonModule],
   templateUrl: './pricing.html'
 })
 export class Pricing implements OnInit {
@@ -18,6 +20,7 @@ export class Pricing implements OnInit {
   authService = inject(AuthService);
 
   loading = signal<'basic' | 'pro' | 'reactivate' | null>(null);
+  planService = inject(PlanService);
   /** La simulación de pagos sólo se muestra en desarrollo (el backend además la apaga por defecto). */
   readonly showPaymentSimulation = !environment.production;
 

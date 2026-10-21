@@ -26,6 +26,7 @@ import { AiModule } from './ai/ai.module';
 import { LegalModelsModule } from './legal-models/legal-models.module';
 import { SupportTicketsModule } from './support-tickets/support-tickets.module';
 import { JurisprudenciaModule } from './jurisprudencia/jurisprudencia.module';
+import { ConsoleModule } from './console/console.module';
 
 
 @Module({
@@ -77,6 +78,7 @@ import { JurisprudenciaModule } from './jurisprudencia/jurisprudencia.module';
       inject: [ConfigService],
     }),
     WhatsappModule,
+    ConsoleModule,
     ClientsModule,
     ExpedientesModule,
     NotificationsModule,
